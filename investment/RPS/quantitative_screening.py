@@ -1,4 +1,5 @@
 # encoding: utf-8
+# 量化选股流程  思路来源: 陶博士
 import os
 import pandas as pd
 import tushare as ts
@@ -7,10 +8,9 @@ import requests
 import json
 import time
 import logging
+from RPS.foreign_capital_increase import foreign_capital_filter
 from security import get_interval_yield
-ts.set_token('b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487')
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-# 量化选股流程
 
 
 def get_fund_holdings(quarter, year=date.today().year):
@@ -28,7 +28,7 @@ def get_fund_holdings(quarter, year=date.today().year):
 
 
 def foreignCapitalHolding():
-    # 外资持股清单(持股市值超过5000万)
+    # 外资持股清单(持股市值超过3000万)
     logging.warning("查询外资持股数据")
     url = "http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get"
     timestamp = int(time.time()*1000)
@@ -51,16 +51,9 @@ def foreignCapitalHolding():
         code = i.get('SCode')
         name = i.get('SName')
         holding_market_value = round(i.get('ShareSZ')/100000000, 2)
-        float_accounted = round(i.get('LTZB')*100, 2)
         if holding_market_value > 0.3:
-            # tmp = {'code': code, 'name': name, 'holding_market_value': holding_market_value, 'float_accounted': float_accounted}
             foreignCapital_pool.add((code, name))
     return foreignCapital_pool
-
-
-def foreignCapital_overweight():
-    # 外资增持
-    pass
 
 
 def get_industry_momentum_value():
@@ -143,7 +136,9 @@ def stock_pool_filter_process():
     pool = close_one_year_high(pool)
     new_pool = []
     [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    print(new_pool)
+    fc_add = foreign_capital_filter()
+    result = [i for i in new_pool if i in fc_add]
+    print(result)
 
 
 if __name__ == '__main__':
