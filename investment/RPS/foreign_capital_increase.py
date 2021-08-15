@@ -23,6 +23,9 @@ def query_share_capital():
     # 查询外资持股的股价和流通股本
     url = "http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get"
     timestamp = int(time.time()*1000)
+    HdDate = date.today()-timedelta(days=1)
+    if HdDate.weekday() not in (0, 1, 2, 3, 4):
+        HdDate = date.today()-timedelta(days=2) if (date.today()-timedelta(days=2)).weekday() in (0, 1, 2, 3, 4) else (date.today()-timedelta(days=3)).weekday()
     params = {
         'callback': f'jQuery1123013917823929726048_{timestamp}',
         'st': 'ShareSZ_Chg_One',
@@ -31,7 +34,7 @@ def query_share_capital():
         'p': 1,
         'type': 'HSGT20_GGTJ_SUM',
         'token': '894050c76af8597a853f5b408b759f5d',
-        'filter': f"(DateType='1')(HdDate='{date.today()-timedelta(days=1)}')"
+        'filter': f"(DateType='1')(HdDate='{HdDate}')"
     }
     r = requests.get(url, params=params)
     response = r.text.split('(')[1].split(')')[0]

@@ -167,7 +167,7 @@ def run():
     filename = "plate_momentum.csv"
     if filename in os.listdir(os.curdir):
         os.remove(filename)
-    # create_RPS_file()
+    create_RPS_file()
     data = get_industry_momentum()
     logging.warning(json.dumps(data, indent=4, ensure_ascii=False))
     df = pd.DataFrame()

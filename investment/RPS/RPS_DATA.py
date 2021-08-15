@@ -8,6 +8,7 @@ import tushare as ts
 from RPS.stock_pool import STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 day = 400   # 上市时间满一年
+rps_days = [50, 120, 250]
 begin_date = int(str(date.today() - timedelta(days=day)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
 
@@ -41,7 +42,7 @@ def get_all_data(stock_list):
     # 构建一个空的 dataframe 用来装数据, 获取列表中所有股票指定范围内的收盘价格
     data = pd.DataFrame()
     count = 0
-    filename = f'daily_data{day}.csv'
+    filename = f'daily_data.csv'
     if filename in os.listdir(os.curdir):
         os.remove(filename)
     for i in stock_list:
@@ -103,13 +104,14 @@ def fill_in_data(df, filename="RPS.csv"):
 
 
 def run():
-    # stock_list = get_stock_list()
-    # get_all_data(stock_list)
-    data = pd.read_csv(f'daily_data{day}.csv', encoding='utf-8', index_col='trade_date')
+    stock_list = get_stock_list()
+    get_all_data(stock_list)
+    data = pd.read_csv(f'daily_data.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
-    ret = cal_ret(data, w=250)
-    rps = all_RPS(ret)
-    fill_in_data(rps, filename='RPS250.csv')
+    for rps_day in rps_days:
+        ret = cal_ret(data, w=rps_day)
+        rps = all_RPS(ret)
+        fill_in_data(rps, filename=f'RPS{rps_day}.csv')
 
 
 if __name__ == "__main__":

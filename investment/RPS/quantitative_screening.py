@@ -100,15 +100,15 @@ def close_one_year_high(codes):
 
 
 def stock_pool_filter_process():
-    rps_pool = get_RPS_stock_pool()
+    rps_pool = get_RPS_stock_pool()     # 股价相对强度RPS优先一切
     fund_pool = get_fund_holdings(quarter=2)
     foreign_capital_pool = foreignCapitalHolding()
-    pool = fund_pool.union(foreign_capital_pool)
+    pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
     pool = [i for i in pool if i in rps_pool]
-    pool = close_one_year_high(pool)
+    pool = close_one_year_high(pool)    # 股价接近一年新高
     new_pool = []
     [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    fc_add = foreign_capital_filter()
+    fc_add = foreign_capital_filter()   # 外资增仓
     result = [i for i in new_pool if i in fc_add]
     print(result)
 

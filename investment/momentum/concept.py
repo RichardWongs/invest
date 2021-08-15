@@ -10,7 +10,7 @@ import pandas as pd
 from datetime import date, timedelta
 from momentum import CONCEPT_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-rps_day = 60
+rps_days = [10, 20, 60]
 day = 150
 begin = int(str(date.today()-timedelta(days=day)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
@@ -187,20 +187,37 @@ def fill_in_data(df, filename="RPS.csv"):
         print(k)
         for code, rps in zip(v.index, v.values):
             rps_df.loc[code, 'NAME'] = [i.get('name') for i in CONCEPT_LIST if i.get('code') == code][0]
-            # rps_df.loc[code, 'INDUSTRY'] = [i.get('industry') for i in CONCEPT_LIST if i.get('code') == code][0]
             rps_df.loc[code, k] = round(float(rps[-1]), 2)
     rps_df.to_csv(filename, encoding='utf-8')
 
 
 def run():
-    # get_all_data(CONCEPT_LIST)
+    get_all_data(CONCEPT_LIST)
     data = pd.read_csv(f'daily_data{day}.csv', encoding='utf-8', index_col=0)
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
-    ret = cal_ret(data, w=rps_day)
-    rps = all_RPS(ret)
-    fill_in_data(rps, filename=f'plate_RPS_{rps_day}.csv')
+    for rps_day in rps_days:
+        ret = cal_ret(data, w=rps_day)
+        rps = all_RPS(ret)
+        fill_in_data(rps, filename=f'plate_RPS_{rps_day}.csv')
+    get_main_up()
+
+
+def get_main_up():
+    files = [f"plate_RPS_{i}.csv" for i in rps_days]
+    rps90 = []
+    for i in files:
+        f = pd.read_csv(i, encoding='utf-8')
+        for j in f.values:
+            if j[-1] >= 90:
+                rps90.append((j[0], j[1]))
+    sets = set()
+    for i in rps90:
+        if rps90.count(i) == 3:
+            sets.add(i)
+    [print(i[0], i[1]) for i in sets]
 
 
 if __name__ == "__main__":
     run()
+
 
