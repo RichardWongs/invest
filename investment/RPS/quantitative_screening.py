@@ -56,34 +56,6 @@ def foreignCapitalHolding():
     return foreignCapital_pool
 
 
-def get_industry_momentum_value():
-    # 板块20日动量分值排行
-    df = pd.read_csv("RPS20.csv", encoding='utf-8')
-    all_data = []
-    data = []
-    for i in df.values:
-        all_data.append(i[2])
-        if i[-1] >= 87:
-            # tmp = {'code': i[0], 'name': i[1], 'industry': i[2], 'RPS20': i[-1]}
-            data.append(i[2])
-
-    all_data_count = {}
-    data_count = {}
-    for i in all_data:
-        all_data_count[i] = all_data.count(i)
-    for i in data:
-        data_count[i] = data.count(i)
-    momentum = []
-    for i in all_data_count.keys():
-        if i in data_count.keys():
-            # print(f"板块:{i}\t上榜数量:{data_count[i]}\t成分数量:{all_data_count[i]}\t")
-            # print(f"板块:{i}\t动量分值:{round(data_count[i]*data_count[i]/all_data_count[i], 2)}")
-            momentum.append({'industry': i, 'momentum_value': round(data_count[i]*data_count[i]/all_data_count[i], 2)})
-    sorted_momentum = sorted(momentum, key=lambda x: x['momentum_value'], reverse=True)
-    [print(i) for i in sorted_momentum]
-    return sorted_momentum
-
-
 def get_RPS_stock_pool():
     # 根据RPS值进行第一步筛选
     logging.warning("根据RPS查询股池")
@@ -129,9 +101,9 @@ def close_one_year_high(codes):
 
 def stock_pool_filter_process():
     rps_pool = get_RPS_stock_pool()
-    fund_pool = get_fund_holdings(2)
-    foreigncapital_pool = foreignCapitalHolding()
-    pool = fund_pool.union(foreigncapital_pool)
+    fund_pool = get_fund_holdings(quarter=2)
+    foreign_capital_pool = foreignCapitalHolding()
+    pool = fund_pool.union(foreign_capital_pool)
     pool = [i for i in pool if i in rps_pool]
     pool = close_one_year_high(pool)
     new_pool = []
