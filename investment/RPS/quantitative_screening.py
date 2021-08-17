@@ -108,6 +108,7 @@ def stock_pool_filter_process():
     pool = close_one_year_high(pool)    # 股价接近一年新高
     new_pool = []
     [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
+    print(new_pool)
     fc_add = foreign_capital_filter()   # 外资增仓
     result = [i for i in new_pool if i in fc_add]
     print(result)
