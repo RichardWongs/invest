@@ -45,11 +45,11 @@ def get_security():
     stock_pool = pool
     week_days = datetime.today().weekday()+1
     for i in stock_pool:
-        source_data = get_stock_kline(i.get('code'), limit=260+week_days)
+        source_data = get_stock_kline(i.get('code'), limit=260+1)
         if source_data:
-            data = source_data[:-week_days]
+            data = source_data[:-1]
             close = source_data[-1]['close']
-            highest = max([i['close'] for i in data])
+            highest = max([i['high'] for i in data])
             value = round(close/highest, 2)
             year_yield = round((data[-1]['close']-data[0]['last_close'])/data[0]['last_close']*100, 2)
             if value > 0.9 and year_yield > benchmark:
@@ -57,6 +57,7 @@ def get_security():
                 security.append(tmp)
         else:
             print(f"{i.get('code')}未获取到数据")
+    # print(security)
     return security
 
 
@@ -96,8 +97,8 @@ def market_open():
     sell_message = f"{date.today()}\n"
     for i in get_position_stocks():
         if i not in stock_pool:
-            sell_message += f"平仓\n{i.get('code')}\t{i.get('name')}\n"
-            print(f"平仓\n{i.get('code')}\t{i.get('name')}\n")
+            sell_message += f"平仓\t{i}\n"
+            print(f"平仓\t{i}\n")
     send_dingtalk_message(sell_message)
     cash = get_available_cash()
     buying_message = f"{date.today()}\n"
@@ -113,5 +114,4 @@ def market_open():
 if __name__ == "__main__":
     start = time.time()
     market_open()
-    print(f"cost time: {int(time.time()-start)}")
-
+    print(f"cost time {int(time.time()-start)} 秒")

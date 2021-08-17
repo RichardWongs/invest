@@ -81,7 +81,7 @@ def get_interval_yield(code, days=250):
     data = get_stock_kline(code, limit=days+1)
     current_price = data[-1]['close']
     data = data[:-1]
-    highest = max([i['close'] for i in data])
+    highest = max([i['high'] for i in data])
     momentum = round(current_price/highest, 3)
     interval_yield = round((data[-1]['close']-data[0]['last_close'])/data[0]['last_close']*100, 2)
     return {'code': code, 'interval_yield': interval_yield, 'momentum': momentum}
