@@ -120,8 +120,8 @@ def foreign_capital_filter():
             if i['code'] == j['code']:
                 i['add_rate'] = round(i['addCount'] / j['share_capital'] * 100, 2)
                 i['add_value'] = int(i['addCount'] * j['price'] / 10000)
-                # if i['add_rate'] >= 1 or i['add_value'] >= 10000:
-                if i['add_value'] >= 5000:
+                if i['add_rate'] >= 1 or i['add_value'] >= 10000:
+                # if i['add_value'] >= 5000:
                     result.append({'code': i['code'], 'name': i['name']})
                     # result.append(i)
     return result
