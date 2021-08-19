@@ -62,7 +62,7 @@ def get_security():
 
 
 def get_buying_point(close_prices, shot_line=5, long_line=20):
-    # 根据均线获取买点
+    # 根据均线获取买点 5日均线上穿20日均线
     assert len(close_prices) > 20
     shot_data = close_prices[-(shot_line+1):]
     long_data = close_prices[-(long_line+1):]
@@ -71,6 +71,19 @@ def get_buying_point(close_prices, shot_line=5, long_line=20):
     long_ma = sum(long_data[1:])/len(long_data[1:])
     long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
     if shot_ma_pre <= long_ma_pre and shot_ma > long_ma:
+        return True
+
+
+def get_buying_point_20_average(code):
+    # 根据均线获取买点
+    data = get_stock_kline(code)
+    close = data[-1]['close']
+    low = data[-1]['low']
+    long_data = [i['close'] for i in data[-22:-1]]
+    long_ma = sum(long_data[1:])/len(long_data[1:])
+    long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
+    if long_ma_pre < long_ma < close and (low <= long_ma or low <= long_ma * 1.005):
+        # 20日均线向上,当日最低价回踩均线,收盘价站上均线
         return True
 
 
@@ -105,7 +118,7 @@ def market_open():
     for i in stocks:
         position_count = len(get_position_stocks())
         if i.get('code') not in get_position_stocks() and max_position_count - position_count > 0:
-            if get_buying_point(i.get('closes')):
+            if get_buying_point_20_average(i.get('code')):
                 buying_message += f"开仓\t{i.get('code')}\t{i.get('name')}\t金额:{cash/(max_position_count - position_count)}"
                 print(f"开仓\t{i.get('code')}\t{i.get('name')}\t{i.get('value')}\t金额:{cash/(max_position_count - position_count)}")
     send_dingtalk_message(buying_message)
