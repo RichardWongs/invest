@@ -82,7 +82,7 @@ def get_buying_point_20_average(code):
     long_data = [i['close'] for i in data[-22:-1]]
     long_ma = sum(long_data[1:])/len(long_data[1:])
     long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
-    if long_ma_pre < long_ma < close and (low <= long_ma or low <= long_ma * 1.005):
+    if long_ma_pre < long_ma < close and (low <= long_ma or low <= long_ma * 1.01):
         # 20日均线向上,当日最低价回踩均线,收盘价站上均线
         return True
 
