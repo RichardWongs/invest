@@ -105,16 +105,17 @@ def stock_pool_filter_process():
     foreign_capital_pool = foreignCapitalHolding()
     pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
     pool = [i for i in pool if i in rps_pool]
+    logging.warning(f"基金持股3% + 北向持股三千万: {pool}")
     pool = close_one_year_high(pool)    # 股价接近一年新高
     new_pool = []
     [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    print(f"基金持股3% + 北向持股三千万 + 股价接近一年新高: {new_pool}")
+    logging.warning(f"基金持股3% + 北向持股三千万 + 股价接近一年新高: {new_pool}")
     fc_add = foreign_capital_filter()   # 外资增仓
     result = [i for i in new_pool if i in fc_add]
-    print(f"外资最近一个月增持超过一亿或1%流通股: {result}")
+    logging.warning(f"外资最近一个月增持超过一亿或1%流通股: {result}")
 
 
-if __name__ == '__main__':
-    stock_pool_filter_process()
+# if __name__ == '__main__':
+#     stock_pool_filter_process()
 
 

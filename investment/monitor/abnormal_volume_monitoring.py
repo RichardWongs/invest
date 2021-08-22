@@ -1,7 +1,6 @@
 import os
 import logging
 import pandas as pd
-import requests, json, time
 from datetime import date
 from apscheduler.schedulers.blocking import BlockingScheduler
 from security import get_stock_kline_with_volume
@@ -17,7 +16,7 @@ class SecurityException(BaseException):
 def get_average_price(kline, days):
     closes = [i['close'] for i in kline]
     assert len(closes) >= days
-    return sum(closes[-days:])/days
+    return sum(closes[-days:]) / days
 
 
 def get_RPS_stock_pool(rps_value):
@@ -35,14 +34,14 @@ def get_RPS_stock_pool(rps_value):
 
 
 def stock_pool_filter_process():
-    rps_pool = get_RPS_stock_pool(rps_value=90)     # 股价相对强度RPS优先一切
+    rps_pool = get_RPS_stock_pool(rps_value=90)  # 股价相对强度RPS优先一切
     fund_pool = get_fund_holdings(quarter=2)
     foreign_capital_pool = foreignCapitalHolding()
-    pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
+    pool = fund_pool.union(foreign_capital_pool)  # 基金持股3% + 北向持股三千万
     pool = [i for i in pool if i in rps_pool]
     new_pool = []
     [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    print(f"基金持股3% + 北向持股三千万: {new_pool}")
+    logging.warning(f"基金持股3% + 北向持股三千万: {new_pool}")
     return new_pool
 
 
@@ -54,8 +53,10 @@ def run_monitor():
         kline_item = kline[-1]
         if (kline_item['volume_ratio'] > 2 and kline_item['applies'] >= 5) \
                 or (kline_item['volume_ratio'] < 0.6 and kline_item['applies'] < 0):
-            notify_message += f"{i}\t"
-    if len(notify_message.split('\t')) > 1 and notify_message.split('\t')[1]:
+            i['volume_ratio'] = kline_item['volume_ratio']
+            i['applies'] = kline_item['applies']
+            notify_message += f"{i}\n"
+    if len(notify_message.split('\n')) > 2 and notify_message.split('\n')[2]:
         logging.warning(notify_message)
         send_dingtalk_message(notify_message)
 
@@ -74,8 +75,9 @@ def holding_volume_monitor():
         send_dingtalk_message(notify_message)
 
 
-if __name__ == '__main__':
-    sched = BlockingScheduler()
-    sched.add_job(run_monitor, 'cron', hour="14", minute="40")
-    sched.add_job(holding_volume_monitor, 'cron', hour="14", minute="45")
-    sched.start()
+# if __name__ == '__main__':
+#     sched = BlockingScheduler()
+#     sched.add_job(run_monitor, 'cron', day_of_week="0-4", hour="14", minute="40")
+#     sched.add_job(holding_volume_monitor, 'cron', day_of_week="0-4", hour="14", minute="45")
+#     sched.start()
+    # run_monitor()
