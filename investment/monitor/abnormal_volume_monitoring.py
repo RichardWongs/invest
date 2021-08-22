@@ -1,7 +1,6 @@
 import os
 import logging
 import pandas as pd
-import requests, json, time
 from datetime import date
 from apscheduler.schedulers.blocking import BlockingScheduler
 from security import get_stock_kline_with_volume
