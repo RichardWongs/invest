@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 import requests, json, time
 from datetime import date
-# from security import get_stock_kline_with_volume
+from apscheduler.schedulers.blocking import BlockingScheduler
+from security import get_stock_kline_with_volume
 from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding
 from security import send_dingtalk_message
 from security.动量选股 import get_position_stocks
@@ -17,72 +18,6 @@ def get_average_price(kline, days):
     closes = [i['close'] for i in kline]
     assert len(closes) >= days
     return sum(closes[-days:])/days
-
-
-def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
-    assert period in (5, 15, 30, 60, 101, 102, 103)
-    if is_index:
-        if code.startswith('3'):
-            secid = f'0.{code}'
-        elif code.startswith('0'):
-            secid = f'1.{code}'
-        elif code.startswith('H') or code.startswith('9'):
-            secid = f'2.{code}'
-        else:
-            return None
-    else:
-        if str(code)[0] in ('0', '1', '3'):
-            secid = f'0.{code}'
-        else:
-            secid = f'1.{code}'
-    url = f"http://67.push2his.eastmoney.com/api/qt/stock/kline/get"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
-    }
-    params = {
-        'cb': "jQuery11240671737283431526_1624931273440",
-        'secid': secid,
-        'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
-        'fields1': 'f1,f2,f3,f4,f5,f6',
-        'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
-        'klt': period,
-        'fqt': 0,
-        'end': '20500101',
-        'lmt': limit,
-        '_': f'{int(time.time()) * 1000}'
-    }
-    try:
-        r = requests.get(url, headers=headers, params=params).text
-        r = r.split('(')[1].split(')')[0]
-        r = json.loads(r)
-        if 'data' in r.keys():
-            if isinstance(r['data'], dict) and 'klines' in r['data'].keys():
-                r = r['data']['klines']
-                r = [i.split(',') for i in r]
-                new_data = []
-                for i in r:
-                    i = {'day': i[0], 'open': float(i[1]), 'close': float(i[2]),
-                         'high': float(i[3]), 'low': float(i[4]), 'volume': float(i[6]),
-                         'applies': float(i[8])}
-                    new_data.append(i)
-                for i in range(len(new_data)):
-                    if i > 0:
-                        new_data[i]['last_close'] = new_data[i-1]['close']
-                    if i > 10:
-                        avg_volume = 0
-                        for j in range(i-1, i-11, -1):
-                            avg_volume += new_data[j]['volume']
-                        new_data[i]['avg_volume'] = avg_volume/10
-                        if new_data[i]['volume'] > new_data[i]['avg_volume'] * 2:
-                            new_data[i]['abnormal_volume'] = 1
-                        elif new_data[i]['volume'] < new_data[i]['avg_volume'] / 2:
-                            new_data[i]['abnormal_volume'] = 2
-                        else:
-                            new_data[i]['abnormal_volume'] = 0
-                return new_data[1:]
-    except SecurityException() as e:
-        print(e)
-        return None
 
 
 def get_RPS_stock_pool(rps_value):
@@ -117,9 +52,11 @@ def run_monitor():
     for i in pool:
         kline = get_stock_kline_with_volume(i['code'])
         kline_item = kline[-1]
-        if (kline_item['abnormal_volume'] == 1 and kline_item['applies'] >= 5) or (kline_item['abnormal_volume'] == 2 and kline_item['applies'] < 0):
+        if (kline_item['volume_ratio'] > 2 and kline_item['applies'] >= 5) \
+                or (kline_item['volume_ratio'] < 0.6 and kline_item['applies'] < 0):
             notify_message += f"{i}\t"
     if len(notify_message.split('\t')) > 1 and notify_message.split('\t')[1]:
+        logging.warning(notify_message)
         send_dingtalk_message(notify_message)
 
 
@@ -130,12 +67,15 @@ def holding_volume_monitor():
         kline = get_stock_kline_with_volume(i)
         close = kline[-1]['close']
         day50_avg = get_average_price(kline, days=50)
-        if close < day50_avg or kline[-1]['abnormal_volume'] == 1:
+        if close < day50_avg or kline[-1]['volume_ratio'] > 2:
             notify_message += f"{i}\t"
     if len(notify_message.split('\t')) > 1 and notify_message.split('\t')[1]:
-        print(notify_message.split('\t'))
+        logging.warning(notify_message)
         send_dingtalk_message(notify_message)
 
 
-run_monitor()
-holding_volume_monitor()
+if __name__ == '__main__':
+    sched = BlockingScheduler()
+    sched.add_job(run_monitor, 'cron', hour="14", minute="40")
+    sched.add_job(holding_volume_monitor, 'cron', hour="14", minute="45")
+    sched.start()

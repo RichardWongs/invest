@@ -10,7 +10,7 @@ import pandas as pd
 from datetime import date, timedelta
 from momentum import CONCEPT_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-rps_days = [10, 20, 60]
+rps_days = [5, 10, 20, 60]
 day = 150
 begin = int(str(date.today()-timedelta(days=day)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
@@ -212,7 +212,7 @@ def get_main_up():
                 rps90.append((j[0], j[1]))
     sets = set()
     for i in rps90:
-        if rps90.count(i) == 3:
+        if rps90.count(i) >= 3:
             sets.add(i)
     [print(i[0], i[1]) for i in sets]
 
