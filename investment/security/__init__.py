@@ -120,6 +120,7 @@ def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
                         for j in range(i-1, i-11, -1):
                             avg_volume += new_data[j]['volume']
                         new_data[i]['avg_volume'] = avg_volume/10
+                        new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
                 return new_data[1:]
     except SecurityException() as e:
         print(e)
@@ -155,5 +156,10 @@ def get_interval_yield(code, days=250):
         (data[-1]['close'] - data[0]['last_close']) / data[0]['last_close'] * 100, 2)
     return {'code': code, 'interval_yield': interval_yield, 'momentum': momentum}
 
+
+# data = get_stock_kline_with_volume('300726')
+# for i in data:
+#     if 'volume_ratio' in i.keys() and i['volume_ratio']:
+#         print(f"日期: {i['day']}\t涨跌幅: {i['applies']}\t成交量比值: {i['volume_ratio']}")
 
 

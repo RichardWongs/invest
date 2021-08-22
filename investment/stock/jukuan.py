@@ -4,6 +4,7 @@ from jqdatasdk.technical_analysis import *
 from datetime import datetime
 jq.auth('16651605580', 'Aa123456')
 
+
 def get_EMA(prices, days):
     emas = prices.copy()  # 创造一个和cps一样大小的集合
     for i in range(len(prices)):
@@ -12,6 +13,7 @@ def get_EMA(prices, days):
         if i > 0:
             emas[i] = ((days - 1) * emas[i - 1] + 2 * prices[i]) / (days + 1)
     return emas[-1]
+
 
 def average_line(code, shot_days, long_days):
     shot_data = jq.get_price(code, end_date=datetime.today(), count=shot_days+1)
@@ -24,6 +26,7 @@ def average_line(code, shot_days, long_days):
     long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
     if shot_ma_pre <= long_ma_pre and shot_ma > long_ma:
         print("短均线上穿长均线")
+
 
 class Stock:
     def __init__(self, code):
