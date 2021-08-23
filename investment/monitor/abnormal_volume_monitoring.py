@@ -19,6 +19,16 @@ def get_average_price(kline, days):
     return sum(closes[-days:]) / days
 
 
+def get_avg_line_20_to_50(kline):
+    # 股价介于50日均线之上至20日均线附近
+    assert len(kline) > 50
+    close = kline[-1]['close']
+    avg_20 = get_average_price(kline, 20)
+    avg_50 = get_average_price(kline, 50)
+    if avg_50 < close <= avg_20 * 1.03:
+        return True
+
+
 def get_RPS_stock_pool(rps_value):
     # 根据RPS值进行第一步筛选
     os.chdir("../RPS")

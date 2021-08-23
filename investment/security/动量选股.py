@@ -105,7 +105,7 @@ def get_available_cash():
 def market_open():
     # 开盘时运行函数
     max_position_count = 3
-    stocks = get_security()
+    stocks = pool # get_security()
     stock_pool = [i['code'] for i in stocks]
     sell_message = f"{date.today()}\n"
     for i in get_position_stocks():
