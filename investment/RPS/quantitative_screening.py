@@ -115,7 +115,7 @@ def stock_pool_filter_process():
     logging.warning(f"外资最近一个月增持超过一亿或1%流通股: {result}")
 
 
-# if __name__ == '__main__':
-#     stock_pool_filter_process()
+if __name__ == '__main__':
+    stock_pool_filter_process()
 
 

@@ -6,7 +6,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from security import get_stock_kline_with_volume
 from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding
 from security import send_dingtalk_message
-from security.动量选股 import get_position_stocks
+from security.动量选股 import get_position_stocks, get_buying_point_50_average
 
 
 class SecurityException(BaseException):
@@ -25,7 +25,7 @@ def get_avg_line_20_to_50(kline):
     close = kline[-1]['close']
     avg_20 = get_average_price(kline, 20)
     avg_50 = get_average_price(kline, 50)
-    if avg_50 < close <= avg_20 * 1.03:
+    if avg_50 < close <= avg_20 * 1.02:
         return True
 
 
@@ -85,9 +85,13 @@ def holding_volume_monitor():
         send_dingtalk_message(notify_message)
 
 
-# if __name__ == '__main__':
-#     sched = BlockingScheduler()
-#     sched.add_job(run_monitor, 'cron', day_of_week="0-4", hour="14", minute="40")
-#     sched.add_job(holding_volume_monitor, 'cron', day_of_week="0-4", hour="14", minute="45")
-#     sched.start()
+def get_stock_from_pool():
+    pool = stock_pool_filter_process()
+    for i in pool:
+        if get_buying_point_50_average(i['code']):
+            print(i)
+
+
+if __name__ == '__main__':
     # run_monitor()
+    get_stock_from_pool()
