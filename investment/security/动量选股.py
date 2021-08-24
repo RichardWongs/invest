@@ -75,6 +75,19 @@ def get_buying_point(close_prices, shot_line=5, long_line=20):
         return True
 
 
+def get_buying_point_20_average(code):
+    # 根据均线获取买点
+    data = get_stock_kline(code)
+    close = data[-1]['close']
+    low = data[-1]['low']
+    long_data = [i['close'] for i in data[-21:]]
+    long_ma = sum(long_data[1:])/len(long_data[1:])
+    long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
+    if long_ma < close and (low <= long_ma):
+        # 20日均线向上,当日最低价回踩均线,收盘价站上均线
+        return True
+
+
 def get_buying_point_50_average(code):
     # 根据均线获取买点
     data = get_stock_kline(code)

@@ -4,9 +4,9 @@ import pandas as pd
 from datetime import date
 from apscheduler.schedulers.blocking import BlockingScheduler
 from security import get_stock_kline_with_volume
-from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding
+from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding, close_one_year_high
 from security import send_dingtalk_message
-from security.动量选股 import get_position_stocks, get_buying_point_50_average
+from security.动量选股 import get_position_stocks, get_buying_point_50_average, get_buying_point_20_average
 
 
 class SecurityException(BaseException):
@@ -55,8 +55,7 @@ def stock_pool_filter_process():
     return new_pool
 
 
-def run_monitor():
-    pool = stock_pool_filter_process()
+def run_volume_monitor(pool):
     notify_message = f"{date.today()}\n成交量异常警告:\n"
     notify_stocks = []
     for i in pool:
@@ -90,8 +89,7 @@ def holding_volume_monitor():
         send_dingtalk_message(notify_message)
 
 
-def get_stock_from_pool():
-    pool = stock_pool_filter_process()
+def get_buying_point_by_50_average(pool):
     message = f"{date.today()}\n价格位于50日均线附近\n"
     for i in pool:
         if get_buying_point_50_average(i['code']):
@@ -100,6 +98,30 @@ def get_stock_from_pool():
     send_dingtalk_message(message)
 
 
+def sending_today_stock_pool():
+    pool = stock_pool_filter_process()
+    run_volume_monitor(pool)
+    get_buying_point_by_50_average(pool)
+
+
+def sending_today_strong_stock():
+    rps_pool = get_RPS_stock_pool(rps_value=90)  # 股价相对强度RPS优先一切
+    fund_pool = get_fund_holdings(quarter=2)
+    foreign_capital_pool = foreignCapitalHolding()
+    pool = fund_pool.union(foreign_capital_pool)  # 基金持股3% + 北向持股三千万
+    pool = [i for i in pool if i in rps_pool]
+    pool = close_one_year_high(pool)  # 股价接近一年新高
+    new_pool = []
+    [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
+    logging.warning(f"基金持股3% + 北向持股三千万 + 股价接近一年新高: {new_pool}")
+    message = f"{date.today()}\n股价回踩20日均线\n"
+    for i in new_pool:
+        if get_buying_point_20_average(i['code']):
+            message += f"{i}\n"
+    if len(message.split('\n')) > 2 and message.split('\n')[2]:
+        logging.warning(message)
+        send_dingtalk_message(message)
+
+
 if __name__ == '__main__':
-    # run_monitor()
-    get_stock_from_pool()
+    sending_today_stock_pool()
