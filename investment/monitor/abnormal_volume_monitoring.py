@@ -58,6 +58,7 @@ def stock_pool_filter_process():
 def run_monitor():
     pool = stock_pool_filter_process()
     notify_message = f"{date.today()}\n成交量异常警告:\n"
+    notify_stocks = []
     for i in pool:
         kline = get_stock_kline_with_volume(i['code'])
         kline_item = kline[-1]
@@ -65,6 +66,10 @@ def run_monitor():
                 or (kline_item['volume_ratio'] < 0.6 and kline_item['applies'] < 0):
             i['volume_ratio'] = kline_item['volume_ratio']
             i['applies'] = kline_item['applies']
+            notify_stocks.append(i)
+    sorted_stocks = sorted(notify_stocks, key=lambda x: x['volume_ratio'], reverse=True)
+    if sorted_stocks:
+        for i in sorted_stocks:
             notify_message += f"{i}\n"
     if len(notify_message.split('\n')) > 2 and notify_message.split('\n')[2]:
         logging.warning(notify_message)
@@ -87,9 +92,12 @@ def holding_volume_monitor():
 
 def get_stock_from_pool():
     pool = stock_pool_filter_process()
+    message = f"{date.today()}\n价格位于50日均线附近\n"
     for i in pool:
         if get_buying_point_50_average(i['code']):
-            print(i)
+            message += f"{i}\n"
+    logging.warning(message)
+    send_dingtalk_message(message)
 
 
 if __name__ == '__main__':

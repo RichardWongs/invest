@@ -1,9 +1,10 @@
 import requests
-import time
+import os, sys
 import configparser
 from security import get_stock_kline, send_dingtalk_message
 from datetime import datetime, date
 from security.stock_pool import pool
+sys.path.append(os.path.abspath(os.curdir))
 
 
 def readconfig(env, configfile='security.ini'):
