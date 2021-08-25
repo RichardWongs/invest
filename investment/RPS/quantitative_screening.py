@@ -114,6 +114,7 @@ def stock_pool_filter_process():
     fc_add = foreign_capital_filter()   # 外资增仓
     result = [i for i in new_pool if i in fc_add]
     logging.warning(f"外资最近一个月增持超过一亿或1%流通股: {result}")
+    return result
 
 
 if __name__ == '__main__':

@@ -2,9 +2,8 @@ import os
 import logging
 import pandas as pd
 from datetime import date
-from apscheduler.schedulers.blocking import BlockingScheduler
 from security import get_stock_kline_with_volume
-from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding, close_one_year_high
+from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding, close_one_year_high, stock_pool_filter_process
 from security import send_dingtalk_message
 from security.动量选股 import get_position_stocks, get_buying_point_50_average, get_buying_point_20_average
 
@@ -108,17 +107,10 @@ def sending_today_stock_pool():
 
 
 def sending_today_strong_stock():
-    rps_pool = get_RPS_stock_pool(rps_value=90)  # 股价相对强度RPS优先一切
-    fund_pool = get_fund_holdings(quarter=2)
-    foreign_capital_pool = foreignCapitalHolding()
-    pool = fund_pool.union(foreign_capital_pool)  # 基金持股3% + 北向持股三千万
-    pool = [i for i in pool if i in rps_pool]
-    pool = close_one_year_high(pool)  # 股价接近一年新高
-    new_pool = []
-    [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    logging.warning(f"基金持股3% + 北向持股三千万 + 股价接近一年新高: {new_pool}")
+    pool = stock_pool_filter_process()
+    logging.warning(f"基金持股3% + 北向持股三千万 + 股价接近一年新高 + 外资增持: {pool}")
     message = f"{date.today()}\n股价回踩20日均线\n"
-    for i in new_pool:
+    for i in pool:
         if get_buying_point_20_average(i['code']):
             message += f"{i}\n"
     if len(message.split('\n')) > 2 and message.split('\n')[2]:
