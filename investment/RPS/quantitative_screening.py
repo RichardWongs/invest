@@ -53,6 +53,7 @@ def foreignCapitalHolding():
         holding_market_value = round(i.get('ShareSZ')/100000000, 2)
         if holding_market_value > 0.3:
             foreignCapital_pool.add((code, name))
+    logging.warning(f"东方财富查询外资持仓: {foreignCapital_pool}")
     return foreignCapital_pool
 
 

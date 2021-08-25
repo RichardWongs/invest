@@ -66,7 +66,10 @@ def run_volume_monitor(pool):
             i['volume_ratio'] = kline_item['volume_ratio']
             i['applies'] = kline_item['applies']
             notify_stocks.append(i)
-    sorted_stocks = sorted(notify_stocks, key=lambda x: x['volume_ratio'], reverse=True)
+    sorted_stocks = sorted(
+        notify_stocks,
+        key=lambda x: x['volume_ratio'],
+        reverse=True)
     if sorted_stocks:
         for i in sorted_stocks:
             notify_message += f"{i}\n"
@@ -124,4 +127,5 @@ def sending_today_strong_stock():
 
 
 if __name__ == '__main__':
-    sending_today_stock_pool()
+    # sending_today_stock_pool()
+    sending_today_strong_stock()
