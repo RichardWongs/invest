@@ -42,18 +42,6 @@ def get_RPS_stock_pool(rps_value):
     return pool
 
 
-def stock_pool_filter_process():
-    rps_pool = get_RPS_stock_pool(rps_value=90)  # 股价相对强度RPS优先一切
-    fund_pool = get_fund_holdings(quarter=2)
-    foreign_capital_pool = foreignCapitalHolding()
-    pool = fund_pool.union(foreign_capital_pool)  # 基金持股3% + 北向持股三千万
-    pool = [i for i in pool if i in rps_pool]
-    new_pool = []
-    [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    logging.warning(f"基金持股3% + 北向持股三千万: {new_pool}")
-    return new_pool
-
-
 def run_volume_monitor(pool):
     notify_message = f"{date.today()}\n成交量异常警告:\n"
     notify_stocks = []
@@ -108,7 +96,7 @@ def sending_today_stock_pool():
 
 def sending_today_strong_stock():
     pool = stock_pool_filter_process()
-    logging.warning(f"基金持股3% + 北向持股三千万 + 股价接近一年新高 + 外资增持: {pool}")
+    logging.warning(f"基金持股3% + 北向持股三千万 + 外资增持 + 股价接近一年新高: {pool}")
     message = f"{date.today()}\n股价回踩20日均线\n"
     for i in pool:
         if get_buying_point_20_average(i['code']):
@@ -119,5 +107,5 @@ def sending_today_strong_stock():
 
 
 if __name__ == '__main__':
-    # sending_today_stock_pool()
+    sending_today_stock_pool()
     sending_today_strong_stock()

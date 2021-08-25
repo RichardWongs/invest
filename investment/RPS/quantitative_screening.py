@@ -59,6 +59,7 @@ def foreignCapitalHolding():
 
 def get_RPS_stock_pool():
     # 根据RPS值进行第一步筛选
+    os.chdir("../RPS")
     logging.warning("根据RPS查询股池")
     pool = set()
     files = ['RPS50.csv', 'RPS120.csv', 'RPS250.csv']
@@ -89,15 +90,15 @@ def get_close(code):
     return {'code': code, 'interval_yield': interval_yield, 'momentum': momentum}
 
 
-def close_one_year_high(codes):
+def close_one_year_high(pool):
     # 接近一年新高
     logging.warning("股价接近一年新高")
-    pool = []
-    for i in codes:
-        data = get_interval_yield(i[0])
+    result = []
+    for i in pool:
+        data = get_interval_yield(i['code'])
         if data['momentum'] > 0.9:
-            pool.append(i)
-    return pool
+            result.append(i)
+    return result
 
 
 def stock_pool_filter_process():
@@ -106,15 +107,14 @@ def stock_pool_filter_process():
     foreign_capital_pool = foreignCapitalHolding()
     pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
     pool = [i for i in pool if i in rps_pool]
+    pool = [{'code': i[0], 'name': i[1]} for i in pool]
     logging.warning(f"基金持股3% + 北向持股三千万: {pool}")
+    fc_add = foreign_capital_filter()  # 外资增仓
+    pool = [i for i in pool if i in fc_add]
+    logging.warning(f"外资最近一个月增持超过一亿或1%流通股: {pool}")
     pool = close_one_year_high(pool)    # 股价接近一年新高
-    new_pool = []
-    [new_pool.append({'code': i[0], 'name': i[1]}) for i in pool]
-    logging.warning(f"基金持股3% + 北向持股三千万 + 股价接近一年新高: {new_pool}")
-    fc_add = foreign_capital_filter()   # 外资增仓
-    result = [i for i in new_pool if i in fc_add]
-    logging.warning(f"外资最近一个月增持超过一亿或1%流通股: {result}")
-    return result
+    logging.warning(f"基金持股3% + 北向持股三千万 + 外资增持 + 股价接近一年新高: {pool}")
+    return pool
 
 
 if __name__ == '__main__':
