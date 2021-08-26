@@ -32,13 +32,22 @@ class Stock_BaseInfo:
                f"\t收入同比:{self.rev_yoy}\t利润同比:{self.profit_yoy}\t每股收益:{self.eps}\t每股未分配利润:{self.per_undp}" \
                f"\t每股公积金:{self.reserved_pershare}\t每股净资产:{self.bvps}\t毛利率:{self.gpr}\t净利润率:{self.npr}"
 
+    def get_yield(self, day=365):
+        from datetime import date, timedelta
+        days = int(str(date.today() - timedelta(days=day)).replace('-', ''))
+        data = pro.daily(ts_code=self.code, start_date=days, fields='trade_date,close')
+        now = data.values[0][1]
+        last_year = data.values[-1][1]
+        yields = round((now - last_year) / last_year * 100, 2)
+        return yields
+
     @staticmethod
     def growth_run():
         data = pro.bak_basic(trade_date='20210826')
         for i in data.values:
             if 0 < int(i[16]) < 20200101:
                 s = Stock_BaseInfo()
-                s.code = i[1].split('.')[0]
+                s.code = i[1]
                 s.name = i[2]
                 s.industry = i[3]
                 s.pe = float(i[5])
@@ -53,8 +62,11 @@ class Stock_BaseInfo:
                 s.profit_yoy = float(i[-4])
                 s.gpr = float(i[-3])
                 s.npr = float(i[-2])
-                if 0 < s.pe < 100 and s.profit_yoy > 20 and s.pe / s.profit_yoy * 100 < 1:
-                    print(s, f"\tPEG:{s.pe / s.profit_yoy}")
+                s.one_year_yield = s.get_yield()
+                s.one_month_yield = s.get_yield(30)
+                if 0 < s.pe < 100 and s.profit_yoy > 20 and s.pe / s.profit_yoy * 100 < 0.6:
+                    print(f"代码:{s.code}\t名称:{s.name}\tPEG:{s.pe / s.profit_yoy}\t一年涨幅:{s.one_year_yield}\t一月涨幅:{s.one_month_yield}")
 
 
-Stock_BaseInfo().growth_run()
+# Stock_BaseInfo().growth_run()
+
