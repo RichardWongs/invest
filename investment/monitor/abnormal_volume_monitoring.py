@@ -108,3 +108,4 @@ def sending_today_stock_pool():
 
 if __name__ == '__main__':
     sending_today_stock_pool()
+

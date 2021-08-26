@@ -1,4 +1,4 @@
-import requests,time,json
+import requests, time, json
 
 
 class Momentum:
@@ -28,12 +28,11 @@ class Momentum:
     def __str__(self):
         return f"code:{self.code}\t当前价格:{self.current_price}\t52周最高价:{self.week52_highest}\t动量值:{self.momentum_value}\t12个月累计收益:{self.cumulative_yield}\t超额收益:{self.excess_yield}"
 
-
-    def get_stock_kline(self,code=None, period=101, limit=120):
-        assert period in (5,15,30,60,101,102,103)
+    def get_stock_kline(self, code=None, period=101, limit=120):
+        assert period in (5, 15, 30, 60, 101, 102, 103)
         if not code:
             code = self.code
-        if str(code)[0] in ('0','1','3'):
+        if str(code)[0] in ('0', '1', '3'):
             secid = f'0.{code}'
         else:
             secid = f'1.{code}'
@@ -48,7 +47,7 @@ class Momentum:
             'fqt': 0,
             'end': '20500101',
             'lmt': limit,
-            '_': f'{int(time.time())*1000}'
+            '_': f'{int(time.time()) * 1000}'
         }
         try:
             r = requests.get(url, params=params).text
@@ -73,10 +72,11 @@ class Momentum:
             print(e)
             return None
 
-
     def get_benchmark(self):
         benchmark_data = self.get_stock_kline(code=self.benchmark, period=103, limit=18)
-        self.benchmark_yield = round((benchmark_data[-2]['close']-benchmark_data[-13]['last_close'])/benchmark_data[-13]['last_close']*100, 2)
+        self.benchmark_yield = round(
+            (benchmark_data[-2]['close'] - benchmark_data[-13]['last_close']) / benchmark_data[-13]['last_close'] * 100,
+            2)
         # print(self.benchmark_yield)
 
     def cumulative_run(self):
@@ -84,15 +84,17 @@ class Momentum:
         if data_week:
             self.week52_highest = max([i['high'] for i in data_week[:-1]])
             self.current_price = data_week[-1]['close']
-            self.momentum_value = round(self.current_price/self.week52_highest, 2)
+            self.momentum_value = round(self.current_price / self.week52_highest, 2)
         data_month = self.get_stock_kline(period=103, limit=18)
         if data_month:
-            self.cumulative_yield = round((data_month[-2]['close']-data_month[-13]['last_close'])/data_month[-13]['last_close']*100, 2)
-            self.excess_yield = round(self.cumulative_yield-self.benchmark_yield, 2)
+            self.cumulative_yield = round(
+                (data_month[-2]['close'] - data_month[-13]['last_close']) / data_month[-13]['last_close'] * 100, 2)
+            self.excess_yield = round(self.cumulative_yield - self.benchmark_yield, 2)
 
 
 import tushare
 pro = tushare.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
+
 
 class Stock_BaseInfo:
     def __init__(self):
@@ -144,7 +146,6 @@ class Stock_BaseInfo:
             tmp.append(s)
             if s.code.startswith('3') and s.rev_yoy > 80 and s.profit_yoy > 80:
                 print(s)
-
 
 
 for i in range(300001, 300500):

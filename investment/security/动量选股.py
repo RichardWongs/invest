@@ -3,7 +3,7 @@ import logging
 import requests
 import os, sys
 import configparser
-from security import get_stock_kline, send_dingtalk_message
+from security import get_stock_kline, send_dingtalk_message, get_stock_kline_with_volume
 from datetime import datetime, date
 from security.stock_pool import pool
 sys.path.append(os.path.abspath(os.curdir))
@@ -79,7 +79,7 @@ def get_buying_point(close_prices, shot_line=5, long_line=20):
 
 def get_buying_point_20_average(code):
     # 根据均线获取买点
-    data = get_stock_kline(code)
+    data = get_stock_kline_with_volume(code)
     close = data[-1]['close']
     low = data[-1]['low']
     long_data = [i['close'] for i in data[-21:]]
