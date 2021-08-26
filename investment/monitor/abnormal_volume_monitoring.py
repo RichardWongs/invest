@@ -84,19 +84,12 @@ def get_buying_point_by_50_average(pool):
     for i in pool:
         if get_buying_point_50_average(i['code']):
             message += f"{i}\n"
-    logging.warning(message)
-    send_dingtalk_message(message)
+    if len(message.split('\n')) > 2 and message.split('\n')[2]:
+        logging.warning(message)
+        send_dingtalk_message(message)
 
 
-def sending_today_stock_pool():
-    pool = stock_pool_filter_process()
-    run_volume_monitor(pool)
-    get_buying_point_by_50_average(pool)
-
-
-def sending_today_strong_stock():
-    pool = stock_pool_filter_process()
-    logging.warning(f"基金持股3% + 北向持股三千万 + 外资增持 + 股价接近一年新高: {pool}")
+def get_today_strong_stock(pool):
     message = f"{date.today()}\n股价回踩20日均线\n"
     for i in pool:
         if get_buying_point_20_average(i['code']):
@@ -106,6 +99,12 @@ def sending_today_strong_stock():
         send_dingtalk_message(message)
 
 
+def sending_today_stock_pool():
+    pool = stock_pool_filter_process()
+    run_volume_monitor(pool)
+    get_buying_point_by_50_average(pool)
+    get_today_strong_stock(pool)
+
+
 if __name__ == '__main__':
     sending_today_stock_pool()
-    sending_today_strong_stock()

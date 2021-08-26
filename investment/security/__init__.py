@@ -46,6 +46,7 @@ def get_stock_kline(code, is_index=False, period=101, limit=120):
         r = json.loads(r)
         if 'data' in r.keys():
             if isinstance(r['data'], dict) and 'klines' in r['data'].keys():
+                new_data = {'code': r['data']['code'], 'name': r['data']['name'], 'kline': []}
                 r = r['data']['klines']
                 data = []
                 for i in range(len(r)):
@@ -60,7 +61,9 @@ def get_stock_kline(code, is_index=False, period=101, limit=120):
                     if i > 0:
                         tmp['last_close'] = float(r[i - 1].split(',')[2])
                     data.append(tmp)
-                return data[1:]
+                new_data['kline'] = data[1:]
+                # return data[1:]
+                return new_data
     except SecurityException() as e:
         print(e)
         return None
@@ -147,7 +150,7 @@ def send_dingtalk_message(message):
 
 def get_interval_yield(code, days=250):
     # 查询区间收益率
-    data = get_stock_kline(code, limit=days + 1)
+    data = get_stock_kline_with_volume(code, limit=days + 1)
     current_price = data[-1]['close']
     data = data[:-1]
     highest = max([i['high'] for i in data])

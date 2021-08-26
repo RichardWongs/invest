@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import os, sys
 import configparser
@@ -91,14 +93,24 @@ def get_buying_point_20_average(code):
 def get_buying_point_50_average(code):
     # 根据均线获取买点
     data = get_stock_kline(code)
-    close = data[-1]['close']
-    low = data[-1]['low']
-    long_data = [i['close'] for i in data[-51:]]
+    close = data['kline'][-1]['close']
+    low = data['kline'][-1]['low']
+    long_data = [i['close'] for i in data['kline'][-51:]]
     long_ma = sum(long_data[1:])/len(long_data[1:])
     long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
     if long_ma < close and (low <= long_ma or low <= long_ma * 1.02):
         # 50日均线向上,当日最低价回踩均线,收盘价站上均线
         return True
+
+
+def get_selling_point(code):
+    data = get_stock_kline(code)
+    close = data['kline'][-1]['close']
+    long_data = [i['close'] for i in data['kline'][-51:]]
+    long_ma = round(sum(long_data[1:])/len(long_data[1:]), 2)
+    if close < long_ma:
+        del data['kline']
+        return data
 
 
 def get_position_stocks():
@@ -118,14 +130,15 @@ def get_available_cash():
 
 def market_open():
     # 开盘时运行函数
-    max_position_count = 3
-    stocks = pool # get_security()
+    max_position_count = 10
+    stocks = pool
     stock_pool = [i['code'] for i in stocks]
     sell_message = f"{date.today()}\n"
     for i in get_position_stocks():
-        if i not in stock_pool:
-            sell_message += f"平仓\t{i}\n"
-            print(f"平仓\t{i}\n")
+        sell = get_selling_point(i)
+        if sell:
+            sell_message += f"平仓\t{sell.get('code')}\t{sell.get('name')}\n"
+            logging.warning(f"平仓\t{sell.get('code')}\t{sell.get('name')}\n")
     send_dingtalk_message(sell_message)
     cash = get_available_cash()
     buying_message = f"{date.today()}\n"
@@ -134,11 +147,10 @@ def market_open():
         if i.get('code') not in get_position_stocks() and max_position_count - position_count > 0:
             if get_buying_point_50_average(i.get('code')):
                 buying_message += f"开仓\t{i.get('code')}\t{i.get('name')}\t金额:{cash/(max_position_count - position_count)}"
-                print(f"开仓\t{i.get('code')}\t{i.get('name')}\t{i.get('value')}\t金额:{cash/(max_position_count - position_count)}")
+                logging.warning(f"开仓\t{i.get('code')}\t{i.get('name')}\t{i.get('value')}\t金额:{cash/(max_position_count - position_count)}")
     send_dingtalk_message(buying_message)
 
 
-# if __name__ == "__main__":
-#     start = time.time()
-#     market_open()
-#     print(f"cost time {int(time.time()-start)} 秒")
+if __name__ == "__main__":
+    market_open()
+
