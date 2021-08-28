@@ -198,7 +198,7 @@ def run():
     for rps_day in rps_days:
         ret = cal_ret(data, w=rps_day)
         rps = all_RPS(ret)
-        fill_in_data(rps, filename=f'plate_RPS_{rps_day}.csv')
+        fill_in_data(rps, filename=f'陶博士_板块RPS_{rps_day}.csv')
     get_main_up()
 
 

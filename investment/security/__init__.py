@@ -130,6 +130,14 @@ def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
         return None
 
 
+def get_price(code):
+    data = get_stock_kline_with_volume(code, limit=250)
+    close = data[-1]['close']
+    highest = max([i['high'] for i in data[:-1]])
+    momentum = round(close / highest, 2)
+    return close, momentum
+
+
 def send_dingtalk_message(message):
     url = "https://oapi.dingtalk.com/robot/send"
     headers = {'Content-Type': 'application/json'}

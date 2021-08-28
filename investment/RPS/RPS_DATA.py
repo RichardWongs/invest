@@ -1,4 +1,5 @@
 # encoding: utf-8
+import logging
 import os
 import time
 from datetime import date, timedelta, datetime
@@ -104,6 +105,7 @@ def fill_in_data(df, filename="RPS.csv"):
 
 
 def run():
+    start = int(time.time())
     stock_list = get_stock_list()
     get_all_data(stock_list)
     data = pd.read_csv(f'daily_data.csv', encoding='utf-8', index_col='trade_date')
@@ -112,10 +114,13 @@ def run():
         ret = cal_ret(data, w=rps_day)
         rps = all_RPS(ret)
         fill_in_data(rps, filename=f'RPS{rps_day}.csv')
+    end = int(time.time())
+    minutes = int((end - start) / 60)
+    seconds = (end - start) % 60
+    logging.warning(f"总耗时: {minutes}分{seconds}秒")
 
 
 if __name__ == "__main__":
     run()
-
 
 

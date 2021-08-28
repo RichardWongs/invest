@@ -164,12 +164,11 @@ def get_industry_momentum():
 
 
 def run():
-    filename = "plate_momentum.csv"
+    filename = "简放-动量模型.csv"
     if filename in os.listdir(os.curdir):
         os.remove(filename)
     create_RPS_file()
     data = get_industry_momentum()
-    logging.warning(json.dumps(data, indent=4, ensure_ascii=False))
     df = pd.DataFrame()
     for k, v in data.items():
         for i in v:
@@ -179,5 +178,4 @@ def run():
 
 if __name__ == '__main__':
     run()
-
 

@@ -145,3 +145,41 @@ def foreign_capital_filter():
                     result.append({'code': i['code'], 'name': i['name']})
                     # result.append(i)
     return result
+
+
+def latest_week_foreign_capital_add_weight():
+    # 从最近一周外资增仓或新进的个股(增持金额大于5千万)中挑选出高RPS, 股价接近一年新高的标的
+    from security import get_price
+    from RPS.quantitative_screening import get_RPS_stock_pool
+    history_data = FC_history_Query(date.today() - timedelta(days=7))
+    new_data = FC_history_Query(date.today())
+    result = []
+    for i in new_data:
+        for j in history_data:
+            if i['code'] == j['code']:
+                if i['holdingCount'] > j['holdingCount']:
+                    i['addCount'] = i['holdingCount'] - j['holdingCount']
+                    result.append(i)
+    history_codes = [i['code'] for i in history_data]
+    for i in new_data:
+        if i['code'] not in history_codes:
+            i['addCount'] = i['holdingCount']
+            result.append(i)
+    for i in result:
+        i['code'] = i['code'].split('.')[0]
+    rps_pool = get_RPS_stock_pool()
+    rps_codes = [i[0] for i in rps_pool]
+    pool = []
+    for i in result:
+        if i['code'] in rps_codes:
+            pool.append(i)
+    new_pool = []
+    for i in pool:
+        current_price, momentum = get_price(i['code'])
+        i['addAmount'] = round(i['addCount'] * current_price / 100000000, 2)
+        del i['holdingCount']
+        del i['addCount']
+        if i['addAmount'] >= 0.5 and momentum > 0.9:
+            new_pool.append(i)
+    sorted_pool = sorted(new_pool, key=lambda x: x['addAmount'], reverse=True)
+    return sorted_pool
