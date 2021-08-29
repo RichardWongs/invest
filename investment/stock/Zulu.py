@@ -43,7 +43,7 @@ class Stock_BaseInfo:
 
     @staticmethod
     def growth_run():
-        data = pro.bak_basic(trade_date='20210826')
+        data = pro.bak_basic(trade_date='20191231')
         for i in data.values:
             if 0 < int(i[16]) < 20200101:
                 s = Stock_BaseInfo()
@@ -62,11 +62,12 @@ class Stock_BaseInfo:
                 s.profit_yoy = float(i[-4])
                 s.gpr = float(i[-3])
                 s.npr = float(i[-2])
-                s.one_year_yield = s.get_yield()
-                s.one_month_yield = s.get_yield(30)
-                if 0 < s.pe < 100 and s.profit_yoy > 20 and s.pe / s.profit_yoy * 100 < 0.6:
-                    print(f"代码:{s.code}\t名称:{s.name}\tPEG:{s.pe / s.profit_yoy}\t一年涨幅:{s.one_year_yield}\t一月涨幅:{s.one_month_yield}")
+                s.peg = round(s.pe / s.profit_yoy, 2) if s.profit_yoy != 0 else 0
+                # s.one_year_yield = s.get_yield()
+                # s.one_month_yield = s.get_yield(30)
+                if 0 < s.pe and 0 < s.peg:
+                    print(f"代码:{s.code}\t名称:{s.name}\tPE:{s.pe}\t每股收益:{s.eps}\t利润同比:{s.profit_yoy}\t收入同比:{s.rev_yoy}\tPEG:{s.peg}\t")  # 一年涨幅:{s.one_year_yield}\t一月涨幅:{s.one_month_yield}
 
 
-# Stock_BaseInfo().growth_run()
+Stock_BaseInfo().growth_run()
 

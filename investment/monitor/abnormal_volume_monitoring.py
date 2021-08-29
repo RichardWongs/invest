@@ -107,7 +107,7 @@ def sending_today_stock_pool():
     get_today_strong_stock(pool)
 
 
-def last_week_fc_add():
+def last_week_foreign_capital_add():
     pool = latest_week_foreign_capital_add_weight()
     logging.warning(f"最近5个交易日外资增持超过5千万: {pool}")
     run_volume_monitor(pool, message="外资一周增持个股")
@@ -115,5 +115,5 @@ def last_week_fc_add():
 
 if __name__ == '__main__':
     sending_today_stock_pool()
-    last_week_fc_add()
+    last_week_foreign_capital_add()
 
