@@ -16,7 +16,7 @@ import tushare as ts
 
 cc = opencc.OpenCC('t2s')
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 
 
@@ -64,8 +64,8 @@ def get_foreign_capital_history_holding(exchange, holding_date=date.today()):
     day = holding_date.day
     logging.warning(
         f"爬取外资持股数据...\texchange:{exchange}\tholding_date:{holding_date}")
-    base_url = f"https://sc.hkexnews.hk/TuniS/www.hkexnews.hk/sdw/search/mutualmarket_c.aspx?t={exchange}"
-    driver = webdriver.Chrome(options=chrome_options)  #
+    base_url = f"https://www.hkexnews.hk/sdw/search/mutualmarket_c.aspx?t={exchange}"
+    driver = webdriver.Chrome(options=chrome_options)
     driver.get(base_url)
     driver.find_element_by_id("txtShareholdingDate").click()
     driver.find_element_by_xpath(
@@ -147,12 +147,22 @@ def foreign_capital_filter():
     return result
 
 
+def get_recent_trade_date(day=date.today()):
+    # 返回最近一个交易日
+    if day.weekday() in (0, 1, 2, 3, 4):
+        return day
+    else:
+        return get_recent_trade_date(day-timedelta(days=1))
+
+
 def latest_week_foreign_capital_add_weight():
     # 从最近一周外资增仓或新进的个股(增持金额大于5千万)中挑选出高RPS, 股价接近一年新高的标的
     from security import get_price
     from RPS.quantitative_screening import get_RPS_stock_pool
-    history_data = FC_history_Query(date.today() - timedelta(days=7))
-    new_data = FC_history_Query(date.today())
+    new_date = get_recent_trade_date()
+    history_date = new_date - timedelta(days=5)
+    history_data = FC_history_Query(history_date)
+    new_data = FC_history_Query(new_date)
     result = []
     for i in new_data:
         for j in history_data:
@@ -182,4 +192,8 @@ def latest_week_foreign_capital_add_weight():
         if i['addAmount'] >= 0.5 and momentum > 0.9:
             new_pool.append(i)
     sorted_pool = sorted(new_pool, key=lambda x: x['addAmount'], reverse=True)
+    logging.warning(f"最近一周外资增持股池: {pool}")
     return sorted_pool
+
+
+

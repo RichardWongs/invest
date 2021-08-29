@@ -68,6 +68,13 @@ def get_RPS_stock_pool():
         for i in df.values:
             if i[-1] >= 90:
                 pool.add((i[0].split('.')[0], i[1]))
+    # 增加一个50日RPS不低于70的条件, 避免长期RPS高但短期RPS开始下降的情况
+    # rps50_pool = set()
+    # rps50 = pd.read_csv('RPS50.csv', encoding='utf-8')
+    # for i in rps50.values:
+    #     if i[-1] >= 70:
+    #         rps50_pool.add((i[0].split('.')[0], i[1]))
+    # pool = [i for i in pool if i in rps50_pool]
     return pool
 
 
@@ -117,7 +124,7 @@ def stock_pool_filter_process():
     return pool
 
 
-if __name__ == '__main__':
-    stock_pool_filter_process()
+# if __name__ == '__main__':
+#     stock_pool_filter_process()
 
 

@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import date
 from security import get_stock_kline_with_volume
 from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding, close_one_year_high, stock_pool_filter_process
+from RPS.foreign_capital_increase import latest_week_foreign_capital_add_weight
 from security import send_dingtalk_message
 from security.动量选股 import get_position_stocks, get_buying_point_50_average, get_buying_point_20_average
 
@@ -42,8 +43,8 @@ def get_RPS_stock_pool(rps_value):
     return pool
 
 
-def run_volume_monitor(pool):
-    notify_message = f"{date.today()}\n成交量异常警告:\n"
+def run_volume_monitor(pool, message=""):
+    notify_message = f"{date.today()}\n{message}成交量异常警告:\n"
     notify_stocks = []
     for i in pool:
         kline = get_stock_kline_with_volume(i['code'])
@@ -106,6 +107,13 @@ def sending_today_stock_pool():
     get_today_strong_stock(pool)
 
 
+def last_week_fc_add():
+    pool = latest_week_foreign_capital_add_weight()
+    logging.warning(f"最近5个交易日外资增持超过5千万: {pool}")
+    run_volume_monitor(pool, message="外资一周增持个股")
+
+
 if __name__ == '__main__':
     sending_today_stock_pool()
+    last_week_fc_add()
 
