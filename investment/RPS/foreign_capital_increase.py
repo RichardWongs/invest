@@ -55,7 +55,6 @@ def foreignCapitalHoldingV2():
 
 def query_share_capital():
     # 查询外资持股的股价和流通股本
-    # pageNumber = 1
     pageSize = 500
     timestamp = int(time.time()*1000)
     day = get_recent_trade_date(day=date.today()-timedelta(days=1))

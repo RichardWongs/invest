@@ -23,6 +23,7 @@ def get_fund_holdings(quarter, year=date.today().year):
         fundHoldingdRatio = float(i[6])
         if fundHoldingdRatio >= 3:
             pool.add((code, name))
+    logging.warning(f"机构持股: {pool}")
     return pool
 
 

@@ -142,5 +142,5 @@ def last_week_foreign_capital_add():
 
 if __name__ == '__main__':
     sending_today_stock_pool()
-    last_week_foreign_capital_add()
+    # last_week_foreign_capital_add()
 
