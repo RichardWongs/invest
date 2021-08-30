@@ -3,8 +3,8 @@ import logging
 import pandas as pd
 from datetime import date
 from security import get_stock_kline_with_volume
-from RPS.quantitative_screening import get_fund_holdings, foreignCapitalHolding, close_one_year_high, stock_pool_filter_process
-from RPS.foreign_capital_increase import latest_week_foreign_capital_add_weight
+from RPS.quantitative_screening import get_fund_holdings, close_one_year_high, stock_pool_filter_process
+from RPS.foreign_capital_increase import latest_week_foreign_capital_add_weight, foreignCapitalHoldingV2
 from security import send_dingtalk_message
 from security.动量选股 import get_position_stocks, get_buying_point_50_average, get_buying_point_20_average
 
@@ -90,6 +90,33 @@ def get_buying_point_by_50_average(pool):
         send_dingtalk_message(message)
 
 
+def get_buying_point(shot_line=5, long_line=20):
+    # 根据均线获取买点 5日均线上穿20日均线
+    # 股票池条件: 高RPS,机构持股 or 外资持股
+    from RPS.quantitative_screening import get_RPS_stock_pool
+    rps_pool = get_RPS_stock_pool()
+    fund_pool = get_fund_holdings(quarter=2)
+    foreign_capital_pool = foreignCapitalHoldingV2()
+    pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
+    pool = [i for i in pool if i in rps_pool]
+    pool = [{'code': i[0], 'name': i[1]} for i in pool]
+    message = f"{date.today()}\n5日线上穿20日线\n"
+    for i in pool:
+        data = get_stock_kline_with_volume(i['code'])
+        close_prices = [i['close'] for i in data]
+        shot_data = close_prices[-(shot_line+1):]
+        long_data = close_prices[-(long_line+1):]
+        shot_ma = sum(shot_data[1:])/len(shot_data[1:])
+        shot_ma_pre = sum(shot_data[:-1])/len(shot_data[:-1])
+        long_ma = sum(long_data[1:])/len(long_data[1:])
+        long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
+        if shot_ma_pre <= long_ma_pre and shot_ma > long_ma:
+            message += f"{i}\n"
+    if len(message.split('\n')) > 2 and message.split('\n')[2]:
+        logging.warning(message)
+        send_dingtalk_message(message)
+
+
 def get_today_strong_stock(pool):
     message = f"{date.today()}\n股价回踩20日均线\n"
     for i in pool:
@@ -103,7 +130,7 @@ def get_today_strong_stock(pool):
 def sending_today_stock_pool():
     pool = stock_pool_filter_process()
     run_volume_monitor(pool)
-    get_buying_point_by_50_average(pool)
+    get_buying_point()
     get_today_strong_stock(pool)
 
 

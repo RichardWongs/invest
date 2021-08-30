@@ -3,18 +3,17 @@
 import os
 import pandas as pd
 import tushare as ts
-from datetime import date, datetime, timedelta
-import requests
-import json
-import time
+from datetime import date, timedelta
 import logging
-from RPS.foreign_capital_increase import foreign_capital_filter
+from RPS.foreign_capital_increase import foreign_capital_filter, foreignCapitalHoldingV2
 from security import get_interval_yield
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 
 
 def get_fund_holdings(quarter, year=date.today().year):
     # 基金持股
+    from RPS.bak_stock_pool import fund_pool as pool
+    return pool
     logging.warning("查询基金持股数据")
     pool = set()
     data = ts.fund_holdings(year=year, quarter=quarter)
@@ -25,36 +24,6 @@ def get_fund_holdings(quarter, year=date.today().year):
         if fundHoldingdRatio >= 3:
             pool.add((code, name))
     return pool
-
-
-def foreignCapitalHolding():
-    # 外资持股清单(持股市值超过3000万)
-    logging.warning("查询外资持股数据")
-    url = "http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get"
-    timestamp = int(time.time()*1000)
-    params = {
-        'callback': f'jQuery1123013917823929726048_{timestamp}',
-        'st': 'ShareSZ_Chg_One',
-        'sr': -1,
-        'ps': 2000,
-        'p': 1,
-        'type': 'HSGT20_GGTJ_SUM',
-        'token': '894050c76af8597a853f5b408b759f5d',
-        'filter': f"(DateType='1')(HdDate='{date.today()-timedelta(days=1)}')"
-    }
-    r = requests.get(url, params=params)
-    response = r.text.split('(')[1].split(')')[0]
-    response = json.loads(response)
-    response = sorted(response, key=lambda x: x['ShareSZ'], reverse=True)
-    foreignCapital_pool = set()
-    for i in response:
-        code = i.get('SCode')
-        name = i.get('SName')
-        holding_market_value = round(i.get('ShareSZ')/100000000, 2)
-        if holding_market_value > 0.3:
-            foreignCapital_pool.add((code, name))
-    logging.warning(f"东方财富查询外资持仓: {foreignCapital_pool}")
-    return foreignCapital_pool
 
 
 def get_RPS_stock_pool():
@@ -69,12 +38,12 @@ def get_RPS_stock_pool():
             if i[-1] >= 90:
                 pool.add((i[0].split('.')[0], i[1]))
     # 增加一个50日RPS不低于70的条件, 避免长期RPS高但短期RPS开始下降的情况
-    # rps50_pool = set()
-    # rps50 = pd.read_csv('RPS50.csv', encoding='utf-8')
-    # for i in rps50.values:
-    #     if i[-1] >= 70:
-    #         rps50_pool.add((i[0].split('.')[0], i[1]))
-    # pool = [i for i in pool if i in rps50_pool]
+    rps50_pool = set()
+    rps50 = pd.read_csv('RPS50.csv', encoding='utf-8')
+    for i in rps50.values:
+        if i[-1] >= 70:
+            rps50_pool.add((i[0].split('.')[0], i[1]))
+    pool = [i for i in pool if i in rps50_pool]
     return pool
 
 
@@ -111,7 +80,7 @@ def close_one_year_high(pool):
 def stock_pool_filter_process():
     rps_pool = get_RPS_stock_pool()     # 股价相对强度RPS优先一切
     fund_pool = get_fund_holdings(quarter=2)
-    foreign_capital_pool = foreignCapitalHolding()
+    foreign_capital_pool = foreignCapitalHoldingV2()
     pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
     pool = [i for i in pool if i in rps_pool]
     pool = [{'code': i[0], 'name': i[1]} for i in pool]
@@ -126,5 +95,4 @@ def stock_pool_filter_process():
 
 # if __name__ == '__main__':
 #     stock_pool_filter_process()
-
 

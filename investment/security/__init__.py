@@ -168,7 +168,7 @@ def get_interval_yield(code, days=250):
     return {'code': code, 'interval_yield': interval_yield, 'momentum': momentum}
 
 
-# data = get_stock_kline_with_volume('300726')
+# data = get_stock_kline_with_volume('000829')
 # for i in data:
 #     if 'volume_ratio' in i.keys() and i['volume_ratio']:
 #         print(f"日期: {i['day']}\t涨跌幅: {i['applies']}\t成交量比值: {i['volume_ratio']}")

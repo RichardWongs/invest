@@ -16,45 +16,76 @@ import tushare as ts
 
 cc = opencc.OpenCC('t2s')
 chrome_options = Options()
-# chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless")
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
+
+
+def foreignCapitalHoldingV2():
+    # 外资持股清单(持股市值超过3000万)
+    from RPS.bak_stock_pool import foreign_capital_pool
+    return foreign_capital_pool
+    logging.warning("查询外资持股数据")
+    pageSize = 500
+    timestamp = int(time.time()*1000)
+    day = get_recent_trade_date(day=date.today()-timedelta(days=1))
+    response_list = []
+    for pageNumber in range(1, 6):
+        url = f"http://datacenter-web.eastmoney.com/api/data/v1/get?callback=jQuery112308889432631368941_{timestamp}&sortColumns=ADD_MARKET_CAP&sortTypes=-1&pageSize={pageSize}&pageNumber={pageNumber}&reportName=RPT_MUTUAL_STOCK_NORTHSTA&columns=ALL&source=WEB&client=WEB&filter=(TRADE_DATE%3D%27{day}%27)(INTERVAL_TYPE%3D%221%22)"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+        }
+        r = requests.get(url, headers=headers)
+        response = r.text.split('(')[1].split(')')[0]
+        response = json.loads(response)
+        if response:
+            if response.get('result'):
+                response = response.get('result').get('data')
+                response = sorted(response, key=lambda x: x['HOLD_MARKET_CAP'], reverse=True)
+                response_list += response
+    foreignCapital_pool = set()
+    for i in response_list:
+        code = i.get('SECURITY_CODE')
+        name = i.get('SECURITY_NAME')
+        holding_market_value = i.get('HOLD_MARKET_CAP')
+        if holding_market_value > 0.3:
+            foreignCapital_pool.add((code, name))
+    logging.warning(f"东方财富查询外资持仓: {foreignCapital_pool}")
+    return foreignCapital_pool
 
 
 def query_share_capital():
     # 查询外资持股的股价和流通股本
-    url = "http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get"
-    timestamp = int(time.time() * 1000)
-    HdDate = date.today() - timedelta(days=1)
-    if HdDate.weekday() not in (0, 1, 2, 3, 4):
-        HdDate = date.today() - timedelta(days=2) if (date.today() - timedelta(days=2)
-                                                      ).weekday() in (0, 1, 2, 3, 4) else (date.today() - timedelta(days=3)).weekday()
-    params = {
-        'callback': f'jQuery1123013917823929726048_{timestamp}',
-        'st': 'ShareSZ_Chg_One',
-        'sr': -1,
-        'ps': 2000,
-        'p': 1,
-        'type': 'HSGT20_GGTJ_SUM',
-        'token': '894050c76af8597a853f5b408b759f5d',
-        'filter': f"(DateType='1')(HdDate='{HdDate}')"
+    # pageNumber = 1
+    pageSize = 500
+    timestamp = int(time.time()*1000)
+    day = get_recent_trade_date(day=date.today()-timedelta(days=1))
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
     }
-    r = requests.get(url, params=params)
-    response = r.text.split('(')[1].split(')')[0]
-    response = json.loads(response)
-    response = sorted(response, key=lambda x: x['ShareSZ'], reverse=True)
+    response_list = []
+    for pageNumber in range(1, 6):
+        url = f"http://datacenter-web.eastmoney.com/api/data/v1/get?callback=jQuery112308889432631368941_{timestamp}&sortColumns=ADD_MARKET_CAP&sortTypes=-1&pageSize={pageSize}&pageNumber={pageNumber}&reportName=RPT_MUTUAL_STOCK_NORTHSTA&columns=ALL&source=WEB&client=WEB&filter=(TRADE_DATE%3D%27{day}%27)(INTERVAL_TYPE%3D%221%22)"
+        r = requests.get(url, headers=headers)
+        response = r.text.split('(')[1].split(')')[0]
+        response = json.loads(response)
+        if response:
+            if response.get('result'):
+                response = response.get('result').get('data')
+                response_list += response
     foreign_capital_pool = []
-    for i in response:
-        code = i.get('SCode')
-        name = i.get('SName')
-        price = i.get('NewPrice')
-        share_rate = i.get('LTZB')
-        hold_count = i.get('ShareHold')
-        share_capital = hold_count / share_rate
+    for i in response_list:
+        code = i.get('SECURITY_CODE')
+        name = i.get('SECURITY_NAME')
+        price = i.get('CLOSE_PRICE')
+        share_rate = i.get('FREE_SHARES_RATIO')
+        hold_count = i.get('HOLD_SHARES') * 10000
+        share_capital = int(hold_count / share_rate * 100)
         tmp = {
             'code': code,
             'name': name,
             'price': price,
-            'share_capital': share_capital}
+            'share_capital': share_capital
+        }
         foreign_capital_pool.append(tmp)
     return foreign_capital_pool
 
@@ -144,6 +175,7 @@ def foreign_capital_filter():
                     # if i['add_value'] >= 5000:
                     result.append({'code': i['code'], 'name': i['name']})
                     # result.append(i)
+    logging.warning(f"外资增持: {result}")
     return result
 
 
@@ -194,6 +226,4 @@ def latest_week_foreign_capital_add_weight():
     sorted_pool = sorted(new_pool, key=lambda x: x['addAmount'], reverse=True)
     logging.warning(f"最近一周外资增持股池: {pool}")
     return sorted_pool
-
-
 
