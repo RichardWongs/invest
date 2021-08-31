@@ -22,6 +22,7 @@ def get_research_report(code):
 
 
 def get_predict_eps(code):
+    # 根据研报预测计算今明两年的每股收益
     data = get_research_report(code)
     predictThisYearEps = []
     predictNextYearEps = []
@@ -70,6 +71,6 @@ def calculate_peg(code):
     print(f"peg: {peg}")
 
 
-calculate_peg(601636)
+calculate_peg(600141)
 
 

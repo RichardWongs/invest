@@ -101,4 +101,4 @@ def get_annual_report_to_file():
         f.write(pickle.dumps(annual_report_list))
 
 
-get_annual_report_to_file()
+# get_annual_report_to_file()
