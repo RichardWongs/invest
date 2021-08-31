@@ -203,7 +203,7 @@ def run():
 
 
 def get_main_up():
-    files = [f"plate_RPS_{i}.csv" for i in rps_days]
+    files = [f"陶博士_板块RPS_{i}.csv" for i in rps_days]
     rps90 = []
     for i in files:
         f = pd.read_csv(i, encoding='utf-8')
