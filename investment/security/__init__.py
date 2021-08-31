@@ -7,6 +7,13 @@ class SecurityException(BaseException):
     pass
 
 
+def get_average_price(closes, days):
+    assert len(closes) >= days
+    if isinstance(closes[-1], dict):
+        closes = [i['close'] for i in closes]
+    return sum(closes[-days:])/days
+
+
 def get_stock_kline(code, is_index=False, period=101, limit=120):
     # time.sleep(0.5)
     assert period in (5, 15, 30, 60, 101, 102, 103)

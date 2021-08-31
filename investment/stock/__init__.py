@@ -51,3 +51,4 @@ def get_stock_kline(code, period=101, limit=120, is_index=False):
     except Exception() as e:
         print(e)
         return None
+
