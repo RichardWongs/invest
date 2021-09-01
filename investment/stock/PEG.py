@@ -1,9 +1,12 @@
+# encoding: utf-8
+import logging
 import time
 import pickle
 import requests
 import json
 from datetime import date, timedelta
 from security import get_stock_kline_with_volume
+from stock import share_pool
 
 
 def get_research_report(code):
@@ -17,7 +20,7 @@ def get_research_report(code):
     # print(response.text)
     response = response.text.replace('datatable4737182', '')
     response = response[1:-1]
-    print(code, response)
+    # print(code, response)
     response = json.loads(response)
     if 'data' in response.keys():
         response = response.get('data')
@@ -26,7 +29,12 @@ def get_research_report(code):
 
 
 def get_predict_eps(code):
-    # 根据研报预测计算今明两年的每股收益
+    # 根据研报预测计算今明两年的归母净利润
+    if share_pool.get(str(code)):
+        total_share = share_pool.get(str(code)).get('total_share')
+    else:
+        logging.error(f"{code}不在股票池中,请确认参数是否正确")
+        return 0, 0
     data = get_research_report(code)
     predictThisYearEps = []
     predictNextYearEps = []
@@ -39,7 +47,7 @@ def get_predict_eps(code):
             avg_predictThisYearEps = round(sum(predictThisYearEps)/len(predictThisYearEps), 2)
             avg_predictNextYearEps = round(sum(predictNextYearEps)/len(predictNextYearEps), 2)
             # print(f"{code}\n今年收益预测:{avg_predictThisYearEps}元\n明年收益预测:{avg_predictNextYearEps}元")
-            return avg_predictThisYearEps, avg_predictNextYearEps
+            return avg_predictThisYearEps * total_share, avg_predictNextYearEps * total_share
         else:
             return 0, 0
     else:
@@ -47,7 +55,7 @@ def get_predict_eps(code):
 
 
 def select_stock_last_year_eps(code):
-    # 查询个股上一年度的每股收益
+    # 查询个股上一年度的归母净利润
     years = ['2019', '2020']
     eps = {'2019': None, '2020': None}
     for year in years:
@@ -57,13 +65,13 @@ def select_stock_last_year_eps(code):
             content = pickle.loads(file)
         for i in content:
             if i.get('SECURITY_CODE') == str(code):
-                eps[year] = i.get('BASIC_EPS')
-                # eps[f"{year}_deduct"] = i.get('DEDUCT_BASIC_EPS')
+                eps[year] = i.get('PARENT_NETPROFIT')
     return eps
 
 
 def calculate_peg(code):
-    year = str(date.today().year - 1)
+    year = str(2020)
+    total_share = share_pool.get(str(code)).get('total_share')
     history_eps = select_stock_last_year_eps(code)
     last_year_eps = history_eps.get(year)
     close_price = get_stock_kline_with_volume(code, limit=5)[-1]['close']
@@ -72,14 +80,14 @@ def calculate_peg(code):
     avg_predictThisYearEps, avg_predictNextYearEps = get_predict_eps(code)
     predict_the_coming_year_eps = round(avg_predictThisYearEps*nextYearWeight/12 + avg_predictNextYearEps*thisYearWeight/12, 2)
     # print(f"预测未来一年的收益: {predict_the_coming_year_eps}")
-    predict_pe = round(close_price/predict_the_coming_year_eps, 2)
+    predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
     # print(f"预测未来一年的市盈率: {predict_pe}")
     past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
     # print(f"过去一年的收益: {past_year}")
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
-    # print(f"未来每股收益增长率: {growth_rate_earnings_per_share}%")
+    # print(f"未来净利润增长率: {growth_rate_earnings_per_share}%")
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
-    # print(f"peg: {peg}")
+    # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}")
     return peg, growth_rate_earnings_per_share
 
 
@@ -122,6 +130,7 @@ def continuous_growth_four_year_filter_process():
     for i in pool:
         eps2021, eps2022 = get_predict_eps(i['code'])
         i['eps_2021'] = eps2021
+        i['eps_2022'] = eps2022
     for i in pool:
         if i['eps_2021'] > i['eps_2020']:
             target_pool.append(i)
@@ -165,7 +174,6 @@ def relative_intensity(code, index_applies):
 
 def run():
     pool = continuous_growth_four_year_filter_process()
-    print(pool)
     benchmark = index_applies()
     target = []
     for i in pool:
@@ -174,14 +182,49 @@ def run():
             i['intensity_250'] = intensity['intensity_250']
             i['intensity_60'] = intensity['intensity_60']
             i['intensity_20'] = intensity['intensity_20']
-            i['peg'], i['growth'] = calculate_peg(i['code'])
+            i['peg'], i['growth'] = calculate_peg_V2(i)
             target.append(i)
-    print(target)
+    target = sorted(target, key=lambda x:x['peg'], reverse=False)
+    print(target, '\n', len(target))
     return target
 
 
-# run()
-# data = continuous_growth_filter()
-data = get_research_report(601636)
-print(data)
-print(len(data))
+def calculate_peg_V2(obj: dict):
+    thisYearWeight = 4  # 今年剩下的月数
+    nextYearWeight = 12 - thisYearWeight  # 未来12个月中明年所占的月数
+    code = obj.get('code')
+    total_share = share_pool.get(str(code)).get('total_share')
+    close_price = get_stock_kline_with_volume(code, limit=5)[-1]['close']
+    avg_predictThisYearEps = obj.get('eps_2021')
+    avg_predictNextYearEps = obj.get('eps_2022')
+    if avg_predictThisYearEps == 0 or avg_predictNextYearEps == 0:
+        logging.warning(f"{obj.get('name')}({code})未获取到机构预测业绩或机构数量较少,本次不参与计算")
+        return 0, 0
+    last_year_eps = obj.get('eps_2019')
+    predict_the_coming_year_eps = round(avg_predictThisYearEps*nextYearWeight/12 + avg_predictNextYearEps*thisYearWeight/12, 2)
+    print(f"{obj.get('name')}\t{obj.get('code')}")
+    print(f"预测未来一年的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
+    predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
+    print(f"预测未来一年的市盈率: {predict_pe}")
+    past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
+    print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
+    growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
+    # print(f"未来净利润增长率: {growth_rate_earnings_per_share}%")
+    peg = round(predict_pe/growth_rate_earnings_per_share, 2)
+    print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    return peg, growth_rate_earnings_per_share
+
+
+def run_simple(code):
+    data = continuous_growth_filter()
+    for i in data:
+        if i['code'] == str(code):
+            eps2021, eps2022 = get_predict_eps(i['code'])
+            i['eps_2021'] = eps2021
+            i['eps_2022'] = eps2022
+            print(i)
+            calculate_peg_V2(i)
+
+
+run_simple(300015)
+
