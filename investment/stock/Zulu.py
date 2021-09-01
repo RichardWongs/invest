@@ -75,7 +75,7 @@ class Stock_BaseInfo:
 
 def get_annual_report_to_file():
     # 获取所有上市公司年报数据并写入文件
-    year = 2019
+    year = 2017
     pageSize = 50
     annual_report_list = []
     for pageNumber in range(1, 234):
