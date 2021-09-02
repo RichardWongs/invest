@@ -8,25 +8,27 @@ import requests
 
 def get_annual_report_to_file():
     # 获取所有上市公司年报数据并写入文件
-    year = 2017
+    year = 2020
     pageSize = 50
     annual_report_list = []
-    for pageNumber in range(1, 234):
-        time.sleep(0.5)
+    for pageNumber in range(1, 250):
+        time.sleep(1)
         timestamp = int(time.time()*1000)
         callback = f"jQuery112305629597608570047_{timestamp}"
         url = f"http://datacenter-web.eastmoney.com/api/data/get?callback={callback}&st=UPDATE_DATE,SECURITY_CODE&sr=-1,-1&ps={pageSize}&p={pageNumber}&type=RPT_LICO_FN_CPD&sty=ALL&token=894050c76af8597a853f5b408b759f5d&filter=(REPORTDATE='{year}-12-31')"
         response = requests.get(url)
         response = response.text.replace(f"{callback}(", '')[:-2]
         response = json.loads(response)
+        print(response)
         if 'result' in response.keys():
             response = response.get('result')
-            if 'data' in response.keys():
-                response = response.get('data')
-                if response:
-                    for i in response:
-                        if i['SECURITY_CODE'][0] in ('0', '3', '6'):
-                            annual_report_list.append(i)
+            if response:
+                if 'data' in response.keys():
+                    response = response.get('data')
+                    if response:
+                        for i in response:
+                            if i['SECURITY_CODE'][0] in ('0', '3', '6'):
+                                annual_report_list.append(i)
     target_file = f"annual_report_{year}.bin"
     if target_file in os.listdir(os.curdir):
         os.remove(target_file)

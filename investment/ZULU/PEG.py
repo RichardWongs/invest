@@ -20,7 +20,6 @@ def get_research_report(code):
     # print(response.text)
     response = response.text.replace('datatable4737182', '')
     response = response[1:-1]
-    # print(code, response)
     response = json.loads(response)
     if 'data' in response.keys():
         response = response.get('data')
@@ -38,7 +37,7 @@ def get_predict_eps(code):
     data = get_research_report(code)
     predictThisYearEps = []
     predictNextYearEps = []
-    if data and len(data) >= 3:
+    if data and len(data) > 3:
         for i in data:
             if i['predictThisYearEps'] and i['predictNextYearEps']:
                 predictThisYearEps.append(float(i['predictThisYearEps']))
@@ -69,28 +68,6 @@ def select_stock_last_year_eps(code):
     return eps
 
 
-def calculate_peg(code):
-    year = str(2020)
-    total_share = share_pool.get(str(code)).get('total_share')
-    history_eps = select_stock_last_year_eps(code)
-    last_year_eps = history_eps.get(year)
-    close_price = get_stock_kline_with_volume(code, limit=5)[-1]['close']
-    thisYearWeight = 4  # 今年剩下的月数
-    nextYearWeight = 12 - thisYearWeight  # 未来12个月中明年所占的月数
-    avg_predictThisYearEps, avg_predictNextYearEps = get_predict_eps(code)
-    predict_the_coming_year_eps = round(avg_predictThisYearEps*nextYearWeight/12 + avg_predictNextYearEps*thisYearWeight/12, 2)
-    # print(f"预测未来一年的收益: {predict_the_coming_year_eps}")
-    predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
-    # print(f"预测未来一年的市盈率: {predict_pe}")
-    past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
-    # print(f"过去一年的收益: {past_year}")
-    growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
-    # print(f"未来净利润增长率: {growth_rate_earnings_per_share}%")
-    peg = round(predict_pe/growth_rate_earnings_per_share, 2)
-    # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}")
-    return peg, growth_rate_earnings_per_share
-
-
 def get_annual_report_by_year(year):
     # 从年度报告中筛选出归母净利润大于0的数据
     file = f"annual_report_{year}.bin"
@@ -104,7 +81,7 @@ def get_annual_report_by_year(year):
     return pool
 
 
-def continuous_growth_filter():
+def continuous_growth_filter(code=None):
     # 筛选出过去三年归母净利润每年都在增长的个股
     pool_2017 = get_annual_report_by_year(2017)
     pool_2018 = get_annual_report_by_year(2018)
@@ -113,9 +90,18 @@ def continuous_growth_filter():
     eps_pool = []
     for k in pool_2017:
         if k in pool_2018.keys() and k in pool_2019.keys() and k in pool_2020.keys():
+            if code and str(code) == k:
+                if str(code) not in pool_2017.keys():
+                    logging.warning(f"2017年报中未发现{code}")
+                elif str(code) not in pool_2018.keys():
+                    logging.warning(f"2018年报中未发现{code}")
+                elif str(code) not in pool_2018.keys():
+                    logging.warning(f"2019年报中未发现{code}")
+                elif str(code) not in pool_2018.keys():
+                    logging.warning(f"2020年报中未发现{code}")
             if pool_2020[k]['PARENT_NETPROFIT'] > pool_2019[k]['PARENT_NETPROFIT'] > pool_2018[k]['PARENT_NETPROFIT'] > pool_2017[k]['PARENT_NETPROFIT']:
                 eps_pool.append({'code': k,
-                                 'name': pool_2017[k]['SECURITY_NAME_ABBR'],
+                                 'name': pool_2020[k]['SECURITY_NAME_ABBR'],
                                  'eps_2017': pool_2017[k]['PARENT_NETPROFIT'],
                                  'eps_2018': pool_2018[k]['PARENT_NETPROFIT'],
                                  'eps_2019': pool_2019[k]['PARENT_NETPROFIT'],
@@ -172,23 +158,6 @@ def relative_intensity(code, index_applies):
     return intensity
 
 
-def run():
-    pool = continuous_growth_four_year_filter_process()
-    benchmark = index_applies()
-    target = []
-    for i in pool:
-        intensity = relative_intensity(i['code'], index_applies=benchmark)
-        if intensity['intensity_250'] > intensity['intensity_20'] > 0 or intensity['intensity_250'] > intensity['intensity_60'] > 0:
-            i['intensity_250'] = intensity['intensity_250']
-            i['intensity_60'] = intensity['intensity_60']
-            i['intensity_20'] = intensity['intensity_20']
-            i['peg'], i['growth'] = calculate_peg_V2(i)
-            target.append(i)
-    target = sorted(target, key=lambda x:x['peg'], reverse=False)
-    print(target, '\n', len(target))
-    return target
-
-
 def calculate_peg_V2(obj: dict):
     thisYearWeight = 4  # 今年剩下的月数
     nextYearWeight = 12 - thisYearWeight  # 未来12个月中明年所占的月数
@@ -209,22 +178,44 @@ def calculate_peg_V2(obj: dict):
     past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
     print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
-    # print(f"未来净利润增长率: {growth_rate_earnings_per_share}%")
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
     print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
     return peg, growth_rate_earnings_per_share
 
 
+def run():
+    pool = continuous_growth_four_year_filter_process()
+    benchmark = index_applies()
+    target = []
+    for i in pool:
+        intensity = relative_intensity(i['code'], index_applies=benchmark)
+        if intensity['intensity_250'] > intensity['intensity_20'] > 0 or intensity['intensity_250'] > intensity['intensity_60'] > 0:
+            i['intensity_250'] = intensity['intensity_250']
+            i['intensity_60'] = intensity['intensity_60']
+            i['intensity_20'] = intensity['intensity_20']
+            i['total_intensity'] = intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20']
+            i['peg'], i['growth'] = calculate_peg_V2(i)
+            target.append(i)
+    target = sorted(target, key=lambda x: x['peg'], reverse=False)
+    print(target, '\n', len(target))
+    return target
+
+
 def run_simple(code):
-    data = continuous_growth_filter()
+    data = continuous_growth_filter(code)
     for i in data:
         if i['code'] == str(code):
             eps2021, eps2022 = get_predict_eps(i['code'])
             i['eps_2021'] = eps2021
             i['eps_2022'] = eps2022
+            peg, growth = calculate_peg_V2(i)
+            i['peg'] = peg
+            i['growth'] = growth
             print(i)
-            calculate_peg_V2(i)
+            break
+    else:
+        logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-run_simple(300015)
+run_simple('002539')
 
