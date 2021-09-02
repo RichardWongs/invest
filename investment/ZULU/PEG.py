@@ -11,13 +11,13 @@ from ZULU import share_pool
 
 def get_research_report(code):
     # 获取个股研报数据
-    # time.sleep(2)
+    time.sleep(0.5)
     beginTime = date.today() - timedelta(days=60)
     endTime = date.today()
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
     response = requests.get(url)
-    # print(response.text)
+    print(response.text)
     response = response.text.replace('datatable4737182', '')
     response = response[1:-1]
     response = json.loads(response)
@@ -51,21 +51,6 @@ def get_predict_eps(code):
             return 0, 0
     else:
         return 0, 0
-
-
-def select_stock_last_year_eps(code):
-    # 查询个股上一年度的归母净利润
-    years = ['2019', '2020']
-    eps = {'2019': None, '2020': None}
-    for year in years:
-        target_file = f"annual_report_{year}.bin"
-        with open(target_file, 'rb') as f:
-            file = f.read()
-            content = pickle.loads(file)
-        for i in content:
-            if i.get('SECURITY_CODE') == str(code):
-                eps[year] = i.get('PARENT_NETPROFIT')
-    return eps
 
 
 def get_annual_report_by_year(year):
@@ -124,7 +109,7 @@ def continuous_growth_four_year_filter_process():
 
 
 def index_applies():
-    indexs = ['000300']  # , '000905', '399006', '000688'
+    indexs = ['000300', '000905', '399006', '000688']
     applies_250 = applies_60 = applies_20 = 0
     for index in indexs:
         data250 = get_stock_kline_with_volume(index, is_index=True, limit=250)
@@ -193,7 +178,7 @@ def run():
             i['intensity_250'] = intensity['intensity_250']
             i['intensity_60'] = intensity['intensity_60']
             i['intensity_20'] = intensity['intensity_20']
-            i['total_intensity'] = intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20']
+            i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
             i['peg'], i['growth'] = calculate_peg_V2(i)
             target.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
@@ -217,5 +202,5 @@ def run_simple(code):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-run_simple('002539')
-
+# run_simple('002539')
+run()

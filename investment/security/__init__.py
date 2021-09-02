@@ -77,6 +77,7 @@ def get_stock_kline(code, is_index=False, period=101, limit=120):
 
 
 def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
+    time.sleep(0.5)
     assert period in (5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
