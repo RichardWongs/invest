@@ -154,10 +154,10 @@ def calculate_peg_V2(obj: dict):
     if avg_predictThisYearEps == 0 or avg_predictNextYearEps == 0:
         logging.warning(f"{obj.get('name')}({code})未获取到机构预测业绩或机构数量较少,本次不参与计算")
         return 0, 0
-    last_year_eps = obj.get('eps_2019')
-    predict_the_coming_year_eps = round(avg_predictThisYearEps*nextYearWeight/12 + avg_predictNextYearEps*thisYearWeight/12, 2)
+    last_year_eps = obj.get('eps_2020')
+    predict_the_coming_year_eps = round(avg_predictThisYearEps*thisYearWeight/12 + avg_predictNextYearEps*nextYearWeight/12, 2)
     print(f"{obj.get('name')}\t{obj.get('code')}")
-    print(f"预测未来一年的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
+    print(f"预测未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
     predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
     print(f"预测未来一年的市盈率: {predict_pe}")
     past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
@@ -186,11 +186,12 @@ def run():
     return target
 
 
-def run_simple(code):
+def run_simple(code, eps2021=None, eps2022=None):
     data = continuous_growth_filter(code)
     for i in data:
         if i['code'] == str(code):
-            eps2021, eps2022 = get_predict_eps(i['code'])
+            if not (eps2021 and eps2022):
+                eps2021, eps2022 = get_predict_eps(i['code'])
             i['eps_2021'] = eps2021
             i['eps_2022'] = eps2022
             peg, growth = calculate_peg_V2(i)
@@ -202,5 +203,5 @@ def run_simple(code):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-# run_simple('002539')
-run()
+run_simple('600276')
+# run()
