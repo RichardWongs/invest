@@ -49,8 +49,8 @@ def run_volume_monitor(pool, message=""):
     for i in pool:
         kline = get_stock_kline_with_volume(i['code'])
         kline_item = kline[-1]
-        if (kline_item['volume_ratio'] > 2 and kline_item['applies'] >= 5) \
-                or (kline_item['volume_ratio'] < 0.6 and kline_item['applies'] < 0):
+        if (kline_item['volume_ratio'] > 1.5 and kline_item['applies'] >= 5) \
+                or (kline_item['volume_ratio'] < 0.65 and kline_item['applies'] < 0):
             i['volume_ratio'] = kline_item['volume_ratio']
             i['applies'] = kline_item['applies']
             notify_stocks.append(i)
@@ -136,11 +136,11 @@ def sending_today_stock_pool():
 
 def last_week_foreign_capital_add():
     pool = latest_week_foreign_capital_add_weight()
-    logging.warning(f"最近5个交易日外资增持超过5千万: {pool}")
+    logging.warning(f"最近一周日外资增持超过5千万: {pool}")
     run_volume_monitor(pool, message="外资一周增持个股")
 
 
 if __name__ == '__main__':
-    sending_today_stock_pool()
-    # last_week_foreign_capital_add()
+    # sending_today_stock_pool()
+    last_week_foreign_capital_add()
 

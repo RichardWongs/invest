@@ -191,7 +191,7 @@ def latest_week_foreign_capital_add_weight():
     from security import get_price
     from RPS.quantitative_screening import get_RPS_stock_pool
     new_date = get_recent_trade_date()
-    history_date = new_date - timedelta(days=5)
+    history_date = new_date - timedelta(days=7)
     history_data = FC_history_Query(history_date)
     new_data = FC_history_Query(new_date)
     result = []
