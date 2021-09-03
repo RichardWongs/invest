@@ -198,12 +198,18 @@ def run():
     benchmark = index_applies()
     target = low_peg_pool = []
     for i in pool:
+        i['peg'], i['growth'] = calculate_peg_V2(i)
         intensity = relative_intensity(i['code'], index_applies=benchmark)
         i['intensity_250'] = intensity['intensity_250']
         i['intensity_60'] = intensity['intensity_60']
         i['intensity_20'] = intensity['intensity_20']
         i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
-        i['peg'], i['growth'] = calculate_peg_V2(i)
+        del i['eps_2017']
+        del i['eps_2018']
+        del i['eps_2019']
+        del i['eps_2020']
+        del i['eps_2021']
+        del i['eps_2022']
         target.append(i)
         if (i['intensity_250'] > i['intensity_20'] > 0 or i['intensity_250'] > i['intensity_60'] > 0) and i['total_intensity'] > 0 and i['peg'] < 1.2:
             low_peg_pool.append(i)
