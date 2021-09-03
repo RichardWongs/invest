@@ -17,40 +17,64 @@ def get_research_report(code):
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
     response = requests.get(url)
-    print(response.text)
+    # print(response.text)
     response = response.text.replace('datatable4737182', '')
     response = response[1:-1]
     response = json.loads(response)
     if 'data' in response.keys():
         response = response.get('data')
-        return response
+        return response if response else None
     return None
 
 
-def get_predict_eps(code):
+def save_research_report2local():
+    # 从东方财富网下载个股机构研报,并以二进制文件保存到本地,建议每周更新一次即可
+    target = {}
+    pool = continuous_growth_filter()
+    for i in pool:
+        data = get_research_report(i['code'])
+        if data:
+            print(data)
+            target[i['code']] = data
+    with open("research_report.bin", 'wb') as f:
+        f.write(pickle.dumps(target))
+
+
+def read_research_report_from_local():
+    with open("research_report.bin", 'rb') as f:
+        f = f.read()
+        content = pickle.loads(f)
+        return content
+
+
+def get_predict_eps(code, research_report: dict):
     # 根据研报预测计算今明两年的归母净利润
     if share_pool.get(str(code)):
         total_share = share_pool.get(str(code)).get('total_share')
     else:
         logging.error(f"{code}不在股票池中,请确认参数是否正确")
         return 0, 0
-    data = get_research_report(code)
-    predictThisYearEps = []
-    predictNextYearEps = []
-    if data and len(data) > 3:
-        for i in data:
-            if i['predictThisYearEps'] and i['predictNextYearEps']:
-                predictThisYearEps.append(float(i['predictThisYearEps']))
-                predictNextYearEps.append(float(i['predictNextYearEps']))
-        if len(predictThisYearEps) > 0 and len(predictNextYearEps) > 0:
-            avg_predictThisYearEps = round(sum(predictThisYearEps)/len(predictThisYearEps), 2)
-            avg_predictNextYearEps = round(sum(predictNextYearEps)/len(predictNextYearEps), 2)
-            # print(f"{code}\n今年收益预测:{avg_predictThisYearEps}元\n明年收益预测:{avg_predictNextYearEps}元")
-            return avg_predictThisYearEps * total_share, avg_predictNextYearEps * total_share
+    if str(code) not in research_report.keys():
+        logging.warning(f"未查询到 {code} 机构研报,请更新研报数据!")
+        return 0, 0
+    else:
+        data = research_report[str(code)]
+        predictThisYearEps = []
+        predictNextYearEps = []
+        if data and len(data) > 3:
+            for i in data:
+                if i['predictThisYearEps'] and i['predictNextYearEps']:
+                    predictThisYearEps.append(float(i['predictThisYearEps']))
+                    predictNextYearEps.append(float(i['predictNextYearEps']))
+            if len(predictThisYearEps) > 0 and len(predictNextYearEps) > 0:
+                avg_predictThisYearEps = round(sum(predictThisYearEps)/len(predictThisYearEps), 2)
+                avg_predictNextYearEps = round(sum(predictNextYearEps)/len(predictNextYearEps), 2)
+                # print(f"{code}\n今年收益预测:{avg_predictThisYearEps}元\n明年收益预测:{avg_predictNextYearEps}元")
+                return avg_predictThisYearEps * total_share, avg_predictNextYearEps * total_share
+            else:
+                return 0, 0
         else:
             return 0, 0
-    else:
-        return 0, 0
 
 
 def get_annual_report_by_year(year):
@@ -84,7 +108,7 @@ def continuous_growth_filter(code=None):
                     logging.warning(f"2019年报中未发现{code}")
                 elif str(code) not in pool_2018.keys():
                     logging.warning(f"2020年报中未发现{code}")
-            if pool_2020[k]['PARENT_NETPROFIT'] > pool_2019[k]['PARENT_NETPROFIT'] > pool_2018[k]['PARENT_NETPROFIT'] > pool_2017[k]['PARENT_NETPROFIT']:
+            if pool_2020[k]['PARENT_NETPROFIT'] > pool_2019[k]['PARENT_NETPROFIT'] > pool_2018[k]['PARENT_NETPROFIT'] > pool_2017[k]['PARENT_NETPROFIT'] > 0:
                 eps_pool.append({'code': k,
                                  'name': pool_2020[k]['SECURITY_NAME_ABBR'],
                                  'eps_2017': pool_2017[k]['PARENT_NETPROFIT'],
@@ -98,8 +122,9 @@ def continuous_growth_four_year_filter_process():
     # 收益连续四年增长股票池
     target_pool = []
     pool = continuous_growth_filter()
+    research_report = read_research_report_from_local()
     for i in pool:
-        eps2021, eps2022 = get_predict_eps(i['code'])
+        eps2021, eps2022 = get_predict_eps(i['code'], research_report)
         i['eps_2021'] = eps2021
         i['eps_2022'] = eps2022
     for i in pool:
@@ -139,7 +164,7 @@ def relative_intensity(code, index_applies):
     pre, current = data20[0]['close'], data20[-1]['close']
     intensity_20 = round((current/pre/index_applies['index_20'] - 1)*100, 2)
     intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
-    print(intensity)
+    # print(intensity)
     return intensity
 
 
@@ -156,33 +181,36 @@ def calculate_peg_V2(obj: dict):
         return 0, 0
     last_year_eps = obj.get('eps_2020')
     predict_the_coming_year_eps = round(avg_predictThisYearEps*thisYearWeight/12 + avg_predictNextYearEps*nextYearWeight/12, 2)
-    print(f"{obj.get('name')}\t{obj.get('code')}")
-    print(f"预测未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
+    # print(f"{obj.get('name')}\t{obj.get('code')}")
+    # print(f"预测未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
     predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
-    print(f"预测未来一年的市盈率: {predict_pe}")
+    # print(f"预测未来一年的市盈率: {predict_pe}")
     past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
-    print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
+    # print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
-    print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
     return peg, growth_rate_earnings_per_share
 
 
 def run():
     pool = continuous_growth_four_year_filter_process()
+    logging.warning(f"符合归母净利润四年连续增长标准的个股数量: {len(pool)}")
     benchmark = index_applies()
-    target = []
+    target = low_peg_pool = []
     for i in pool:
         intensity = relative_intensity(i['code'], index_applies=benchmark)
-        if intensity['intensity_250'] > intensity['intensity_20'] > 0 or intensity['intensity_250'] > intensity['intensity_60'] > 0:
-            i['intensity_250'] = intensity['intensity_250']
-            i['intensity_60'] = intensity['intensity_60']
-            i['intensity_20'] = intensity['intensity_20']
-            i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
-            i['peg'], i['growth'] = calculate_peg_V2(i)
-            target.append(i)
+        i['intensity_250'] = intensity['intensity_250']
+        i['intensity_60'] = intensity['intensity_60']
+        i['intensity_20'] = intensity['intensity_20']
+        i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
+        i['peg'], i['growth'] = calculate_peg_V2(i)
+        target.append(i)
+        if (i['intensity_250'] > i['intensity_20'] > 0 or i['intensity_250'] > i['intensity_60'] > 0) and i['total_intensity'] > 0 and i['peg'] < 1.2:
+            low_peg_pool.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
-    print(target, '\n', len(target))
+    low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
+    logging.warning(f"低PEG且相对强度为正: {low_peg_pool}\n\n全部PEG股票池: {target}")
     return target
 
 
@@ -203,5 +231,5 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-run_simple('600276')
-# run()
+# run_simple('300873')
+run()

@@ -7,7 +7,7 @@ import requests
 
 
 def get_annual_report_to_file():
-    # 获取所有上市公司年报数据并写入文件
+    # 获取所有上市公司年报数据并写入文件, 每年年报数据全部公布之后执行一次即可
     year = 2020
     pageSize = 50
     annual_report_list = []
