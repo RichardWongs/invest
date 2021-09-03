@@ -221,10 +221,11 @@ def run():
 
 def run_simple(code, eps2021=None, eps2022=None):
     data = continuous_growth_filter(code)
+    research_report = read_research_report_from_local()
     for i in data:
         if i['code'] == str(code):
             if not (eps2021 and eps2022):
-                eps2021, eps2022 = get_predict_eps(i['code'])
+                eps2021, eps2022 = get_predict_eps(i['code'], research_report)
             i['eps_2021'] = eps2021
             i['eps_2022'] = eps2022
             peg, growth = calculate_peg_V2(i)
@@ -236,5 +237,5 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-# run_simple('300873')
-run()
+run_simple('603882')
+# run()
