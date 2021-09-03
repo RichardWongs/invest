@@ -164,7 +164,6 @@ def relative_intensity(code, index_applies):
     pre, current = data20[0]['close'], data20[-1]['close']
     intensity_20 = round((current/pre/index_applies['index_20'] - 1)*100, 2)
     intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
-    # print(intensity)
     return intensity
 
 
