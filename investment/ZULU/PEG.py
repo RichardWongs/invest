@@ -134,9 +134,9 @@ def continuous_growth_four_year_filter_process():
 
 
 def index_applies():
-    indexs = ['000300', '000905', '399006', '000688']
+    indexes = ['000300']  # , '000905', '399006', '000688'
     applies_250 = applies_60 = applies_20 = 0
-    for index in indexs:
+    for index in indexes:
         data250 = get_stock_kline_with_volume(index, is_index=True, limit=250)
         pre, current = data250[0]['close'], data250[-1]['close']
         if applies_250 < current/pre:
@@ -189,7 +189,7 @@ def calculate_peg_V2(obj: dict):
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
     # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
-    return peg, growth_rate_earnings_per_share
+    return predict_pe, peg, growth_rate_earnings_per_share
 
 
 def run():
@@ -198,21 +198,16 @@ def run():
     benchmark = index_applies()
     target = low_peg_pool = []
     for i in pool:
-        i['peg'], i['growth'] = calculate_peg_V2(i)
-        intensity = relative_intensity(i['code'], index_applies=benchmark)
-        i['intensity_250'] = intensity['intensity_250']
-        i['intensity_60'] = intensity['intensity_60']
-        i['intensity_20'] = intensity['intensity_20']
-        i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
-        del i['eps_2017']
-        del i['eps_2018']
-        del i['eps_2019']
-        del i['eps_2020']
-        del i['eps_2021']
-        del i['eps_2022']
-        target.append(i)
-        if (i['intensity_250'] > i['intensity_20'] > 0 or i['intensity_250'] > i['intensity_60'] > 0) and i['total_intensity'] > 0 and i['peg'] < 1.2:
+        i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
+        if 0 < i['peg'] < 1.2:
+            intensity = relative_intensity(i['code'], index_applies=benchmark)
+            i['intensity_250'] = intensity['intensity_250']
+            i['intensity_60'] = intensity['intensity_60']
+            i['intensity_20'] = intensity['intensity_20']
+            i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
+            print(i)
             low_peg_pool.append(i)
+        target.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
     low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
     logging.warning(f"低PEG且相对强度为正: {low_peg_pool}\n\n全部PEG股票池: {target}")
@@ -228,14 +223,12 @@ def run_simple(code, eps2021=None, eps2022=None):
                 eps2021, eps2022 = get_predict_eps(i['code'], research_report)
             i['eps_2021'] = eps2021
             i['eps_2022'] = eps2022
-            peg, growth = calculate_peg_V2(i)
-            i['peg'] = peg
-            i['growth'] = growth
+            i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
             print(i)
             break
     else:
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-run_simple('603882')
-# run()
+# run_simple('300529')
+run()

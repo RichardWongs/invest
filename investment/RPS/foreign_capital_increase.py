@@ -65,6 +65,7 @@ def query_share_capital():
     for pageNumber in range(1, 6):
         url = f"http://datacenter-web.eastmoney.com/api/data/v1/get?callback=jQuery112308889432631368941_{timestamp}&sortColumns=ADD_MARKET_CAP&sortTypes=-1&pageSize={pageSize}&pageNumber={pageNumber}&reportName=RPT_MUTUAL_STOCK_NORTHSTA&columns=ALL&source=WEB&client=WEB&filter=(TRADE_DATE%3D%27{day}%27)(INTERVAL_TYPE%3D%221%22)"
         r = requests.get(url, headers=headers)
+        # print(r.text)
         response = r.text.split('(')[1].split(')')[0]
         response = json.loads(response)
         if response:
@@ -226,3 +227,5 @@ def latest_week_foreign_capital_add_weight():
     logging.warning(f"最近一周外资增持股池: {pool}")
     return sorted_pool
 
+
+print(foreign_capital_filter())
