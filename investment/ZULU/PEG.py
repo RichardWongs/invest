@@ -115,6 +115,8 @@ def continuous_growth_filter(code=None):
                                  'eps_2018': pool_2018[k]['PARENT_NETPROFIT'],
                                  'eps_2019': pool_2019[k]['PARENT_NETPROFIT'],
                                  'eps_2020': pool_2020[k]['PARENT_NETPROFIT']})
+            else:
+                logging.warning(f"{k} 不符合年报净利润连续三年增长的标准")
     return eps_pool
 
 
@@ -180,15 +182,15 @@ def calculate_peg_V2(obj: dict):
         return 0, 0
     last_year_eps = obj.get('eps_2020')
     predict_the_coming_year_eps = round(avg_predictThisYearEps*thisYearWeight/12 + avg_predictNextYearEps*nextYearWeight/12, 2)
-    # print(f"{obj.get('name')}\t{obj.get('code')}")
-    # print(f"预测未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
+    print(f"{obj.get('name')}\t{obj.get('code')}")
+    print(f"未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
     predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
-    # print(f"预测未来一年的市盈率: {predict_pe}")
+    print(f"预测未来一年的市盈率: {predict_pe}")
     past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
-    # print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
+    print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
-    # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
     return predict_pe, peg, growth_rate_earnings_per_share
 
 
@@ -230,5 +232,5 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-# run_simple('300529')
-run()
+run_simple('688981')
+# run()
