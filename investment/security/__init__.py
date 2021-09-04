@@ -127,10 +127,12 @@ def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
                     if i > 0:
                         new_data[i]['last_close'] = new_data[i-1]['close']
                     if i > 10:
-                        avg_volume = 0
+                        tenth_volume = []
                         for j in range(i-1, i-11, -1):
-                            avg_volume += new_data[j]['volume']
-                        new_data[i]['avg_volume'] = avg_volume/10
+                            tenth_volume.append(new_data[j]['volume'])
+                        new_data[i]['10th_largest'] = max(tenth_volume)
+                        new_data[i]['10th_minimum'] = min(tenth_volume)
+                        new_data[i]['avg_volume'] = sum(tenth_volume)/10
                         new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
                 return new_data[1:]
     except SecurityException() as e:

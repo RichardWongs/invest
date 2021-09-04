@@ -9,6 +9,5 @@ for i in fc_add_pool:
         if i['code'] == j['code']:
             high_rps_low_peg.append(j)
 high_rps_low_peg = sorted(high_rps_low_peg, key=lambda x: x['peg'], reverse=False)
-print(high_rps_low_peg)
-
+print([(i['name'], i['pe'], i['peg'], i['growth']) for i in high_rps_low_peg])
 
