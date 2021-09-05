@@ -140,7 +140,18 @@ def last_week_foreign_capital_add():
     run_volume_monitor(pool, message="外资一周增持个股")
 
 
-if __name__ == '__main__':
-    # sending_today_stock_pool()
-    last_week_foreign_capital_add()
+def peg_stock_monitor():
+    from ZULU.PEG import run
+    pool, _ = run()
+    message = f"{date.today()}\n低PEG高RPS外资增持股池\n"
+    for i in pool:
+        message += f"{i}\n"
+    if len(message.split('\n')) > 2 and message.split('\n')[2]:
+        logging.warning(message)
+        send_dingtalk_message(message)
 
+
+if __name__ == '__main__':
+    sending_today_stock_pool()
+    # last_week_foreign_capital_add()
+    # peg_stock_monitor()

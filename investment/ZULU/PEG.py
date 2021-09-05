@@ -1,5 +1,6 @@
 # encoding: utf-8
 import logging
+import os
 import time
 import pickle
 import requests
@@ -43,6 +44,7 @@ def save_research_report2local():
 
 
 def read_research_report_from_local():
+    os.chdir("../ZULU")
     with open("research_report.bin", 'rb') as f:
         f = f.read()
         content = pickle.loads(f)
@@ -81,6 +83,7 @@ def get_predict_eps(code, research_report: dict):
 
 def get_annual_report_by_year(year):
     # 从年度报告中筛选出归母净利润大于0的数据
+    os.chdir("../ZULU")
     file = f"annual_report_{year}.bin"
     pool = {}
     with open(file, 'rb') as f:
@@ -225,7 +228,7 @@ def run():
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
     low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
     logging.warning(f"低PEG且高相对强度: {low_peg_pool}\n全部PEG股票池: {target}")
-    return target
+    return low_peg_pool, target
 
 
 def run_simple(code, eps2021=None, eps2022=None):
@@ -243,6 +246,3 @@ def run_simple(code, eps2021=None, eps2022=None):
     else:
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
-
-# run_simple('688981')
-run()
