@@ -6,7 +6,7 @@ from datetime import date, timedelta, datetime
 import numpy as np
 import pandas as pd
 import tushare as ts
-from RPS.stock_pool import STOCK_LIST
+from RPS.stock_pool import STOCK_LIST, NEW_STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 day = 400   # 上市时间满一年
 rps_days = [50, 120, 250]
@@ -121,7 +121,41 @@ def run():
     logging.warning(f"总耗时: {minutes}分{seconds}秒")
 
 
-if __name__ == "__main__":
-    run()
+def fill_in_data_V2(df, filename):
+    rps_df = pd.DataFrame()
+    if filename in os.listdir(os.curdir):
+        os.remove(filename)
+    for k, v in df.items():
+        print(k)
+        for code, rps in v.items():
+            rps_df.loc[code, 'NAME'] = NEW_STOCK_LIST[code]['name']
+            rps_df.loc[code, 'INDUSTRY'] = NEW_STOCK_LIST[code]['industry']
+            rps_df.loc[code, k] = rps['RPS']
+    rps_df.to_csv(filename, encoding='utf-8')
 
+
+def run_V2():
+    start = int(time.time())
+    stock_list = get_stock_list()
+    get_all_data(stock_list)
+    data = pd.read_csv(f'daily_data.csv', encoding='utf-8', index_col='trade_date')
+    data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
+    for rps_day in rps_days:
+        ret = cal_ret(data, w=rps_day)
+        rps = all_RPS(ret)
+        new_rps = {}
+        for k, v in rps.items():
+            tmp = {}
+            for i in range(len(v)):
+                tmp[v.index[i]] = {'code': v.index[i], 'RPS': round(v.values[i][-1], 2)}
+            new_rps[k] = tmp
+        fill_in_data_V2(new_rps, filename=f'RPS__{rps_day}_V2.csv')
+    end = int(time.time())
+    minutes = int((end - start) / 60)
+    seconds = (end - start) % 60
+    logging.warning(f"总耗时: {minutes}分{seconds}秒")
+
+
+if __name__ == "__main__":
+    run_V2()
 
