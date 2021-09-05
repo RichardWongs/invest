@@ -32,7 +32,7 @@ def get_RPS_stock_pool():
     os.chdir("../RPS")
     logging.warning("根据RPS查询股池")
     pool = set()
-    files = ['RPS50.csv', 'RPS120.csv', 'RPS250.csv']
+    files = ['RPS_50_V2.csv', 'RPS_120_V2.csv', 'RPS_250_V2.csv']
     for file in files:
         df = pd.read_csv(file, encoding='utf-8')
         for i in df.values:
@@ -40,7 +40,7 @@ def get_RPS_stock_pool():
                 pool.add((i[0].split('.')[0], i[1]))
     # 增加一个50日RPS不低于70的条件, 避免长期RPS高但短期RPS开始下降的情况
     rps50_pool = set()
-    rps50 = pd.read_csv('RPS50.csv', encoding='utf-8')
+    rps50 = pd.read_csv('RPS_50_V2.csv', encoding='utf-8')
     for i in rps50.values:
         if i[-1] >= 70:
             rps50_pool.add((i[0].split('.')[0], i[1]))

@@ -149,7 +149,7 @@ def run_V2():
             for i in range(len(v)):
                 tmp[v.index[i]] = {'code': v.index[i], 'RPS': round(v.values[i][-1], 2)}
             new_rps[k] = tmp
-        fill_in_data_V2(new_rps, filename=f'RPS__{rps_day}_V2.csv')
+        fill_in_data_V2(new_rps, filename=f'RPS_{rps_day}_V2.csv')
     end = int(time.time())
     minutes = int((end - start) / 60)
     seconds = (end - start) % 60

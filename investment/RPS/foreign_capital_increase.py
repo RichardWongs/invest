@@ -227,5 +227,3 @@ def latest_week_foreign_capital_add_weight():
     logging.warning(f"最近一周外资增持股池: {pool}")
     return sorted_pool
 
-
-print(foreign_capital_filter())

@@ -5,7 +5,9 @@ import pickle
 import requests
 import json
 from datetime import date, timedelta
+from RPS.foreign_capital_increase import foreign_capital_filter
 from security import get_stock_kline_with_volume
+from RPS.quantitative_screening import get_RPS_stock_pool
 from ZULU import share_pool
 
 
@@ -154,9 +156,9 @@ def index_applies():
     return {'index_250': applies_250, 'index_60': applies_60, 'index_20': applies_60}
 
 
-def relative_intensity(code, index_applies):
+def relative_intensity(obj: dict, index_applies):
     # 相对强度
-    data250 = get_stock_kline_with_volume(code, limit=250)
+    data250 = get_stock_kline_with_volume(obj['code'], limit=250)
     pre, current = data250[0]['close'], data250[-1]['close']
     intensity_250 = round((current/pre/index_applies['index_250'] - 1)*100, 2)
     data60 = data250[-60:]
@@ -165,8 +167,12 @@ def relative_intensity(code, index_applies):
     data20 = data250[-20:]
     pre, current = data20[0]['close'], data20[-1]['close']
     intensity_20 = round((current/pre/index_applies['index_20'] - 1)*100, 2)
-    intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
-    return intensity
+    # intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
+    obj['intensity_20'] = intensity_20
+    obj['intensity_60'] = intensity_60
+    obj['intensity_250'] = intensity_250
+    obj['total_intensity'] = round(intensity_20 + intensity_60 + intensity_250, 2)
+    return obj
 
 
 def calculate_peg_V2(obj: dict):
@@ -197,22 +203,28 @@ def calculate_peg_V2(obj: dict):
 def run():
     pool = continuous_growth_four_year_filter_process()
     logging.warning(f"符合归母净利润四年连续增长标准的个股数量: {len(pool)}")
-    benchmark = index_applies()
-    target = low_peg_pool = []
+    target = []
+    low_peg_pool = []
+    rps_pool = get_RPS_stock_pool()
+    rps_pool = [i[0] for i in rps_pool]
+    fc_add = foreign_capital_filter()
+    fc_add = [i['code'] for i in fc_add]
+    rps_pool = [i for i in rps_pool if i in fc_add]
+    logging.warning(f"外资增持高RPS股票池: {rps_pool}")
     for i in pool:
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
-        if 0 < i['peg'] < 1.2:
-            intensity = relative_intensity(i['code'], index_applies=benchmark)
-            i['intensity_250'] = intensity['intensity_250']
-            i['intensity_60'] = intensity['intensity_60']
-            i['intensity_20'] = intensity['intensity_20']
-            i['total_intensity'] = round(intensity['intensity_250'] + intensity['intensity_60'] + intensity['intensity_20'], 2)
-            print(i)
+        if 0 < i['peg'] < 1.2 and i['code'] in rps_pool:
+            del i['eps_2017']
+            del i['eps_2018']
+            del i['eps_2019']
+            del i['eps_2020']
+            del i['eps_2021']
+            del i['eps_2022']
             low_peg_pool.append(i)
         target.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
     low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
-    logging.warning(f"低PEG且相对强度为正: {low_peg_pool}\n\n全部PEG股票池: {target}")
+    logging.warning(f"低PEG且高相对强度: {low_peg_pool}\n全部PEG股票池: {target}")
     return target
 
 
@@ -232,5 +244,5 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-run_simple('688981')
-# run()
+# run_simple('688981')
+run()
