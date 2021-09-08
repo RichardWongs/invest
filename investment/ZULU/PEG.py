@@ -191,15 +191,16 @@ def calculate_peg_V2(obj: dict):
         return 0, 0
     last_year_eps = obj.get('eps_2020')
     predict_the_coming_year_eps = round(avg_predictThisYearEps*thisYearWeight/12 + avg_predictNextYearEps*nextYearWeight/12, 2)
-    print(f"{obj.get('name')}\t{obj.get('code')}")
-    print(f"未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
+    # print(f"{obj.get('name')}\t{obj.get('code')}")
+    # print(f"未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿")
     predict_pe = round(close_price * total_share/predict_the_coming_year_eps, 2)
-    print(f"预测未来一年的市盈率: {predict_pe}")
+    # print(f"预测未来一年的市盈率: {predict_pe}")
     past_year = round(avg_predictThisYearEps*nextYearWeight/12 + last_year_eps*thisYearWeight/12, 2)
-    print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
+    # print(f"过去12个月的预测利润: {round(past_year/100000000, 2)}亿")
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
-    print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    logging.warning(f"\n{obj.get('name')}\t{obj.get('code')}\n未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿\n预测未来一年的市盈率: {predict_pe}\n过去12个月的预测利润: {round(past_year/100000000, 2)}亿\npeg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
     return predict_pe, peg, growth_rate_earnings_per_share
 
 
@@ -216,7 +217,7 @@ def run():
     logging.warning(f"外资增持高RPS股票池: {rps_pool}")
     for i in pool:
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
-        if 0 < i['peg'] < 1.2 and i['code'] in rps_pool:
+        if 0 < i['peg'] < 1.0 and i['code'] in rps_pool:
             del i['eps_2017']
             del i['eps_2018']
             del i['eps_2019']
@@ -245,4 +246,28 @@ def run_simple(code, eps2021=None, eps2022=None):
             break
     else:
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
+
+
+def get_quarter_report():
+    quarter_report_list = []
+    _date = "2021-06-30"
+    pageNumber = 1
+    pageSize = 50
+    for pageNumber in range(1, 250):
+        timestamp = int(time.time()*1000)
+        callback = f"jQuery112307840667802626824_{timestamp}"
+        url = f"http://datacenter-web.eastmoney.com/api/data/get?callback={callback}&st=UPDATE_DATE%2CSECURITY_CODE&sr=-1%2C-1&ps={pageSize}&p={pageNumber}&type=RPT_LICO_FN_CPD&sty=ALL&token=894050c76af8597a853f5b408b759f5d&filter=(REPORTDATE%3D%27{_date}%27)"
+        response = requests.get(url)
+        response = response.text.replace(f"{callback}(", '')[:-2]
+        response = json.loads(response)
+        if 'result' in response.keys():
+            response = response['result']
+            if response and 'data' in response.keys():
+                response = response['data']
+                for i in response:
+                    if i['SECURITY_CODE'][0] in ('0', '3', '6'):
+                        print(i)
+
+
+get_quarter_report()
 

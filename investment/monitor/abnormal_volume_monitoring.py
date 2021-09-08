@@ -130,8 +130,8 @@ def get_today_strong_stock(pool):
 def sending_today_stock_pool():
     pool = stock_pool_filter_process()
     run_volume_monitor(pool)
-    get_buying_point()
-    get_today_strong_stock(pool)
+    # get_buying_point()
+    # get_today_strong_stock(pool)
 
 
 def last_week_foreign_capital_add():
