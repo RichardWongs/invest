@@ -12,8 +12,8 @@ pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 
 def get_fund_holdings(quarter, year=date.today().year):
     # 基金持股
-    # from RPS.bak_stock_pool import fund_pool as pool
-    # return pool
+    from RPS.bak_stock_pool import fund_pool as pool
+    return pool
     logging.warning("查询基金持股数据")
     pool = set()
     data = ts.fund_holdings(year=year, quarter=quarter)

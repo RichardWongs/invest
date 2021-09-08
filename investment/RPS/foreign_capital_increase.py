@@ -22,8 +22,8 @@ pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 
 def foreignCapitalHoldingV2():
     # 外资持股清单(持股市值超过3000万)
-    # from RPS.bak_stock_pool import foreign_capital_pool
-    # return foreign_capital_pool
+    from RPS.bak_stock_pool import foreign_capital_pool
+    return foreign_capital_pool
     logging.warning("查询外资持股数据")
     pageSize = 500
     timestamp = int(time.time()*1000)
