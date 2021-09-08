@@ -82,7 +82,7 @@ def get_earnings_forecast():
                     response = response['data']
                     for i in response:
                         if i['SECURITY_CODE'][0] in ('0', '3', '6'):
-                            if i['PREDICT_FINANCE_CODE'] in ('004', '005') and i['SECURITY_CODE'] not in earnings_forecast.keys():
+                            if i['PREDICT_FINANCE_CODE'] in ('004', '005'):
                                 earnings_forecast[i['SECURITY_CODE']] = i
     target_file = f"earnings_forecast.bin"
     if target_file in os.listdir(os.curdir):

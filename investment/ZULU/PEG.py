@@ -51,6 +51,14 @@ def read_research_report_from_local():
         return content
 
 
+def read_binary_file_from_local(filename):
+    os.chdir("../ZULU")
+    with open(filename, 'rb') as f:
+        f = f.read()
+        content = pickle.loads(f)
+        return content
+
+
 def get_predict_eps(code, research_report: dict):
     # 根据研报预测计算今明两年的归母净利润
     if share_pool.get(str(code)):
@@ -204,9 +212,28 @@ def calculate_peg_V2(obj: dict):
     return predict_pe, peg, growth_rate_earnings_per_share
 
 
+def quarter_forecast_filter(pool):
+    # 根据季报和业绩预告做进一步过滤
+    quarter_report = read_binary_file_from_local("quarter_report.bin")
+    for i in pool[:]:
+        if i['code'] in quarter_report.keys():
+            if quarter_report[i['code']]['SJLTZ'] < 0:
+                pool.remove(i)
+    logging.warning(f"季报净利润增速为正的个股数量(包含未公布季报个股): {len(pool)}")
+    earnings_forecast = read_binary_file_from_local("earnings_forecast.bin")
+    for i in pool[:]:
+        if i['code'] in earnings_forecast.keys():
+            ADD_AMP_LOWER = earnings_forecast[i['code']]['ADD_AMP_LOWER']
+            if ADD_AMP_LOWER and ADD_AMP_LOWER < 0:
+                pool.remove(i)
+    logging.warning(f"业绩预告净利润增速为正的个股数量(包含未公布业绩预告个股): {len(pool)}")
+    return pool
+
+
 def run():
     pool = continuous_growth_four_year_filter_process()
     logging.warning(f"符合归母净利润四年连续增长标准的个股数量: {len(pool)}")
+    pool = quarter_forecast_filter(pool)
     target = []
     low_peg_pool = []
     rps_pool = get_RPS_stock_pool()
