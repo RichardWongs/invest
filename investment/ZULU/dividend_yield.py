@@ -33,5 +33,10 @@ def get_quarter_report(_date):
     return quarter_report_list
 
 
-data = get_quarter_report("2020-03-31")
+def get_current_year_all_quarter_report(year):
+    date_list = [f"{year}-03-31", f"{year}-06-30", f"{year}-09-30", f"{year}-12-31"]
+    for _date in date_list:
+        get_quarter_report(_date)
 
+
+get_current_year_all_quarter_report(2017)
