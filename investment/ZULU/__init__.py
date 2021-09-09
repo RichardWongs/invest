@@ -36,7 +36,7 @@ def get_annual_report_to_file():
         f.write(pickle.dumps(annual_report_list))
 
 
-def get_quarter_report():
+def get_quarter_report(_date=None):
     # 获取上市公司最新季度报告,持续跟踪
     quarter_report_list = {}
     _date = "2021-06-30"

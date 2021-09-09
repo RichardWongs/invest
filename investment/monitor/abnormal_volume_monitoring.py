@@ -49,7 +49,7 @@ def run_volume_monitor(pool, message=""):
     for i in pool:
         kline = get_stock_kline_with_volume(i['code'])
         kline_item = kline[-1]
-        if (kline_item['volume_ratio'] > 1.5 and kline_item['applies'] >= 5) \
+        if (kline_item['volume_ratio'] > 2 and kline_item['applies'] >= 5) \
                 or (kline_item['volume_ratio'] < 0.6):
             i['volume_ratio'] = kline_item['volume_ratio']
             i['applies'] = kline_item['applies']
@@ -154,7 +154,7 @@ def peg_stock_monitor():
 
 if __name__ == '__main__':
     # sending_today_stock_pool()
-    # last_week_foreign_capital_add()
+    last_week_foreign_capital_add()
     # peg_stock_monitor()
-    from RPS.bak_stock_pool import finally_pool
-    run_volume_monitor(finally_pool)
+    # from RPS.bak_stock_pool import finally_pool
+    # run_volume_monitor(finally_pool)
