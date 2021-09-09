@@ -45,6 +45,7 @@ def get_RPS_stock_pool():
         if i[-1] >= 70:
             rps50_pool.add((i[0].split('.')[0], i[1]))
     pool = [i for i in pool if i in rps50_pool]
+    logging.warning(f"高RPS股票池: {pool}")
     return pool
 
 

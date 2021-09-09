@@ -3,6 +3,7 @@ import time
 import requests
 import json
 import pickle
+from ZULU import share_pool
 
 
 def get_quarter_report(_date):
@@ -36,7 +37,21 @@ def get_quarter_report(_date):
 def get_current_year_all_quarter_report(year):
     date_list = [f"{year}-03-31", f"{year}-06-30", f"{year}-09-30", f"{year}-12-31"]
     for _date in date_list:
+        time.sleep(5)
         get_quarter_report(_date)
 
 
-get_current_year_all_quarter_report(2017)
+stocks = {}
+for i in share_pool:
+    stocks[i] = []
+files = ["2020-03-31", "2020-06-30", "2020-09-30", "2020-12-31"]
+for file in files:
+    with open(f"dividend/{file}.bin", 'rb') as f:
+        f = f.read()
+        content = pickle.loads(f)
+    for k, v in content.items():
+        stocks[k].append(v)
+for k, v in stocks.items():
+    if v and len(v) > 1:
+        # print(k, v)
+        print(len(v))
