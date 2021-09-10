@@ -1,8 +1,10 @@
+import copy
 import os
 import time
 import requests
 import json
 import pickle
+from parse import parse
 from ZULU import share_pool
 
 
@@ -26,6 +28,7 @@ def get_quarter_report(_date):
                         if i['SECURITY_CODE'][0] in ('0', '3', '6'):
                             if i['ASSIGNDSCRPT'] and i['ASSIGNDSCRPT'] != "不分配不转增":
                                 quarter_report_list[i['SECURITY_CODE']] = i
+                                print(i)
     target_file = f"dividend/{_date}.bin"
     if target_file in os.listdir(os.curdir):
         os.remove(target_file)
@@ -41,17 +44,32 @@ def get_current_year_all_quarter_report(year):
         get_quarter_report(_date)
 
 
-stocks = {}
-for i in share_pool:
-    stocks[i] = []
-files = ["2020-03-31", "2020-06-30", "2020-09-30", "2020-12-31"]
-for file in files:
-    with open(f"dividend/{file}.bin", 'rb') as f:
-        f = f.read()
-        content = pickle.loads(f)
-    for k, v in content.items():
-        stocks[k].append(v)
-for k, v in stocks.items():
-    if v and len(v) > 1:
-        # print(k, v)
-        print(len(v))
+def get_stock_share_out_bonus():
+    # 获取该年度个股的分红派息信息
+    stocks = {}
+    for i in share_pool:
+        stocks[i] = {2016: [], 2017: [], 2018: [], 2019: [], 2020: [], }
+    years = [2016, 2017, 2018, 2019, 2020]
+    for year in years:
+        files = [f"{year}-03-31", f"{year}-06-30", f"{year}-09-30", f"{year}-12-31"]
+        for file in files:
+            with open(f"dividend/{file}.bin", 'rb') as f:
+                f = f.read()
+                content = pickle.loads(f)
+            for k, v in content.items():
+                stocks[k][year].append(v)
+    stocks_bak = copy.copy(stocks)
+    for k, v in stocks.items():
+        if not (v[2016] and v[2017] and v[2018] and v[2019] and v[2020]):
+            del stocks_bak[k]
+    return stocks_bak
+
+
+# data = get_stock_share_out_bonus()
+# print(data)
+s = '10送2.00转1.00派0.50元(含税,扣税后0.25元)'
+profile = parse("10转{stockCount}派{dividend}元{tax}", s)
+print(profile)
+
+
+
