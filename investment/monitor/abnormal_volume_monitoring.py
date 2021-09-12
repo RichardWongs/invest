@@ -153,7 +153,7 @@ def peg_stock_monitor():
 
 
 if __name__ == '__main__':
-    # sending_today_stock_pool()
+    sending_today_stock_pool()
     last_week_foreign_capital_add()
     # peg_stock_monitor()
     # from RPS.bak_stock_pool import finally_pool
