@@ -42,15 +42,15 @@ def get_fund_detail(code, start_date, end_date):
 def fund_ranking_summary():
     # 基金业绩排行汇总
     # data_3m = get_fund_rank('3y')
-    data_6m = get_fund_rank('6y')
+    # data_6m = get_fund_rank('6y')
     data_1y = get_fund_rank('1n')
     data_2y = get_fund_rank('2n')
     data_3y = get_fund_rank('3n')
     data_5y = get_fund_rank('5n')
-    t1 = data_6m  # [i for i in data_6m if i in data_3m]
+    # t1 = data_6m  # [i for i in data_6m if i in data_3m]
     t2 = [i for i in data_2y if i in data_1y]
     t3 = [i for i in data_5y if i in data_3y]
-    target = [i for i in t2 if i in t3 and i in t1]
+    target = [i for i in t2 if i in t3]
     # target = [i for i in t1 if i in [i for i in t3 if i in t2]]
     for i in target:
         del i['netWorthDate']
@@ -64,6 +64,7 @@ def fund_ranking_summary():
         del i['lastMonthGrowth']
         del i['lastThreeMonthsGrowth']
         del i['lastSixMonthsGrowth']
+    print(f"target: {target}")
     years = (2016, 2017, 2018, 2019, 2020, 2021)
     data = []
     for fund in target:

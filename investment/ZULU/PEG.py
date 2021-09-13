@@ -149,7 +149,7 @@ def continuous_growth_four_year_filter_process():
 
 
 def index_applies():
-    indexes = ['000300']  # , '000905', '399006', '000688'
+    indexes = ['000300', '000905', '399006', '000688']  #
     applies_250 = applies_60 = applies_20 = 0
     for index in indexes:
         data250 = get_stock_kline_with_volume(index, is_index=True, limit=250)
@@ -269,6 +269,8 @@ def run_simple(code, eps2021=None, eps2022=None):
             i['eps_2021'] = eps2021
             i['eps_2022'] = eps2022
             i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
+            index_applie = index_applies()
+            i = relative_intensity(i, index_applie)
             print(i)
             break
     else:

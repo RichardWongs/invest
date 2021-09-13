@@ -3,7 +3,7 @@ from security import get_stock_kline_with_volume
 
 
 def index_applies():
-    indexes = ['000300', '000905', '399006', '000688']
+    indexes = ['000001', '000300', '000905', '399006', '000688']
     applies_120 = 0
     result = []
     for index in indexes:
@@ -20,4 +20,5 @@ def GET_RSMANSIFIELD(code):
     index_applies_list = [i['applies'] for i in index]
     data120 = get_stock_kline_with_volume(code, limit=120)
     stock_applies_list = [i['applies'] for i in data120]
+
 
