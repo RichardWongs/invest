@@ -1,5 +1,4 @@
 import time
-
 import requests
 import json
 import re
@@ -17,7 +16,7 @@ def get_html(code, start_date, end_date, page=1, per=20):
 
 
 def get_fund(code, start_date=str(date.today() - timedelta(180)), end_date=str(date.today()), page=1, per=20):
-    time.sleep(2)
+    time.sleep(1)
     # 获取html
     html = get_html(code, start_date, end_date, page, per)
     soup = BeautifulSoup(html, 'html.parser')
@@ -72,6 +71,7 @@ def get_fund(code, start_date=str(date.today() - timedelta(180)), end_date=str(d
 
 
 def get_fund_yield(code, year=date.year, quarter=None, month=None):
+    # 查询某只基金的阶段收益
     if month in (1, 3, 5, 7, 8, 10, 12):
         end_day = 31
     elif month in (4, 6, 9, 11):
@@ -79,7 +79,7 @@ def get_fund_yield(code, year=date.year, quarter=None, month=None):
     else:
         end_day = 29 if year % 4 == 0 else 28
 
-    if quarter and quarter in (1,2,3,4):
+    if quarter and quarter in (1, 2, 3, 4):
         if quarter == 1:
             start_date = datetime(year, 1, 1).strftime("%Y-%m-%d")
             end_date = datetime(year, 3, 31).strftime("%Y-%m-%d")
@@ -109,6 +109,7 @@ def get_fund_yield(code, year=date.year, quarter=None, month=None):
 
 
 def get_fund_year_yield(code, years=3):
+    # 查询某只基金N年以来的总收益
     year, month, day = datetime.today().year, datetime.today().month, datetime.today().day
     start_date = str(datetime(year-years, month, day))
     end_date = str(datetime.today())
@@ -130,10 +131,7 @@ def get_all_fund_list():
     # print(response)
     funds = []
     for i in response:
-        tmp = {}
-        tmp['code'] = i[0]
-        tmp['name'] = i[2]
-        tmp['type'] = i[3]
+        tmp = {'code': i[0], 'name': i[2], 'type': i[3]}
         funds.append(tmp)
     return funds
 
