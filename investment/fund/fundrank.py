@@ -2,7 +2,7 @@
 # 基金业绩排名
 import json
 import requests
-from datetime import datetime
+from datetime import date, timedelta
 from fundresults import get_fund_yield, get_fund_year_yield
 
 
@@ -37,6 +37,25 @@ def get_fund_detail(code, start_date, end_date):
     response = requests.get(url, params=params).json()
     response = response['data']
     print(json.dumps(response, indent=4, ensure_ascii=False))
+
+
+def get_fund_detail_list(fund_list: list, start_date=date.today()-timedelta(days=1), end_date=date.today()):
+    # 批量获取基金详情
+    code = ",".join([i['code'] for i in fund_list])
+    url = "https://api.doctorxiong.club/v1/fund/detail/list"
+    params = {
+        'code': code,
+        'startDate': start_date,
+        'endDate': end_date
+    }
+    response = requests.get(url, params=params).json()
+    response = response['data']
+    result = [{'code': i['code'], 'name': i['name'], 'fundScale': i['fundScale']} for i in response]
+    for i in fund_list:
+        for j in result:
+            if i['code'] == j['code']:
+                i['fundScale'] = j['fundScale']
+    return fund_list
 
 
 def fund_ranking_summary():
@@ -77,4 +96,6 @@ def fund_ranking_summary():
     return data
 
 
-print(fund_ranking_summary())
+# print(fund_ranking_summary())
+
+
