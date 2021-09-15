@@ -7,9 +7,24 @@ funds_v2 = [{'code': '002190', 'name': '农银新能源主题', 2016: -1.81, 201
 # 最近一年，两年，三年，五年排行榜前五百名的基金列表
 print(f"funds: {len(funds)}\tfunds_v2: {len(funds_v2)}")
 sorted_3y = sorted(funds, key=lambda x: x['3y'], reverse=True)
-# sorted_5y = sorted(funds, key=lambda x: x['5y'], reverse=True)
-sorted_3y = get_fund_detail_list(sorted_3y)
-for i in sorted_3y:
+sorted_5y = sorted(funds, key=lambda x: x['5y'], reverse=True)
+target = [i for i in sorted_3y[:50] if i in sorted_5y[:50]]
+target = get_fund_detail_list(target)
+print(f"target: {len(target)}")
+for i in target:
     print(i)
     print(f"http://fundf10.eastmoney.com/jjjl_{i['code']}.html")
 
+
+# 国投瑞银进宝灵活配置混合
+# 泰达转型机遇股票A
+# 信诚新兴产业混合A
+# 金鹰民族新兴混合
+# 工银生态环境股票
+# 汇丰晋信智造先锋股票C
+# 华商万众创新混合
+# 信达澳银中小盘混合
+# 招商安润混合
+# 新华鑫动力灵活配置混合C
+# 大成新锐产业混合
+# 华商新趋势优选灵活配置混合
