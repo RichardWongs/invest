@@ -93,13 +93,8 @@ def get_buying_point_by_50_average(pool):
 def get_buying_point(shot_line=5, long_line=20):
     # 根据均线获取买点 5日均线上穿20日均线
     # 股票池条件: 高RPS,机构持股 or 外资持股
-    from RPS.quantitative_screening import get_RPS_stock_pool
-    rps_pool = get_RPS_stock_pool()
-    fund_pool = get_fund_holdings(quarter=2)
-    foreign_capital_pool = foreignCapitalHoldingV2()
-    pool = fund_pool.union(foreign_capital_pool)    # 基金持股3% + 北向持股三千万
-    pool = [i for i in pool if i in rps_pool]
-    pool = [{'code': i[0], 'name': i[1]} for i in pool]
+    from RPS.quantitative_screening import stock_pool_filter_process
+    pool = stock_pool_filter_process()
     message = f"{date.today()}\n5日线上穿20日线\n"
     for i in pool:
         data = get_stock_kline_with_volume(i['code'])
@@ -129,9 +124,9 @@ def get_today_strong_stock(pool):
 
 def sending_today_stock_pool():
     # from RPS.bak_stock_pool import finally_pool as pool
-    pool = stock_pool_filter_process()
-    run_volume_monitor(pool)
-    # get_buying_point()
+    # pool = stock_pool_filter_process()
+    # run_volume_monitor(pool)
+    get_buying_point()
     # get_today_strong_stock(pool)
 
 
@@ -154,8 +149,8 @@ def peg_stock_monitor():
 
 if __name__ == '__main__':
     sending_today_stock_pool()
-    last_week_foreign_capital_add()
-    peg_stock_monitor()
+    # last_week_foreign_capital_add()
+    # peg_stock_monitor()
     # from RPS.bak_stock_pool import finally_pool
     # run_volume_monitor(finally_pool)
 
