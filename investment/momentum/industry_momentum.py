@@ -35,6 +35,7 @@ def get_stock_list():
 
 def get_data(code, start=begin_date, end=today):
     # 按照日期范围获取股票交易日期,收盘价
+    time.sleep(0.1)
     df = pro.daily(ts_code=code, start_date=start, end_date=end, fields='trade_date,close')
     # 将交易日期设置为索引值
     df.index = pd.to_datetime(df.trade_date)
@@ -109,8 +110,8 @@ def fill_in_data(df, filename="RPS.csv"):
 
 
 def create_RPS_file():
-    # stocks = get_stock_list()
-    # get_all_data(stocks)
+    stocks = get_stock_list()
+    get_all_data(stocks)
     data = pd.read_csv(f'daily_price.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
     ret = cal_ret(data, w=rps_day)

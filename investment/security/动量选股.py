@@ -40,6 +40,7 @@ def get_stock_pool():
 
 
 def get_security_V2():
+    # 改进获取股票池方式, 根据RPS,机构持股,外资增持,股价接近一年新高等条件进行筛选,此股票池需每个交易日收盘后更新RPS数据
     from RPS.quantitative_screening import stock_pool_filter_process
     stock_pool = stock_pool_filter_process()
     for i in stock_pool:
@@ -51,8 +52,6 @@ def get_security_V2():
             value = round(close/highest, 2)
             if value > 0.9:
                 i['closes'] = [i['close'] for i in source_data]
-    # for i in stock_pool:
-    #     print(i)
     return stock_pool
 
 

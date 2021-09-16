@@ -9,7 +9,7 @@ import tushare as ts
 from RPS.stock_pool import STOCK_LIST, NEW_STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 day = 400   # 上市时间满一年
-rps_days = [50, 120, 250]
+rps_days = [20, 50, 120, 250]
 begin_date = int(str(date.today() - timedelta(days=day)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
 

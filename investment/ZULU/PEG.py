@@ -149,8 +149,8 @@ def continuous_growth_four_year_filter_process():
 
 
 def index_applies():
-    indexes = ['000300', '000905', '399006', '000688']  #
-    applies_250 = applies_60 = applies_20 = 0
+    indexes = ['000300', '000905', '399006', '000688']
+    applies_250, applies_60, applies_20 = 0, 0, 0
     for index in indexes:
         data250 = get_stock_kline_with_volume(index, is_index=True, limit=250)
         pre, current = data250[0]['close'], data250[-1]['close']
@@ -160,24 +160,26 @@ def index_applies():
         pre, current = data60[0]['close'], data60[-1]['close']
         if applies_60 < current/pre:
             applies_60 = current/pre
-        data20 = data250[-20:]
+        data20 = data250[-22:]
         pre, current = data20[0]['close'], data20[-1]['close']
         if applies_20 < current/pre:
             applies_20 = current/pre
     return {'index_250': applies_250, 'index_60': applies_60, 'index_20': applies_60}
 
 
-def relative_intensity(obj: dict, index_applies):
+def relative_intensity(obj: dict, indexApplies=None):
     # 相对强度
+    if not indexApplies:
+        indexApplies = index_applies()
     data250 = get_stock_kline_with_volume(obj['code'], limit=250)
     pre, current = data250[0]['close'], data250[-1]['close']
-    intensity_250 = round((current/pre/index_applies['index_250'] - 1)*100, 2)
+    intensity_250 = round((current/pre/indexApplies['index_250'] - 1), 2)
     data60 = data250[-60:]
     pre, current = data60[0]['close'], data60[-1]['close']
-    intensity_60 = round((current/pre/index_applies['index_60'] - 1)*100, 2)
-    data20 = data250[-20:]
+    intensity_60 = round((current/pre/indexApplies['index_60'] - 1), 2)
+    data20 = data250[-22:]
     pre, current = data20[0]['close'], data20[-1]['close']
-    intensity_20 = round((current/pre/index_applies['index_20'] - 1)*100, 2)
+    intensity_20 = round((current/pre/indexApplies['index_20'] - 1), 2)
     # intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
     obj['intensity_20'] = intensity_20
     obj['intensity_60'] = intensity_60
@@ -277,4 +279,4 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-
+run_simple(601636)
