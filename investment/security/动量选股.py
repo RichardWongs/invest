@@ -1,5 +1,4 @@
 import logging
-
 import requests
 import os, sys
 import configparser
@@ -12,7 +11,6 @@ sys.path.append(os.path.abspath(os.curdir))
 def readconfig(env, configfile='security.ini'):
     config = configparser.ConfigParser()
     config.read(configfile, encoding='utf-8')
-    assert env in config.sections(), "environment not match"
     items = config.items(env)
     return dict(items)
 
@@ -38,6 +36,23 @@ def get_stock_pool():
     response = response['data']['rows']
     for i in response:
         stock_pool.append({'code': i.get('seccode'), 'name': i.get('secname')})
+    return stock_pool
+
+
+def get_security_V2():
+    from RPS.quantitative_screening import stock_pool_filter_process
+    stock_pool = stock_pool_filter_process()
+    for i in stock_pool:
+        source_data = get_stock_kline_with_volume(i.get('code'), limit=260+1)
+        if source_data:
+            data = source_data[:-1]
+            close = source_data[-1]['close']
+            highest = max([i['close'] for i in data])   # 取最大的收盘价
+            value = round(close/highest, 2)
+            if value > 0.9:
+                i['closes'] = [i['close'] for i in source_data]
+    # for i in stock_pool:
+    #     print(i)
     return stock_pool
 
 
@@ -79,10 +94,11 @@ def get_buying_point(close_prices, shot_line=5, long_line=20):
 
 def get_buying_point_20_average(code):
     # 根据均线获取买点
+    day = 20
     data = get_stock_kline_with_volume(code)
     close = data[-1]['close']
     low = data[-1]['low']
-    long_data = [i['close'] for i in data[-21:]]
+    long_data = [i['close'] for i in data[-(day+1):]]
     long_ma = sum(long_data[1:])/len(long_data[1:])
     long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
     if long_ma < close and (low <= long_ma):
@@ -92,10 +108,11 @@ def get_buying_point_20_average(code):
 
 def get_buying_point_50_average(code):
     # 根据均线获取买点
+    day = 50
     data = get_stock_kline(code)
     close = data['kline'][-1]['close']
     low = data['kline'][-1]['low']
-    long_data = [i['close'] for i in data['kline'][-51:]]
+    long_data = [i['close'] for i in data['kline'][-(day+1):]]
     long_ma = sum(long_data[1:])/len(long_data[1:])
     long_ma_pre = sum(long_data[:-1])/len(long_data[:-1])
     if long_ma < close and (low <= long_ma or low <= long_ma * 1.02):
@@ -106,9 +123,11 @@ def get_buying_point_50_average(code):
 def get_selling_point(code):
     data = get_stock_kline(code)
     close = data['kline'][-1]['close']
+    highest = max([i['close'] for i in data['kline']])
+    value = round(close/highest, 2)
     long_data = [i['close'] for i in data['kline'][-51:]]
     long_ma = round(sum(long_data[1:])/len(long_data[1:]), 2)
-    if close < long_ma:
+    if close < long_ma or value < 0.9:
         del data['kline']
         return data
 
@@ -131,14 +150,15 @@ def get_available_cash():
 def market_open():
     # 开盘时运行函数
     max_position_count = 10
-    stocks = pool
-    stock_pool = [i['code'] for i in stocks]
+    stocks = get_security_V2()
     sell_message = f"{date.today()}\n"
-    for i in get_position_stocks():
+    os.chdir("../security")
+    position_stocks = get_position_stocks()
+    for i in position_stocks:
         sell = get_selling_point(i)
         if sell:
             sell_message += f"平仓\t{sell.get('code')}\t{sell.get('name')}\n"
-            logging.warning(f"平仓\t{sell.get('code')}\t{sell.get('name')}\n")
+    logging.warning(sell_message)
     send_dingtalk_message(sell_message)
     cash = get_available_cash()
     buying_message = f"{date.today()}\n"
@@ -148,7 +168,9 @@ def market_open():
             if get_buying_point_50_average(i.get('code')):
                 buying_message += f"开仓\t{i.get('code')}\t{i.get('name')}\t金额:{cash/(max_position_count - position_count)}"
                 logging.warning(f"开仓\t{i.get('code')}\t{i.get('name')}\t{i.get('value')}\t金额:{cash/(max_position_count - position_count)}")
-    send_dingtalk_message(buying_message)
+    if buying_message.split('\n')[1]:
+        logging.warning(buying_message)
+        send_dingtalk_message(buying_message)
 
 
 if __name__ == "__main__":
