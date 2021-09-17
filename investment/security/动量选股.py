@@ -158,11 +158,12 @@ def market_open():
         if sell:
             sell_message += f"平仓\t{sell.get('code')}\t{sell.get('name')}\n"
     logging.warning(sell_message)
-    send_dingtalk_message(sell_message)
+    if sell_message.split('\n')[1]:
+        send_dingtalk_message(sell_message)
     cash = get_available_cash()
     buying_message = f"{date.today()}\n"
+    position_count = len(get_position_stocks())
     for i in stocks:
-        position_count = len(get_position_stocks())
         if i.get('code') not in get_position_stocks() and max_position_count - position_count > 0:
             if get_buying_point_50_average(i.get('code')):
                 buying_message += f"开仓\t{i.get('code')}\t{i.get('name')}\t金额:{cash/(max_position_count - position_count)}"
