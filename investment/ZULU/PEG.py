@@ -279,4 +279,3 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-run_simple(601636)
