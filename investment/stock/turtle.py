@@ -4,101 +4,197 @@ import requests,json
 import time
 import logging
 import colorama
+from stock import standard_deviation
 from colorama import Fore,Back,Style
 colorama.init()
 logging.basicConfig(level=logging.INFO)
+
+
+class SecurityException(BaseException):
+    pass
 
 
 def TRI(high, low, close):
     return round(max(high, close) - min(low, close), 3)
 
 
-def get_stock_kline_60_minutes(code):
-    if str(code)[0] in ('0','1','3'):
-        secid = f'0.{code}'
-    else:
-        secid = f'1.{code}'
-    url = f"http://65.push2his.eastmoney.com/api/qt/stock/kline/get"
-    params = {
-        'cb': "jQuery112403682476595453782_1625125440575",
-        'secid': secid,
-        'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
-        'fields1': 'f1,f2,f3,f4,f5,f6',
-        'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
-        'klt': 60,
-        'fqt': 0,
-        'end': '20500101',
-        'lmt': 120,
-        '_': f'{int(time.time())*1000}'
-    }
-    try:
-        r = requests.get(url, params=params).text
-        r = r.split('(')[1].split(')')[0]
-        r = json.loads(r)
-        r = r['data']['klines']
-        data = []
-        for i in range(len(r)):
-            tmp = {}
-            current_data = r[i].split(',')
-            tmp['day'] = current_data[0]
-            tmp['close'] = float(current_data[2])
-            tmp['high'] = float(current_data[3])
-            tmp['low'] = float(current_data[4])
-            if i > 0:
-                tmp['last_close'] = float(r[i - 1].split(',')[2])
-                tmp['TRi'] = TRI(tmp['high'], tmp['low'], tmp['last_close'])
-            data.append(tmp)
-        data = data[1:]
-    except Exception() as e:
-        print(e)
-    return data if data else None
+# def get_stock_kline_60_minutes(code):
+#     if str(code)[0] in ('0','1','3'):
+#         secid = f'0.{code}'
+#     else:
+#         secid = f'1.{code}'
+#     url = f"http://65.push2his.eastmoney.com/api/qt/stock/kline/get"
+#     params = {
+#         'cb': "jQuery112403682476595453782_1625125440575",
+#         'secid': secid,
+#         'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
+#         'fields1': 'f1,f2,f3,f4,f5,f6',
+#         'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
+#         'klt': 60,
+#         'fqt': 0,
+#         'end': '20500101',
+#         'lmt': 120,
+#         '_': f'{int(time.time())*1000}'
+#     }
+#     try:
+#         r = requests.get(url, params=params).text
+#         r = r.split('(')[1].split(')')[0]
+#         r = json.loads(r)
+#         r = r['data']['klines']
+#         data = []
+#         for i in range(len(r)):
+#             tmp = {}
+#             current_data = r[i].split(',')
+#             tmp['day'] = current_data[0]
+#             tmp['close'] = float(current_data[2])
+#             tmp['high'] = float(current_data[3])
+#             tmp['low'] = float(current_data[4])
+#             if i > 0:
+#                 tmp['last_close'] = float(r[i - 1].split(',')[2])
+#                 tmp['TRi'] = TRI(tmp['high'], tmp['low'], tmp['last_close'])
+#             data.append(tmp)
+#         data = data[1:]
+#     except Exception() as e:
+#         print(e)
+#     return data if data else None
 
 
-def get_stock_kline_day(code):
-    if str(code)[0] in ('0','1','3'):
-        secid = f'0.{code}'
+# def get_stock_kline_day(code):
+#     if str(code)[0] in ('0','1','3'):
+#         secid = f'0.{code}'
+#     else:
+#         secid = f'1.{code}'
+#     url = f"http://67.push2his.eastmoney.com/api/qt/stock/kline/get"
+#     params = {
+#         'cb': "jQuery11240671737283431526_1624931273440",
+#         'secid': secid,
+#         'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
+#         'fields1': 'f1,f2,f3,f4,f5,f6',
+#         'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
+#         'klt': 101,
+#         'fqt': 0,
+#         'end': '20500101',
+#         'lmt': 120,
+#         '_': f'{int(time.time())*1000}'
+#     }
+#     try:
+#         r = requests.get(url, params=params).text
+#         # print(r)
+#         r = r.split('(')[1].split(')')[0]
+#         r = json.loads(r)
+#         r = r['data']['klines']
+#         data = []
+#         for i in range(len(r)):
+#             tmp = {}
+#             current_data = r[i].split(',')
+#             tmp['day'] = current_data[0]
+#             tmp['close'] = float(current_data[2])
+#             tmp['high'] = float(current_data[3])
+#             tmp['low'] = float(current_data[4])
+#             if i > 0:
+#                 tmp['last_close'] = float(r[i - 1].split(',')[2])
+#                 tmp['TRi'] = TRI(tmp['high'], tmp['low'], tmp['last_close'])
+#             data.append(tmp)
+#         data = data[1:]
+#     except Exception() as e:
+#         print(e)
+#     return data if data else None
+
+
+def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
+    time.sleep(0.5)
+    assert period in (5, 15, 30, 60, 101, 102, 103)
+    if is_index:
+        if code.startswith('3'):
+            secid = f'0.{code}'
+        elif code.startswith('0'):
+            secid = f'1.{code}'
+        elif code.startswith('H') or code.startswith('9'):
+            secid = f'2.{code}'
+        else:
+            return None
     else:
-        secid = f'1.{code}'
+        if str(code)[0] in ('0', '1', '3'):
+            secid = f'0.{code}'
+        else:
+            secid = f'1.{code}'
     url = f"http://67.push2his.eastmoney.com/api/qt/stock/kline/get"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
+    }
     params = {
         'cb': "jQuery11240671737283431526_1624931273440",
         'secid': secid,
         'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
         'fields1': 'f1,f2,f3,f4,f5,f6',
         'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
-        'klt': 101,
+        'klt': period,
         'fqt': 0,
         'end': '20500101',
-        'lmt': 120,
-        '_': f'{int(time.time())*1000}'
+        'lmt': limit,
+        '_': f'{int(time.time()) * 1000}'
     }
     try:
-        r = requests.get(url, params=params).text
-        # print(r)
+        r = requests.get(url, headers=headers, params=params).text
         r = r.split('(')[1].split(')')[0]
         r = json.loads(r)
-        r = r['data']['klines']
-        data = []
-        for i in range(len(r)):
-            tmp = {}
-            current_data = r[i].split(',')
-            tmp['day'] = current_data[0]
-            tmp['close'] = float(current_data[2])
-            tmp['high'] = float(current_data[3])
-            tmp['low'] = float(current_data[4])
-            if i > 0:
-                tmp['last_close'] = float(r[i - 1].split(',')[2])
-                tmp['TRi'] = TRI(tmp['high'], tmp['low'], tmp['last_close'])
-            data.append(tmp)
-        data = data[1:]
-    except Exception() as e:
+        if 'data' in r.keys():
+            if isinstance(r['data'], dict) and 'klines' in r['data'].keys():
+                r = r['data']['klines']
+                r = [i.split(',') for i in r]
+                new_data = []
+                for i in r:
+                    i = {'day': i[0], 'open': float(i[1]), 'close': float(i[2]),
+                         'high': float(i[3]), 'low': float(i[4]), 'volume': float(i[6]),
+                         'applies': float(i[8])}
+                    new_data.append(i)
+                for i in range(len(new_data)):
+                    if i > 0:
+                        new_data[i]['last_close'] = new_data[i-1]['close']
+                        new_data[i]['TRI'] = TRI(new_data[i]['high'], new_data[i]['low'], new_data[i]['last_close'])
+                    if i > 10:
+                        tenth_volume = []
+                        ATR_10 = 0
+                        for j in range(i-1, i-11, -1):
+                            tenth_volume.append(new_data[j]['volume'])
+                            ATR_10 += new_data[j]['TRI']
+                        new_data[i]['ATR_10'] = round(ATR_10 / 10, 2)
+                        new_data[i]['10th_largest'] = max(tenth_volume)
+                        new_data[i]['10th_minimum'] = min(tenth_volume)
+                        new_data[i]['avg_volume'] = sum(tenth_volume)/10
+                        new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
+                    if i > 20:
+                        ATR_20 = 0
+                        for j in range(i-1, i-21, -1):
+                            ATR_20 += new_data[j]['TRI']
+                        new_data[i]['ATR_20'] = round(ATR_20 / 20, 2)
+                return new_data[1:]
+    except SecurityException() as e:
         print(e)
-    return data if data else None
+        return None
+
+
+def BooleanLine(kline: list):
+    assert len(kline) > 20
+    for i in range(len(kline)):
+        if i >= 20:
+            closes = []
+            for j in range(i, i-20, -1):
+                closes.append(kline[j]['close'])
+            ma20 = round(sum(closes)/20, 2)
+            BBU = ma20 + 2 * standard_deviation(closes)  # 布林线上轨
+            BBL = ma20 - 2 * standard_deviation(closes)  # 布林线下轨
+            BBW = (BBU - BBL)/ma20
+            kline[i]['BBU'] = round(BBU, 2)
+            kline[i]['BBL'] = round(BBL, 2)
+            kline[i]['BBW'] = round(BBW, 2)
+            print(f"20日移动均线:{ma20}\t标准差:{standard_deviation(closes)}\t布林线上轨:{BBU}\t布林线下轨:{BBL}\t布林线宽度:{BBW}")
+    return kline
 
 
 def turtleTransaction(code, model=1, period=1):
-    TotalAmountAccount = 10000 # 账户总金额
-    assert model in (1,2)
+    TotalAmountAccount = 100000  # 账户总金额
+    assert model in (1, 2)
     day, sign_out_day = 0, 0
     if model == 1:
         day, sign_out_day = 20, 10
@@ -241,4 +337,9 @@ if __name__ == "__main__":
     # sched.add_job(turtle_run, "interval", minutes=30)
     # sched.add_job(Earl_Run, "interval", minutes=30)
     # sched.start()
-    Earl_Run()
+    # Earl_Run()
+    data = get_stock_kline_with_volume(300015)
+    data = BooleanLine(data)
+    for i in data:
+        print(i)
+
