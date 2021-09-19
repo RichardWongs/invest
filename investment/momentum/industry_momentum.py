@@ -10,7 +10,7 @@ import pandas as pd
 import tushare as ts
 from momentum import STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-begin_date = int(str(date.today() - timedelta(days=60)).replace('-', ''))
+begin_date = int(str(date.today() - timedelta(days=180)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
 day = 180   # 上市时间满半年
 rps_day = 20

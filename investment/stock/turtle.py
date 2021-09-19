@@ -18,89 +18,6 @@ def TRI(high, low, close):
     return round(max(high, close) - min(low, close), 3)
 
 
-# def get_stock_kline_60_minutes(code):
-#     if str(code)[0] in ('0','1','3'):
-#         secid = f'0.{code}'
-#     else:
-#         secid = f'1.{code}'
-#     url = f"http://65.push2his.eastmoney.com/api/qt/stock/kline/get"
-#     params = {
-#         'cb': "jQuery112403682476595453782_1625125440575",
-#         'secid': secid,
-#         'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
-#         'fields1': 'f1,f2,f3,f4,f5,f6',
-#         'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
-#         'klt': 60,
-#         'fqt': 0,
-#         'end': '20500101',
-#         'lmt': 120,
-#         '_': f'{int(time.time())*1000}'
-#     }
-#     try:
-#         r = requests.get(url, params=params).text
-#         r = r.split('(')[1].split(')')[0]
-#         r = json.loads(r)
-#         r = r['data']['klines']
-#         data = []
-#         for i in range(len(r)):
-#             tmp = {}
-#             current_data = r[i].split(',')
-#             tmp['day'] = current_data[0]
-#             tmp['close'] = float(current_data[2])
-#             tmp['high'] = float(current_data[3])
-#             tmp['low'] = float(current_data[4])
-#             if i > 0:
-#                 tmp['last_close'] = float(r[i - 1].split(',')[2])
-#                 tmp['TRi'] = TRI(tmp['high'], tmp['low'], tmp['last_close'])
-#             data.append(tmp)
-#         data = data[1:]
-#     except Exception() as e:
-#         print(e)
-#     return data if data else None
-
-
-# def get_stock_kline_day(code):
-#     if str(code)[0] in ('0','1','3'):
-#         secid = f'0.{code}'
-#     else:
-#         secid = f'1.{code}'
-#     url = f"http://67.push2his.eastmoney.com/api/qt/stock/kline/get"
-#     params = {
-#         'cb': "jQuery11240671737283431526_1624931273440",
-#         'secid': secid,
-#         'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
-#         'fields1': 'f1,f2,f3,f4,f5,f6',
-#         'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
-#         'klt': 101,
-#         'fqt': 0,
-#         'end': '20500101',
-#         'lmt': 120,
-#         '_': f'{int(time.time())*1000}'
-#     }
-#     try:
-#         r = requests.get(url, params=params).text
-#         # print(r)
-#         r = r.split('(')[1].split(')')[0]
-#         r = json.loads(r)
-#         r = r['data']['klines']
-#         data = []
-#         for i in range(len(r)):
-#             tmp = {}
-#             current_data = r[i].split(',')
-#             tmp['day'] = current_data[0]
-#             tmp['close'] = float(current_data[2])
-#             tmp['high'] = float(current_data[3])
-#             tmp['low'] = float(current_data[4])
-#             if i > 0:
-#                 tmp['last_close'] = float(r[i - 1].split(',')[2])
-#                 tmp['TRi'] = TRI(tmp['high'], tmp['low'], tmp['last_close'])
-#             data.append(tmp)
-#         data = data[1:]
-#     except Exception() as e:
-#         print(e)
-#     return data if data else None
-
-
 def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
     time.sleep(0.5)
     assert period in (5, 15, 30, 60, 101, 102, 103)
@@ -175,20 +92,21 @@ def get_stock_kline_with_volume(code, is_index=False, period=101, limit=120):
 
 
 def BooleanLine(kline: list):
-    assert len(kline) > 20
+    N = 20
+    assert len(kline) > N
     for i in range(len(kline)):
-        if i >= 20:
+        if i >= N:
             closes = []
-            for j in range(i, i-20, -1):
+            for j in range(i, i-N, -1):
                 closes.append(kline[j]['close'])
-            ma20 = round(sum(closes)/20, 2)
+            ma20 = round(sum(closes)/N, 2)
             BBU = ma20 + 2 * standard_deviation(closes)  # 布林线上轨
             BBL = ma20 - 2 * standard_deviation(closes)  # 布林线下轨
             BBW = (BBU - BBL)/ma20
             kline[i]['BBU'] = round(BBU, 2)
             kline[i]['BBL'] = round(BBL, 2)
             kline[i]['BBW'] = round(BBW, 2)
-            print(f"20日移动均线:{ma20}\t标准差:{standard_deviation(closes)}\t布林线上轨:{BBU}\t布林线下轨:{BBL}\t布林线宽度:{BBW}")
+            print(f"20日移动均线:{ma20}\t标准差:{standard_deviation(closes)}\t布林线上轨:{kline[i]['BBU']}\t布林线下轨:{kline[i]['BBL']}\t布林线宽度:{kline[i]['BBW']}")
     return kline
 
 
@@ -202,9 +120,9 @@ def turtleTransaction(code, model=1, period=1):
         day, sign_out_day = 60, 20
     can_lost_money = 1/100*TotalAmountAccount
     if period == 1:
-        data = get_stock_kline_60_minutes(code)
+        data = get_stock_kline_with_volume(code, period=60)
     if period == 2:
-        data = get_stock_kline_day(code)
+        data = get_stock_kline_with_volume(code, period=101)
     # print(data,'\n', len(data), '\n')
     prices = []
     for i in data[-(day+1):-1]:
@@ -256,10 +174,10 @@ def turtle_run():
 
 
 def EarlETF_turtle(fund):
-    data = get_stock_kline_60_minutes(fund['code'])
+    data = get_stock_kline_with_volume(fund['code'], period=60)
     hour_close = data[-1]['close']
-    hour_10_average = round(sum([i['close'] for i in data[-10:]])/len(data[-10:]),3)
-    hour_100_average = round(sum([i['close'] for i in data[-100:]])/len(data[-100:]),3)
+    hour_10_average = round(sum([i['close'] for i in data[-10:]])/len(data[-10:]), 3)
+    hour_100_average = round(sum([i['close'] for i in data[-100:]])/len(data[-100:]), 3)
     hour_50 = []
     for i in data[-51:-1]:
         hour_50.append(i['high'])
@@ -292,6 +210,7 @@ def EarlETF_turtle(fund):
     else:
         # print(Fore.LIGHTBLUE_EX +"保持现状"+ Style.RESET_ALL)
         pass
+
 
 def get_trade_time():
     from datetime import datetime, timedelta
@@ -341,5 +260,10 @@ if __name__ == "__main__":
     data = get_stock_kline_with_volume(300015)
     data = BooleanLine(data)
     for i in data:
-        print(i)
+        if 'BBW' in i.keys():
+            del i['volume']
+            del i['10th_largest']
+            del i['10th_minimum']
+            del i['avg_volume']
+            print(i)
 
