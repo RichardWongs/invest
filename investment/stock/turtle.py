@@ -234,6 +234,7 @@ def get_trade_time():
                 return True
     return False
 
+
 def Earl_Run():
     funds = [
         {'code': 159967, 'name': '创成长'},
@@ -257,7 +258,7 @@ if __name__ == "__main__":
     # sched.add_job(Earl_Run, "interval", minutes=30)
     # sched.start()
     # Earl_Run()
-    data = get_stock_kline_with_volume(300015)
+    data = get_stock_kline_with_volume('002531')
     data = BooleanLine(data)
     for i in data:
         if 'BBW' in i.keys():

@@ -92,6 +92,7 @@ def get_hour_k_line_info(code):
     del content[0]
     return content
 
+
 def get_current_price(code):
     code = f'sz{code}' if str(code).startswith('1') else f'sh{code}'
     url = f"https://hq.sinajs.cn/?list={code}"
