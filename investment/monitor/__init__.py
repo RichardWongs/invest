@@ -60,7 +60,7 @@ def TRI(high, low, close):
 
 
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
-    # 携带技术指标布林线,布林线宽度
+    # 添加技术指标布林线,布林线宽度
     time.sleep(0.5)
     assert period in (5, 15, 30, 60, 101, 102, 103)
     if is_index:
@@ -189,5 +189,14 @@ def RSI(data: list):
                 j['RSI'] = tmp_list['RSI']
     return data
 
+
+pool = [{'code': '601117', 'name': '中国化学', 'pe': 10.6, 'peg': 0.31, 'growth': 33.9}, {'code': '601677', 'name': '明泰铝业', 'pe': 12.35, 'peg': 0.34, 'growth': 36.05}, {'code': '600483', 'name': '福能股份', 'pe': 12.16, 'peg': 0.35, 'growth': 34.97}, {'code': '603979', 'name': '金诚信', 'pe': 20.05, 'peg': 0.37, 'growth': 54.31}, {'code': '002149', 'name': '西部材料', 'pe': 34.62, 'peg': 0.37, 'growth': 92.59}, {'code': '300035', 'name': '中科电气', 'pe': 40.86, 'peg': 0.49, 'growth': 83.74}, {'code': '603599', 'name': '广信股份', 'pe': 14.47, 'peg': 0.49, 'growth': 29.65}, {'code': '600438', 'name': '通威股份', 'pe': 22.81, 'peg': 0.49, 'growth': 46.35}, {'code': '688599', 'name': '天合光能', 'pe': 34.77, 'peg': 0.52, 'growth': 66.9}, {'code': '603855', 'name': '华荣股份', 'pe': 16.97, 'peg': 0.53, 'growth': 32.25}, {'code': '002459', 'name': '晶澳科技', 'pe': 32.91, 'peg': 0.55, 'growth': 60.34}, {'code': '601615', 'name': '明阳智能', 'pe': 18.94, 'peg': 0.65, 'growth': 29.15}, {'code': '601618', 'name': '中国中冶', 'pe': 10.56, 'peg': 0.66, 'growth': 15.93}, {'code': '603279', 'name': '景津环保', 'pe': 19.42, 'peg': 0.67, 'growth': 29.06}, {'code': '300031', 'name': '宝通科技', 'pe': 15.22, 'peg': 0.67, 'growth': 22.55}, {'code': '002832', 'name': '比音勒芬', 'pe': 20.09, 'peg': 0.73, 'growth': 27.69}, {'code': '002129', 'name': '中环股份', 'pe': 38.63, 'peg': 0.73, 'growth': 52.67}, {'code': '002080', 'name': '中材科技', 'pe': 19.27, 'peg': 0.76, 'growth': 25.3}, {'code': '688128', 'name': '中国电研', 'pe': 28.1, 'peg': 0.77, 'growth': 36.65}, {'code': '002539', 'name': '云图控股', 'pe': 24.98, 'peg': 0.79, 'growth': 31.48}, {'code': '300223', 'name': '北京君正', 'pe': 63.8, 'peg': 0.83, 'growth': 77.21}, {'code': '688598', 'name': '金博股份', 'pe': 52.35, 'peg': 0.87, 'growth': 59.96}, {'code': '002531', 'name': '天顺风能', 'pe': 21.14, 'peg': 0.88, 'growth': 23.93}, {'code': '601225', 'name': '陕西煤业', 'pe': 8.16, 'peg': 0.9, 'growth': 9.03}, {'code': '688516', 'name': '奥特维', 'pe': 50.91, 'peg': 0.93, 'growth': 54.8}, {'code': '002049', 'name': '紫光国微', 'pe': 55.06, 'peg': 0.93, 'growth': 59.13}, {'code': '002812', 'name': '恩捷股份', 'pe': 75.87, 'peg': 0.99, 'growth': 76.62}]
+data = get_stock_kline_with_indicators(600483, limit=250)
+for i in range(len(data)):
+    if 'BBW' in data[i].keys() and i-2 > 20:
+        if data[i]['BBW'] > data[i-1]['BBW'] > data[i-2]['BBW']:
+            if round(data[i]['close']/data[i-5]['close']-1, 2) > 0.08:
+                print(f"前五天涨幅: {round(data[i]['close']/data[i-5]['close']-1, 2)}\t后五天涨幅: {round(data[i+20]['close']/data[i]['close']-1, 2)}")
+                # print(data[i])
 
 

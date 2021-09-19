@@ -240,9 +240,9 @@ def run():
     low_peg_pool = []
     rps_pool = get_RPS_stock_pool()
     rps_pool = [i[0] for i in rps_pool]
-    fc_add = foreign_capital_filter()
-    fc_add = [i['code'] for i in fc_add]
-    rps_pool = [i for i in rps_pool if i in fc_add]
+    # fc_add = foreign_capital_filter()
+    # fc_add = [i['code'] for i in fc_add]
+    # rps_pool = [i for i in rps_pool if i in fc_add]
     logging.warning(f"外资增持高RPS股票池: {rps_pool}")
     for i in pool:
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
