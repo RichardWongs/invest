@@ -268,10 +268,52 @@ def KDJ_test(code):
                 print(data[i])
 
 
+def EMA(cps, days):
+    emas = cps.copy()
+    for i in range(len(cps)):
+        if i == 0:
+            emas[i] = cps[i]
+        if i > 0:
+            emas[i] = ((days-1)*emas[i-1]+2*cps[i])/(days+1)
+    return emas[-1]
+
+
+def TRIX(kline):
+    N, M = 12, 20
+    for i in range(len(kline)):
+        if i >= N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['close'])
+            kline[i]['TR1'] = EMA(tmp, N)
+        if i >= 2*N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['TR1'])
+            kline[i]['TR2'] = EMA(tmp, N)
+        if i >= 3*N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['TR2'])
+            kline[i]['TR'] = EMA(tmp, N)
+        if i > 3*N:
+            kline[i]['TRIX'] = (kline[i]['TR'] - kline[i-1]['TR'])/kline[i-1]['TR']*100
+        if i > 3*N + M:
+            temp = []
+            for j in range(i, i-M, -1):
+                temp.append(kline[j]['TRIX'])
+            kline[i]['TRMA'] = sum(temp)/len(temp)
+    return kline
+
+
+def WMS(kline):
+    pass
+
+
+
+
 code = 300015
 data = get_stock_kline_with_indicators(code, limit=250)
-data = RSI_Deviation(data)
-data = KDJ(data)
-for i in range(len(data)):
-    if 'rsi_low' in data[i].keys():
-        print(f"日期: {data[i]['day']}\tprice_low: {data[i]['price_low']}\trsi_low: {data[i]['rsi_low']}\tRSI背离: {data[i]['deviation']}\tKDJ金叉: {data[i]['golden_cross']}")
+data = TRIX(data)
+for i in data:
+    print(i)
