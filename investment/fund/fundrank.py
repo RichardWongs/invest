@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from fundresults import get_fund_yield, get_fund_year_yield
 
 
-def get_fund_rank(sort):
+def get_fund_rank(sort, top_count=500):
     url = f"https://api.doctorxiong.club/v1/fund/rank"
     headers = {
         'Content-Type': 'application/json'
@@ -15,7 +15,7 @@ def get_fund_rank(sort):
         'sort': sort,
         'fundType': ['gp', 'hh'],
         'pageIndex': 1,
-        'pageSize': 500
+        'pageSize': top_count
     }
     response = requests.post(url, json=body).json()
     return response['data']['rank']
@@ -96,6 +96,17 @@ def fund_ranking_summary():
     return data
 
 
-# print(fund_ranking_summary())
+def fund_ranking_summary_short():
+    # 基金业绩排行汇总
+    data_3m = get_fund_rank('3y', top_count=1000)
+    data_6m = get_fund_rank('6y', top_count=1000)
+    target = [i for i in data_6m if i in data_3m]
+    new_data = {}
+    for i in target:
+        new_data[i['code']] = {'code': i['code'], 'name': i['name']}
+    print(f"target: {new_data}")
 
+
+# print(fund_ranking_summary())
+# fund_ranking_summary_short()
 
