@@ -310,21 +310,25 @@ def WMS(kline):
     pass
 
 
-data = get_stock_kline_with_indicators(300015, limit=120)
-closes = [i['close'] for i in data]
-TR = EMA(EMA(EMA(closes, 12), 12), 12)
-trix = []
-for i in range(len(TR)):
-    if i > 0:
-        trix.append(round((TR[i] - TR[i-1])/TR[i-1]*100, 2))
-print(trix, len(trix))
-matrix = []
-for i in range(len(trix)):
-    if i >= 20:
-        tmp = []
-        for j in range(i, i-20, -1):
-            tmp.append(trix[j])
-        print(f"tmp: {tmp}")
-        matrix.append(round(sum(tmp)/len(tmp), 2))
-print(matrix)
-
+def TRIX_V2(data):
+    N, M = 12, 20
+    closes = [i['close'] for i in data]
+    TR = EMA(EMA(EMA(closes, N), N), N)
+    trix = []
+    for i in range(len(TR)):
+        if i > 0:
+            trix.append(round((TR[i] - TR[i-1])/TR[i-1]*100, 2))
+    matrix = []
+    for i in range(len(trix)):
+        if i >= M:
+            tmp = []
+            for j in range(i, i-M, -1):
+                tmp.append(trix[j])
+            matrix.append(round(sum(tmp)/len(tmp), 2))
+    trix = trix[-len(matrix):]
+    data = data[-len(matrix):]
+    print(f"trix:{len(trix)}\tmatrix:{len(matrix)}\tdata:{len(data)}")
+    for i in range(len(data)):
+        data[i]['TRIX'] = trix[i]
+        data[i]['TRMA'] = matrix[i]
+    return data
