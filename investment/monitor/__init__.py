@@ -127,9 +127,7 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                         for j in range(i - 1, i - 21, -1):
                             ATR_20 += new_data[j]['TRI']
                         new_data[i]['ATR_20'] = round(ATR_20 / 20, 2)
-                kline = BooleanLine(new_data[1:])
-                kline = RSI(kline)
-                return kline
+                return new_data[1:]
     except SecurityException() as e:
         print(e)
         return None
@@ -334,7 +332,7 @@ def Linear_Regression(kline: list):
     return {'R_Square': round(R_square, 2), 'slope': round(m, 2), 'intercept': round(b, 2)}
 
 
-kline = get_stock_kline_with_indicators(600110, limit=60)
+kline = get_stock_kline_with_indicators('002812', limit=120)
 Linear_Regression(kline)
 
 
