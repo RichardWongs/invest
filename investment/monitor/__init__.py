@@ -254,8 +254,13 @@ def EMA(cps, days):
     return emas
 
 
-def WMS(kline):
-    pass
+def WMS(kline, N=30):
+    kline = kline[-N:]
+    C = kline[-1]['close']
+    Hn = max([i['high'] for i in kline])
+    Ln = min([i['low'] for i in kline])
+    WR30 = (Hn - C) / (Hn - Ln) * 100
+    return WR30
 
 
 def TRIX(data):
@@ -329,7 +334,7 @@ def BooleanLine_test(code):
                     print(data[i])
 
 
-kline = get_stock_kline_with_indicators('002812', limit=120)
+kline = get_stock_kline_with_indicators('601636', limit=120)
 Linear_Regression(kline)
 
 
