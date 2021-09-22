@@ -334,7 +334,41 @@ def BooleanLine_test(code):
                     print(data[i])
 
 
+def RVI(kline: list):
+    N = 10
+    for i in range(len(kline)):
+        kline[i]['Co'] = kline[i]['close'] - kline[i]['open']
+        kline[i]['HL'] = kline[i]['high'] - kline[i]['low']
+        if i >= 3:
+            kline[i]['V1'] = (kline[i]['Co'] + 2 * kline[i-1]['Co'] + 2 * kline[i-2]['Co'] + kline[i-3]['Co'])/6
+            kline[i]['V2'] = (kline[i]['HL'] + 2 * kline[i - 1]['HL'] + 2 * kline[i - 2]['HL'] + kline[i - 3]['HL'])/6
+        if i >= N + 3:
+            tmp1, tmp2 = [], []
+            for j in range(i, i-N, -1):
+                tmp1.append(kline[j]['V1'])
+                tmp2.append(kline[j]['V2'])
+            S1 = sum(tmp1)
+            S2 = sum(tmp2)
+            kline[i]['RVI'] = S1/S2
+        if i >= N + 6:
+            kline[i]['RVIS'] = (kline[i]['RVI'] + 2*kline[i-1]['RVI'] + 2*kline[i-2]['RVI'] + kline[i-3]['RVI'])/6
+    return kline
+
+
+def Keltner(kline: list):
+    basic_price = [(i['close']+i['high']+i['low'])/3 for i in kline]
+    mid = EMA(basic_price, 20)
+    print(len(kline), len(mid))
+    for i in range(len(kline)):
+        if 'ATR_20' in kline[i].keys():
+            kline[i]['mid_line'] = mid[i]
+            kline[i]['on_line'] = mid[i] + kline[i]['ATR_20']
+            kline[i]['under_line'] = mid[i] - kline[i]['ATR_20']
+    return kline
+
+
 kline = get_stock_kline_with_indicators('601636', limit=120)
-Linear_Regression(kline)
-
-
+# Linear_Regression(kline)
+kline = Keltner(kline)
+for i in kline:
+    print(i)
