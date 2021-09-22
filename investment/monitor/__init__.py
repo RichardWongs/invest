@@ -275,7 +275,7 @@ def EMA(cps, days):
             emas[i] = cps[i]
         if i > 0:
             emas[i] = ((days-1)*emas[i-1]+2*cps[i])/(days+1)
-    return emas[-1]
+    return emas
 
 
 def TRIX(kline):
@@ -310,10 +310,21 @@ def WMS(kline):
     pass
 
 
+data = get_stock_kline_with_indicators(300015, limit=120)
+closes = [i['close'] for i in data]
+TR = EMA(EMA(EMA(closes, 12), 12), 12)
+trix = []
+for i in range(len(TR)):
+    if i > 0:
+        trix.append(round((TR[i] - TR[i-1])/TR[i-1]*100, 2))
+print(trix, len(trix))
+matrix = []
+for i in range(len(trix)):
+    if i >= 20:
+        tmp = []
+        for j in range(i, i-20, -1):
+            tmp.append(trix[j])
+        print(f"tmp: {tmp}")
+        matrix.append(round(sum(tmp)/len(tmp), 2))
+print(matrix)
 
-
-code = 300015
-data = get_stock_kline_with_indicators(code, limit=250)
-data = TRIX(data)
-for i in data:
-    print(i)
