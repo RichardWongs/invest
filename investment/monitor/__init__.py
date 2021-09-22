@@ -278,39 +278,11 @@ def EMA(cps, days):
     return emas
 
 
-def TRIX(kline):
-    N, M = 12, 20
-    for i in range(len(kline)):
-        if i >= N:
-            tmp = []
-            for j in range(i, i-N, -1):
-                tmp.append(kline[j]['close'])
-            kline[i]['TR1'] = EMA(tmp, N)
-        if i >= 2*N:
-            tmp = []
-            for j in range(i, i-N, -1):
-                tmp.append(kline[j]['TR1'])
-            kline[i]['TR2'] = EMA(tmp, N)
-        if i >= 3*N:
-            tmp = []
-            for j in range(i, i-N, -1):
-                tmp.append(kline[j]['TR2'])
-            kline[i]['TR'] = EMA(tmp, N)
-        if i > 3*N:
-            kline[i]['TRIX'] = (kline[i]['TR'] - kline[i-1]['TR'])/kline[i-1]['TR']*100
-        if i > 3*N + M:
-            temp = []
-            for j in range(i, i-M, -1):
-                temp.append(kline[j]['TRIX'])
-            kline[i]['TRMA'] = sum(temp)/len(temp)
-    return kline
-
-
 def WMS(kline):
     pass
 
 
-def TRIX_V2(data):
+def TRIX(data):
     N, M = 12, 20
     closes = [i['close'] for i in data]
     TR = EMA(EMA(EMA(closes, N), N), N)
@@ -332,3 +304,37 @@ def TRIX_V2(data):
         data[i]['TRIX'] = trix[i]
         data[i]['TRMA'] = matrix[i]
     return data
+
+
+def Linear_Regression(kline: list):
+    # 线性回归 y = mx + b  y:因变量, m:斜率, b:截距
+    points = []
+    x = []
+    y = []
+    for i in range(1, len(kline)+1):
+        x.append(kline[i-1]['close'])
+        y.append(i)
+        points.append({'x': kline[i-1]['close'], 'y': i})
+    x_mean = sum(x)/len(x)
+    y_mean = sum(y)/len(y)
+    tmp = [k*v for k, v in zip(x, y)]
+    x_y_mean = sum(tmp)/len(tmp)
+    tmp = [i**2 for i in x]
+    x_square_mean = sum(tmp)/len(tmp)
+    m = (x_y_mean - x_mean * y_mean) / (x_square_mean - x_mean ** 2)
+    b = y_mean - m * x_mean
+    for i in points:
+        i['y_predict'] = m * i['x'] + b
+        i['square_error'] = (i['y'] - i['y_predict'])**2
+        i['square_from_mean_y'] = (i['y'] - y_mean)**2
+    SE_line = sum([i['square_error'] for i in points])
+    SE_y_mean = sum([i['square_from_mean_y'] for i in points])
+    R_square = 1 - SE_line/SE_y_mean
+    print(f"R_Square: {round(R_square, 2)}\t斜率: {round(m, 2)}\t截距: {round(b, 2)}")
+    return {'R_Square': round(R_square, 2), 'slope': round(m, 2), 'intercept': round(b, 2)}
+
+
+kline = get_stock_kline_with_indicators(600110, limit=60)
+Linear_Regression(kline)
+
+
