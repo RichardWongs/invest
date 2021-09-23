@@ -254,6 +254,16 @@ def EMA(cps, days):
     return emas
 
 
+def EMA_V2(cps, days):
+    emas = cps.copy()
+    for i in range(len(cps)):
+        if i == 0:
+            emas[i][f'ema{days}'] = cps[i]['close']
+        if i > 0:
+            emas[i][f'ema{days}'] = ((days-1)*emas[i-1][f'ema{days}']+2*cps[i]['close'])/(days+1)
+    return emas
+
+
 def WMS(kline, N=30):
     kline = kline[-N:]
     C = kline[-1]['close']
@@ -367,8 +377,3 @@ def Keltner(kline: list):
     return kline
 
 
-kline = get_stock_kline_with_indicators('601636', limit=120)
-# Linear_Regression(kline)
-kline = Keltner(kline)
-for i in kline:
-    print(i)
