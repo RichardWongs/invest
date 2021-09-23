@@ -17,15 +17,21 @@ def readconfig(env, configfile='security.ini'):
 
 def get_benchmark():
     # 获取业绩基准
-    benchmark = 0
+    benchmark, benchmark_month = 0, 0
     week_days = datetime.today().weekday()+1
-    for index_code in ['399006', '399300', '399905', '000016']:
-        index_data = get_stock_kline(index_code, is_index=True, period=101, limit=260+week_days)
-        index_data = index_data[:-week_days]
+    for index_code in ['399006', '399300', '399905', '000016', '000688', '000906']:
+        index_data = get_stock_kline(index_code, is_index=True, period=101, limit=260)
+        index_data = index_data['kline']
         index_yield = round((index_data[-1]['close']-index_data[0]['last_close'])/index_data[0]['last_close']*100, 2)
+        index_month_yield = round((index_data[-1]['close']-index_data[-22]['last_close'])/index_data[-22]['last_close']*100, 2)
+        # print(f"{index_code}\t{index_yield}\t{index_month_yield}")
         if index_yield > benchmark:
+            # logging.warning(f"年 {index_code}: {index_yield}")
             benchmark = index_yield
-    return benchmark
+        if index_month_yield > benchmark_month:
+            # logging.warning(f"月 {index_code}: {index_month_yield}")
+            benchmark_month = index_month_yield
+    return benchmark, benchmark_month
 
 
 def get_stock_pool():
@@ -58,23 +64,24 @@ def get_security_V2():
 def get_security():
     # 从中证800成分股中选取最近一年涨幅超过四大指数涨幅,且最近一年动量值在0.9以上的个股
     security = []
-    benchmark = get_benchmark()
-    stock_pool = pool
+    benchmark, benchmark_month = get_benchmark()
+    stock_pool = get_stock_pool()
     week_days = datetime.today().weekday()+1
     for i in stock_pool:
-        source_data = get_stock_kline(i.get('code'), limit=260+1)
+        source_data = get_stock_kline(i.get('code'), limit=260)
         if source_data:
-            data = source_data[:-1]
-            close = source_data[-1]['close']
+            data = source_data['kline']
+            close = data[-1]['close']
             highest = max([i['high'] for i in data])
             value = round(close/highest, 2)
             year_yield = round((data[-1]['close']-data[0]['last_close'])/data[0]['last_close']*100, 2)
-            if value > 0.9 and year_yield > benchmark:
-                tmp = {'code': i.get('code'), 'name': i.get('name'), 'value': value, 'closes': [i['close'] for i in source_data]}
+            month_yield = round((data[-1]['close']-data[-22]['last_close'])/data[-22]['last_close']*100, 2)
+            if year_yield > benchmark and month_yield > benchmark_month:
+            # if value > 0.9 and year_yield > benchmark and month_yield > benchmark_month:
+                tmp = {'code': i.get('code'), 'name': i.get('name'), 'value': value, 'closes': [i['close'] for i in data]}
                 security.append(tmp)
         else:
             print(f"{i.get('code')}未获取到数据")
-    # print(security)
     return security
 
 
@@ -173,6 +180,11 @@ def market_open():
         send_dingtalk_message(buying_message)
 
 
-if __name__ == "__main__":
-    market_open()
+# if __name__ == "__main__":
+    # market_open()
+p = get_security()
+for i in p:
+    del i['closes']
+    print(i)
+logging.warning(p)
 
