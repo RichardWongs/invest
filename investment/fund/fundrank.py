@@ -50,27 +50,28 @@ def get_fund_detail_list(fund_list: list, start_date=date.today()-timedelta(days
     }
     response = requests.get(url, params=params).json()
     response = response['data']
-    result = [{'code': i['code'], 'name': i['name'], 'fundScale': i['fundScale']} for i in response]
+    result = [{'code': i['code'], 'name': i['name'], 'fundScale': i['fundScale'], 'manager': i['manager'], 'networthdata': i['netWorthData']} for i in response]
     for i in fund_list:
         for j in result:
             if i['code'] == j['code']:
                 i['fundScale'] = j['fundScale']
+                i['manager'] = j['manager']
+                i['networthdata'] = j['networthdata']
     return fund_list
 
 
 def fund_ranking_summary():
     # 基金业绩排行汇总
-    # data_3m = get_fund_rank('3y')
-    # data_6m = get_fund_rank('6y')
+    data_3m = get_fund_rank('3y', top_count=1000)
+    data_6m = get_fund_rank('6y', top_count=1000)
     data_1y = get_fund_rank('1n')
     data_2y = get_fund_rank('2n')
     data_3y = get_fund_rank('3n')
     data_5y = get_fund_rank('5n')
-    # t1 = data_6m  # [i for i in data_6m if i in data_3m]
+    t1 = [i for i in data_6m if i in data_3m]
     t2 = [i for i in data_2y if i in data_1y]
     t3 = [i for i in data_5y if i in data_3y]
-    target = [i for i in t2 if i in t3]
-    # target = [i for i in t1 if i in [i for i in t3 if i in t2]]
+    target = [i for i in t1 if i in [i for i in t3 if i in t2]]
     for i in target:
         del i['netWorthDate']
         del i['netWorth']
@@ -95,18 +96,4 @@ def fund_ranking_summary():
         data.append(tmp), print(tmp)
     return data
 
-
-def fund_ranking_summary_short():
-    # 基金业绩排行汇总
-    data_3m = get_fund_rank('3y', top_count=1000)
-    data_6m = get_fund_rank('6y', top_count=1000)
-    target = [i for i in data_6m if i in data_3m]
-    new_data = {}
-    for i in target:
-        new_data[i['code']] = {'code': i['code'], 'name': i['name']}
-    print(f"target: {new_data}")
-
-
-# print(fund_ranking_summary())
-# fund_ranking_summary_short()
 
