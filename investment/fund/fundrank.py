@@ -64,10 +64,10 @@ def fund_ranking_summary():
     # 基金业绩排行汇总
     data_3m = get_fund_rank('3y', top_count=1000)
     data_6m = get_fund_rank('6y', top_count=1000)
-    data_1y = get_fund_rank('1n')
-    data_2y = get_fund_rank('2n')
-    data_3y = get_fund_rank('3n')
-    data_5y = get_fund_rank('5n')
+    data_1y = get_fund_rank('1n', top_count=500)
+    data_2y = get_fund_rank('2n', top_count=500)
+    data_3y = get_fund_rank('3n', top_count=500)
+    data_5y = get_fund_rank('5n', top_count=500)
     t1 = [i for i in data_6m if i in data_3m]
     t2 = [i for i in data_2y if i in data_1y]
     t3 = [i for i in data_5y if i in data_3y]
