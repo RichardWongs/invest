@@ -321,7 +321,7 @@ def Linear_Regression(kline: list):
     SE_line = sum([i['square_error'] for i in points])
     SE_y_mean = sum([i['square_from_mean_y'] for i in points])
     R_square = 1 - SE_line/SE_y_mean
-    print(f"R_Square: {round(R_square, 2)}\t斜率: {round(m, 2)}\t截距: {round(b, 2)}")
+    # print(f"R_Square: {round(R_square, 2)}\t斜率: {round(m, 2)}\t截距: {round(b, 2)}")
     return {'R_Square': round(R_square, 2), 'slope': round(m, 2), 'intercept': round(b, 2)}
 
 
