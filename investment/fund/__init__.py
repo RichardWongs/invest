@@ -16,12 +16,12 @@ def linear_regression_fund_filter(pool, days=120):
         i['slope'] = r['slope']
         i['intercept'] = r['intercept']
         del i['networthdata']
-    logging.warning(sorted(data, key=lambda x: x['R_Square'], reverse=True))
-    return sorted(data, key=lambda x: x['R_Square'], reverse=True)
+    logging.warning(sorted(data, key=lambda x: x['3y'], reverse=True))
+    return sorted(data, key=lambda x: x['3y'], reverse=True)
 
 
-finally_funds = fund_ranking_summary()
-data = linear_regression_fund_filter(finally_funds)
+pool = fund_ranking_summary()
+data = linear_regression_fund_filter(pool)
 for i in data:
-    print(i['name'], i['R_Square'], i['slope'], i['intercept'])
+    print(f"{i['name']}\t{i['R_Square']}\t{i['slope']}\t{i['intercept']}")
 

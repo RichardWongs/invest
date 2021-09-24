@@ -377,9 +377,9 @@ def Keltner(kline: list):
     return kline
 
 
-def linear_regression_filter(pool):
+def linear_regression_stock_filter(pool, limit=120):
     for i in pool:
-        kline = get_stock_kline_with_indicators(i['code'], limit=120)
+        kline = get_stock_kline_with_indicators(i['code'], limit=limit)
         r = Linear_Regression(kline)
         i['R_Square'] = r['R_Square']
         i['slope'] = r['slope']
