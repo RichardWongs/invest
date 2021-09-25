@@ -136,6 +136,47 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
         return None
 
 
+def get_market_data(code, start_date=20210101):
+    from datetime import date, timedelta
+    import time
+    import tushare as ts
+    pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
+    time.sleep(0.1)
+    if not (str(code).endswith('.SH') or str(code).endswith('.SZ')):
+        if str(code).startswith('6'):
+            code = f"{code}.SH"
+        else:
+            code = f"{code}.SZ"
+    start = start_date  # int(str(date.today()-timedelta(days=400)).replace('-', ''))
+    end = int(str(date.today()).replace('-', ''))
+    pool = []
+    df = pro.daily(ts_code=code, start_date=start, end_date=end,
+                   fields='trade_date,open,close,high,low,vol,pct_chg,pre_close')
+    for i in df.values:
+        pool.append({'day': i[0], 'open': i[1], 'close': i[4], 'high': i[2], 'low': i[3],
+                     'last_close': i[5], 'applies': i[6], 'volume': i[7]})
+    pool = pool[::-1]
+    for i in range(len(pool)):
+        pool[i]['TRI'] = TRI(pool[i]['high'], pool[i]['low'], pool[i]['last_close'])
+        if i > 10:
+            tenth_volume = []
+            ATR_10 = 0
+            for j in range(i - 1, i - 11, -1):
+                tenth_volume.append(pool[j]['volume'])
+                ATR_10 += pool[j]['TRI']
+            pool[i]['ATR_10'] = round(ATR_10 / 10, 2)
+            pool[i]['10th_largest'] = max(tenth_volume)
+            pool[i]['10th_minimum'] = min(tenth_volume)
+            pool[i]['avg_volume'] = sum(tenth_volume) / 10
+            pool[i]['volume_ratio'] = round(pool[i]['volume'] / pool[i]['avg_volume'], 2)
+        if i > 20:
+            ATR_20 = 0
+            for j in range(i - 1, i - 21, -1):
+                ATR_20 += pool[j]['TRI']
+            pool[i]['ATR_20'] = round(ATR_20 / 20, 2)
+    return pool[1:]
+
+
 def BooleanLine(kline: list):
     N = 20
     assert len(kline) > N

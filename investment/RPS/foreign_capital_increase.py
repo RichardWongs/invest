@@ -259,4 +259,3 @@ def foreign_capital_continuous_increase():
             logging.warning(v)
 
 
-foreign_capital_continuous_increase()
