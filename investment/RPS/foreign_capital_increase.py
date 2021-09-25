@@ -139,10 +139,10 @@ def FC_history_Query(holding_date):
     return fc_total
 
 
-def foreign_capital_add_weight():
+def foreign_capital_add_weight(start_date=date.today()-timedelta(days=30), end_date=date.today()):
     # 外资最近一个月加仓或新进的个股
-    history_data = FC_history_Query(date.today() - timedelta(days=30))
-    new_data = FC_history_Query(date.today())
+    history_data = FC_history_Query(start_date)
+    new_data = FC_history_Query(end_date)
     result = []
     logging.warning(f"查询外资加仓或新进的个股")
     for i in new_data:
@@ -227,3 +227,36 @@ def latest_week_foreign_capital_add_weight():
     logging.warning(f"最近一周外资增持股池: {pool}")
     return sorted_pool
 
+
+def foreign_capital_continuous_increase():
+    day1 = get_recent_trade_date()
+    day2 = get_recent_trade_date()-timedelta(days=1)
+    day3 = get_recent_trade_date()-timedelta(days=2)
+    day4 = get_recent_trade_date()-timedelta(days=3)
+    day5 = get_recent_trade_date()-timedelta(days=4)
+    data1 = foreign_capital_add_weight(start_date=day1-timedelta(days=1), end_date=day1)
+    data1_1 = {}
+    for i in data1:
+        data1_1[i['code']] = {'code': i['code'], 'name': i['name']}
+    data2 = foreign_capital_add_weight(start_date=day2-timedelta(days=1), end_date=day2)
+    data2_2 = {}
+    for i in data2:
+        data2_2[i['code']] = {'code': i['code'], 'name': i['name']}
+    data3 = foreign_capital_add_weight(start_date=day3-timedelta(days=1), end_date=day3)
+    data3_3 = {}
+    for i in data3:
+        data3_3[i['code']] = {'code': i['code'], 'name': i['name']}
+    data4 = foreign_capital_add_weight(start_date=day4-timedelta(days=1), end_date=day4)
+    data4_4 = {}
+    for i in data4:
+        data4_4[i['code']] = {'code': i['code'], 'name': i['name']}
+    data5 = foreign_capital_add_weight(start_date=day5-timedelta(days=1), end_date=day5)
+    data5_5 = {}
+    for i in data5:
+        data5_5[i['code']] = {'code': i['code'], 'name': i['name']}
+    for k, v in data1_1.items():
+        if k in data2_2.keys() and k in data3_3.keys() and k in data4_4.keys() and k in data5_5.keys():
+            logging.warning(v)
+
+
+foreign_capital_continuous_increase()
