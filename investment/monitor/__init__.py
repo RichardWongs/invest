@@ -397,13 +397,10 @@ def Vegas_Channel(code, name=None):
                 return {'code': code, 'name': name, 'kline': kline}
 
 
-def linear_regression_stock_filter(pool=None, limit=120):
+def linear_regression_stock_filter(limit=120):
     from RPS.quantitative_screening import get_RPS_stock_pool
-    if not pool:
-        pool = get_RPS_stock_pool()
-    new_pool = []
-    for i in pool:
-        new_pool.append({'code': i[0], 'name': i[1]})
+    pool = get_RPS_stock_pool()
+    new_pool = [{'code': i[0], 'name': i[1]} for i in pool]
     for i in new_pool:
         kline = get_stock_kline_with_indicators(i['code'], limit=limit)
         r = Linear_Regression(kline)
@@ -427,6 +424,6 @@ def filter_stock_by_boolean_and_keltner_channel():
             if kline[-1]['trend'] == 'up':
                 new.append(data)
     for i in new:
-        print(f"{i['code']}\t{i['name']}")
-
+        logging.warning(f"{i['code']}\t{i['name']}")
+    return new
 
