@@ -336,7 +336,7 @@ def KDJ_test(code):
 def BooleanLine_filter(code, name=None):
     data = get_stock_kline_with_indicators(code, limit=60)
     data = BooleanLine(data)
-    if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] > data[-3]['BBW']:
+    if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
         return {'code': code, 'name': name, 'kline': data}
     return None
 
