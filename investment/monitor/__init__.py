@@ -1,5 +1,7 @@
 # encoding: utf-8
 # 股票异常情况监控
+import logging
+
 import requests, json, time
 
 
@@ -62,7 +64,7 @@ def TRI(high, low, close):
 
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     # 添加技术指标布林线,布林线宽度
-    time.sleep(0.5)
+    time.sleep(1)
     assert period in (5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
@@ -194,21 +196,21 @@ def KDJ(kline: list):
         if i >= day:
             Cn = kline[i]['close']
             prices = []
-            for j in range(i, i-day, -1):
+            for j in range(i, i - day, -1):
                 prices.append(kline[j]['high'])
                 prices.append(kline[j]['low'])
             Hn = max(prices)
             Ln = min(prices)
-            RSV = (Cn-Ln)/(Hn-Ln)*100
-            K = 2/3*kline[i-1]['K']+1/3*RSV
-            D = 2/3*kline[i-1]['D']+1/3*K
-            J = 3*K-2*D
+            RSV = (Cn - Ln) / (Hn - Ln) * 100
+            K = 2 / 3 * kline[i - 1]['K'] + 1 / 3 * RSV
+            D = 2 / 3 * kline[i - 1]['D'] + 1 / 3 * K
+            J = 3 * K - 2 * D
             kline[i]['K'], kline[i]['D'], kline[i]['J'] = round(K, 2), round(D, 2), round(J, 2)
         else:
             kline[i]['K'], kline[i]['D'] = 50, 50
     for i in range(len(kline)):
         if 'K' in kline[i].keys():
-            if kline[i]['K'] > kline[i]['D'] and kline[i-1]['K'] < kline[i-1]['D']:
+            if kline[i]['K'] > kline[i]['D'] and kline[i - 1]['K'] < kline[i - 1]['D']:
                 kline[i]['golden_cross'] = True
             else:
                 kline[i]['golden_cross'] = False
@@ -223,7 +225,7 @@ def RSI_Deviation(data: list):
         if i >= number:
             closes = []
             RSI = []
-            for j in range(i, i-number, -1):
+            for j in range(i, i - number, -1):
                 closes.append(data[j]['close'])
                 RSI.append(data[j]['RSI'])
             max_price = max(closes)
@@ -250,7 +252,7 @@ def EMA(cps, days):
         if i == 0:
             emas[i] = cps[i]
         if i > 0:
-            emas[i] = ((days-1)*emas[i-1]+2*cps[i])/(days+1)
+            emas[i] = ((days - 1) * emas[i - 1] + 2 * cps[i]) / (days + 1)
     return emas
 
 
@@ -260,7 +262,7 @@ def EMA_V2(cps, days):
         if i == 0:
             emas[i][f'ema{days}'] = cps[i]['close']
         if i > 0:
-            emas[i][f'ema{days}'] = ((days-1)*emas[i-1][f'ema{days}']+2*cps[i]['close'])/(days+1)
+            emas[i][f'ema{days}'] = ((days - 1) * emas[i - 1][f'ema{days}'] + 2 * cps[i]['close']) / (days + 1)
     return emas
 
 
@@ -279,14 +281,14 @@ def TRIX(data):
     trix = []
     for i in range(len(TR)):
         if i > 0:
-            trix.append(round((TR[i] - TR[i-1])/TR[i-1]*100, 2))
+            trix.append(round((TR[i] - TR[i - 1]) / TR[i - 1] * 100, 2))
     matrix = []
     for i in range(len(trix)):
         if i >= M:
             tmp = []
-            for j in range(i, i-M, -1):
+            for j in range(i, i - M, -1):
                 tmp.append(trix[j])
-            matrix.append(round(sum(tmp)/len(tmp), 2))
+            matrix.append(round(sum(tmp) / len(tmp), 2))
     trix = trix[-len(matrix):]
     data = data[-len(matrix):]
     print(f"trix:{len(trix)}\tmatrix:{len(matrix)}\tdata:{len(data)}")
@@ -301,25 +303,25 @@ def Linear_Regression(kline: list):
     points = []
     x = []
     y = []
-    for i in range(1, len(kline)+1):
-        x.append(kline[i-1]['close'])
+    for i in range(1, len(kline) + 1):
+        x.append(kline[i - 1]['close'])
         y.append(i)
-        points.append({'x': kline[i-1]['close'], 'y': i})
-    x_mean = sum(x)/len(x)
-    y_mean = sum(y)/len(y)
-    tmp = [k*v for k, v in zip(x, y)]
-    x_y_mean = sum(tmp)/len(tmp)
-    tmp = [i**2 for i in x]
-    x_square_mean = sum(tmp)/len(tmp)
+        points.append({'x': kline[i - 1]['close'], 'y': i})
+    x_mean = sum(x) / len(x)
+    y_mean = sum(y) / len(y)
+    tmp = [k * v for k, v in zip(x, y)]
+    x_y_mean = sum(tmp) / len(tmp)
+    tmp = [i ** 2 for i in x]
+    x_square_mean = sum(tmp) / len(tmp)
     m = (x_y_mean - x_mean * y_mean) / (x_square_mean - x_mean ** 2)
     b = y_mean - m * x_mean
     for i in points:
         i['y_predict'] = m * i['x'] + b
-        i['square_error'] = (i['y'] - i['y_predict'])**2
-        i['square_from_mean_y'] = (i['y'] - y_mean)**2
+        i['square_error'] = (i['y'] - i['y_predict']) ** 2
+        i['square_from_mean_y'] = (i['y'] - y_mean) ** 2
     SE_line = sum([i['square_error'] for i in points])
     SE_y_mean = sum([i['square_from_mean_y'] for i in points])
-    R_square = 1 - SE_line/SE_y_mean
+    R_square = 1 - SE_line / SE_y_mean
     # print(f"R_Square: {round(R_square, 2)}\t斜率: {round(m, 2)}\t截距: {round(b, 2)}")
     return {'R_Square': round(R_square, 2), 'slope': round(m, 2), 'intercept': round(b, 2)}
 
@@ -329,7 +331,7 @@ def KDJ_test(code):
     data = KDJ(data)
     for i in range(len(data)):
         if 'K' in data[i].keys():
-            if data[i]['K'] > data[i]['D'] and data[i-1]['K'] < data[i-1]['D']:
+            if data[i]['K'] > data[i]['D'] and data[i - 1]['K'] < data[i - 1]['D']:
                 print(data[i])
 
 
@@ -347,37 +349,52 @@ def RVI(kline: list):
         kline[i]['Co'] = kline[i]['close'] - kline[i]['open']
         kline[i]['HL'] = kline[i]['high'] - kline[i]['low']
         if i >= 3:
-            kline[i]['V1'] = (kline[i]['Co'] + 2 * kline[i-1]['Co'] + 2 * kline[i-2]['Co'] + kline[i-3]['Co'])/6
-            kline[i]['V2'] = (kline[i]['HL'] + 2 * kline[i - 1]['HL'] + 2 * kline[i - 2]['HL'] + kline[i - 3]['HL'])/6
+            kline[i]['V1'] = (kline[i]['Co'] + 2 * kline[i - 1]['Co'] + 2 * kline[i - 2]['Co'] + kline[i - 3]['Co']) / 6
+            kline[i]['V2'] = (kline[i]['HL'] + 2 * kline[i - 1]['HL'] + 2 * kline[i - 2]['HL'] + kline[i - 3]['HL']) / 6
         if i >= N + 3:
             tmp1, tmp2 = [], []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp1.append(kline[j]['V1'])
                 tmp2.append(kline[j]['V2'])
             S1 = sum(tmp1)
             S2 = sum(tmp2)
-            kline[i]['RVI'] = S1/S2
+            kline[i]['RVI'] = S1 / S2
         if i >= N + 6:
-            kline[i]['RVIS'] = (kline[i]['RVI'] + 2*kline[i-1]['RVI'] + 2*kline[i-2]['RVI'] + kline[i-3]['RVI'])/6
+            kline[i]['RVIS'] = (kline[i]['RVI'] + 2 * kline[i - 1]['RVI'] + 2 * kline[i - 2]['RVI'] + kline[i - 3][
+                'RVI']) / 6
     return kline
 
 
 def Keltner_Channel(kline: list):
-    basic_price = [(i['close']+i['high']+i['low'])/3 for i in kline]
+    basic_price = [(i['close'] + i['high'] + i['low']) / 3 for i in kline]
     mid = EMA(basic_price, 20)
     for i in range(len(kline)):
         if 'ATR_10' in kline[i].keys():
             kline[i]['mid_line'] = mid[i]
             kline[i]['on_line'] = mid[i] + 2 * kline[i]['ATR_10']
             kline[i]['under_line'] = mid[i] - 2 * kline[i]['ATR_10']
-            if 'mid_line' in kline[i-1].keys():
-                if kline[i]['close'] > kline[i]['mid_line'] > kline[i-1]['mid_line']:
+            if 'mid_line' in kline[i - 1].keys():
+                if kline[i]['close'] > kline[i]['mid_line'] > kline[i - 1]['mid_line']:
                     kline[i]['trend'] = 'up'
-                elif kline[i]['close'] < kline[i]['mid_line'] < kline[i-1]['mid_line']:
+                elif kline[i]['close'] < kline[i]['mid_line'] < kline[i - 1]['mid_line']:
                     kline[i]['trend'] = 'down'
                 else:
                     kline[i]['trend'] = 'shock'
     return kline
+
+
+def Vegas_Channel(code, name=None):
+    logging.warning(f"Vegas_Channel\t{code}\t{name}")
+    long, mid, shot = 169, 144, 12
+    kline = get_stock_kline_with_indicators(code, period=60, limit=250)
+    kline = EMA_V2(EMA_V2(EMA_V2(kline, 169), 144), 12)
+    for i in range(len(kline)):
+        if f"ema{long}" in kline[i].keys():
+            if (kline[i][f'ema{shot}'] > kline[i][f'ema{mid}'] and kline[i][f'ema{shot}'] > kline[i][f'ema{long}']) \
+                    and (
+                    kline[i][f'ema{shot}'] < kline[i][f'ema{mid}'] or kline[i][f'ema{shot}'] < kline[i][f'ema{long}']):
+                logging.warning(f"code: {code}\tname: {name}")
+                return {'code': code, 'name': name, 'kline': kline}
 
 
 def linear_regression_stock_filter(pool, limit=120):
