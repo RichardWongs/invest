@@ -366,6 +366,7 @@ def RVI(kline: list):
 
 
 def Keltner_Channel(kline: list):
+    # 肯特钠通道
     basic_price = [(i['close'] + i['high'] + i['low']) / 3 for i in kline]
     mid = EMA(basic_price, 20)
     for i in range(len(kline)):
@@ -384,6 +385,7 @@ def Keltner_Channel(kline: list):
 
 
 def Vegas_Channel(code, name=None):
+    # 维加斯通道
     logging.warning(f"Vegas_Channel\t{code}\t{name}")
     long, mid, shot = 169, 144, 12
     kline = get_stock_kline_with_indicators(code, period=60, limit=250)
@@ -398,6 +400,7 @@ def Vegas_Channel(code, name=None):
 
 
 def linear_regression_stock_filter(limit=120):
+    # 根据线性回归函数对个股历史股价进行走势判断, 并计算出决定系数,斜率,截距,排序后返回
     from RPS.quantitative_screening import get_RPS_stock_pool
     pool = get_RPS_stock_pool()
     new_pool = [{'code': i[0], 'name': i[1]} for i in pool]
