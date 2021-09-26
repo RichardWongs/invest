@@ -449,8 +449,11 @@ def Vegas_Channel(code, name=None):
     long, mid, shot = 169, 144, 12
     kline = get_stock_kline_with_indicators(code, period=60, limit=250)
     kline = EMA_V2(EMA_V2(EMA_V2(kline, long), mid), shot)
-    if (kline[-1][f'ema{shot}'] > kline[-1][f'ema{mid}'] and kline[-1][f'ema{shot}'] > kline[-1][f'ema{long}']) \
-        and (kline[-2][f'ema{shot}'] < kline[-2][f'ema{mid}'] or kline[-2][f'ema{shot}'] < kline[-2][f'ema{long}']):
+    close = kline[-1]['close']
+    mid_price = kline[-1][f'ema{mid}']
+    long_price = kline[-1][f'ema{long}']
+    logging.warning(f"{code}\t{name}\t{kline[-1]}")
+    if (close <= mid_price * 1.05 or close <= long_price * 1.05) and (close > mid_price and close > long_price):
         return {'code': code, 'name': name, 'kline': kline}
 
 
@@ -504,7 +507,7 @@ def CCI(kline: list):
     return kline
 
 
-data = get_market_data('002459')
-data = ATR(data)
-for i in data:
-    print(i)
+# data = get_market_data('002459')
+data = Vegas_Channel('002459', name="晶澳科技")
+if data:
+    print(data)
