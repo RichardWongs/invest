@@ -59,7 +59,14 @@ class SecurityException(BaseException):
 
 
 def TRI(high, low, close):
-    return round(max(high, close) - min(low, close), 3)
+    return round(max(high-low, abs(high-close), abs(low-close)), 3)
+
+
+def ATR(kline: list):
+    for i in range(len(kline)):
+        kline[i]['TRI'] = TRI(high=kline[i]['high'], low=kline[i]['low'], close=kline[i]['last_close'])
+    kline = EMA_V2(EMA_V2(kline, days=10, key='TRI', out_key='ATR_10'), days=20, key='TRI', out_key='ATR_20')
+    return kline
 
 
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
@@ -113,7 +120,9 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                 for i in range(len(new_data)):
                     if i > 0:
                         new_data[i]['last_close'] = new_data[i - 1]['close']
-                        new_data[i]['TRI'] = TRI(new_data[i]['high'], new_data[i]['low'], new_data[i]['last_close'])
+                        new_data[i]['TRI'] = TRI(high=new_data[i]['high'],
+                                                 low=new_data[i]['low'],
+                                                 close=new_data[i]['last_close'])
                     if i > 10:
                         tenth_volume = []
                         ATR_10 = 0
@@ -297,13 +306,15 @@ def EMA(cps, days):
     return emas
 
 
-def EMA_V2(cps, days):
+def EMA_V2(cps, days, key='close', out_key=None):
+    if not out_key:
+        out_key = f'ema{days}'
     emas = cps.copy()
     for i in range(len(cps)):
         if i == 0:
-            emas[i][f'ema{days}'] = cps[i]['close']
+            emas[i][out_key] = cps[i][key]
         if i > 0:
-            emas[i][f'ema{days}'] = ((days - 1) * emas[i - 1][f'ema{days}'] + 2 * cps[i]['close']) / (days + 1)
+            emas[i][out_key] = ((days - 1) * emas[i - 1][out_key] + 2 * cps[i][key]) / (days + 1)
     return emas
 
 
@@ -318,11 +329,18 @@ def WMS(kline, N=30):
 
 def TRIX(data):
     N, M = 12, 20
-    TR = EMA_V2(EMA_V2(EMA_V2(data, N), N), N)
+    for i in range(len(data)):
+        if i >= N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(data[j]['close'])
+            data[i][f'ma{N}'] = sum(tmp)/len(tmp)
+    data = data[12:]
+    TR = EMA_V2(EMA_V2(EMA_V2(data, N, key=f'ma{N}'), N, key=f'ma{N}'), N, key=f'ma{N}')
     trix = []
     for i in range(len(TR)):
         if i > 0:
-            trix.append(round((TR[i] - TR[i - 1]) / TR[i - 1] * 100, 2))
+            trix.append(round((TR[i][f'ema{N}'] - TR[i - 1][f'ema{N}']) / TR[i - 1][f'ema{N}'] * 100, 2))
     matrix = []
     for i in range(len(trix)):
         if i >= M:
@@ -430,14 +448,10 @@ def Vegas_Channel(code, name=None):
     logging.warning(f"Vegas_Channel\t{code}\t{name}")
     long, mid, shot = 169, 144, 12
     kline = get_stock_kline_with_indicators(code, period=60, limit=250)
-    kline = EMA_V2(EMA_V2(EMA_V2(kline, 169), 144), 12)
-    for i in range(len(kline)):
-        if f"ema{long}" in kline[i].keys():
-            if (kline[i][f'ema{shot}'] > kline[i][f'ema{mid}'] and kline[i][f'ema{shot}'] > kline[i][f'ema{long}']) \
-                    and (
-                    kline[i][f'ema{shot}'] < kline[i][f'ema{mid}'] or kline[i][f'ema{shot}'] < kline[i][f'ema{long}']):
-                logging.warning(f"code: {code}\tname: {name}")
-                return {'code': code, 'name': name, 'kline': kline}
+    kline = EMA_V2(EMA_V2(EMA_V2(kline, long), mid), shot)
+    if (kline[-1][f'ema{shot}'] > kline[-1][f'ema{mid}'] and kline[-1][f'ema{shot}'] > kline[-1][f'ema{long}']) \
+        and (kline[-2][f'ema{shot}'] < kline[-2][f'ema{mid}'] or kline[-2][f'ema{shot}'] < kline[-2][f'ema{long}']):
+        return {'code': code, 'name': name, 'kline': kline}
 
 
 def linear_regression_stock_filter(limit=120):
@@ -471,3 +485,26 @@ def filter_stock_by_boolean_and_keltner_channel():
         logging.warning(f"{i['code']}\t{i['name']}")
     return new
 
+
+def CCI(kline: list):
+    N = 14
+    for i in range(len(kline)):
+        kline[i]['TP'] = (kline[i]['high'] + kline[i]['low'] + kline[i]['close'])/3
+        if i >= N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['close'])
+            kline[i][f'ma{N}'] = sum(tmp)/len(tmp)
+        if i >= 2 * N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(abs(kline[j][f'ma{N}']-kline[j]['close']))
+            kline[i]['MD'] = sum(tmp)/len(tmp)
+            kline[i]['CCI'] = (kline[i]['TP']-kline[i][f'ma{N}'])/kline[i]['MD']/0.015
+    return kline
+
+
+data = get_market_data('002459')
+data = ATR(data)
+for i in data:
+    print(i)
