@@ -511,3 +511,23 @@ def CCI(kline: list):
     return kline
 
 
+def MACD(kline: list):
+    kline = EMA_V2(EMA_V2(EMA_V2(kline, days=12), days=26), days=50)
+    for i in range(len(kline)):
+        kline[i]['DIF'] = kline[i]['ema12'] - kline[i]['ema26']
+    kline = EMA_V2(kline, days=9, key='DIF', out_key='DEA')
+    for i in range(len(kline)):
+        kline[i]['MACD'] = 2 * (kline[i]['DIF'] - kline[i]['DEA'])
+    return kline
+
+
+data = get_market_data('300750', start_date=20200101)
+data = MACD(data)
+for i in range(len(data)):
+    close = data[i]['close']
+    ema50 = data[i]['ema50']
+    if data[i]['DIF'] < 0 and data[i]['DEA'] < 0:
+        if data[i]['DIF'] > data[i]['DEA'] and data[i-1]['DIF'] < data[i-1]['DEA']:
+            logging.warning(f"day: {data[i]['day']}\tDIF: {data[i]['DIF']}\tDEA: {data[i]['DEA']}")
+    # print(data[i])
+
