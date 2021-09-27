@@ -1,7 +1,7 @@
 # encoding: utf-8
 # 股票异常情况监控
 import logging
-
+from datetime import date, timedelta
 import requests, json, time
 
 
@@ -395,7 +395,8 @@ def KDJ_test(code):
 
 
 def BooleanLine_filter(code, name=None):
-    data = get_stock_kline_with_indicators(code, limit=60)
+    # data = get_stock_kline_with_indicators(code, limit=60)
+    data = get_market_data(code, start_date=20200927)
     data = BooleanLine(data)
     if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
         return {'code': code, 'name': name, 'kline': data}
@@ -462,8 +463,10 @@ def linear_regression_stock_filter(limit=120):
     from RPS.quantitative_screening import get_RPS_stock_pool
     pool = get_RPS_stock_pool()
     new_pool = [{'code': i[0], 'name': i[1]} for i in pool]
+    start = int(str(date.today()-timedelta(days=365)).replace('-', ''))
     for i in new_pool:
-        kline = get_stock_kline_with_indicators(i['code'], limit=limit)
+        # kline = get_stock_kline_with_indicators(i['code'], limit=limit)
+        kline = get_market_data(i['code'], start_date=start)
         r = Linear_Regression(kline)
         i['R_Square'] = r['R_Square']
         i['slope'] = r['slope']
@@ -483,6 +486,7 @@ def filter_stock_by_boolean_and_keltner_channel():
             kline = Keltner_Channel(data['kline'])
             data['kline'] = kline
             if kline[-1]['trend'] == 'up':
+                logging.warning(f"{i[0]}\t{i[1]}\t{kline}")
                 new.append(data)
     for i in new:
         logging.warning(f"{i['code']}\t{i['name']}")
@@ -507,7 +511,3 @@ def CCI(kline: list):
     return kline
 
 
-# data = get_market_data('002459')
-data = Vegas_Channel('002459', name="晶澳科技")
-if data:
-    print(data)
