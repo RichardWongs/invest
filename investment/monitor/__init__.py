@@ -525,13 +525,15 @@ def stock_filter_by_MACD():
     from RPS.quantitative_screening import get_RPS_stock_pool
     rps_pool = get_RPS_stock_pool()
     pool = [{'code': i[0], 'name': i[1]} for i in rps_pool]
+    result = []
     for i in pool:
         data = get_market_data(i['code'], start_date=20200101)
         data = MACD(data)
-        for j in range(len(data)):
-            if data[j]['DIF'] < 0 and data[j]['DEA'] < 0:
-                if data[j]['DIF'] > data[j]['DEA'] and data[j-1]['DIF'] < data[j-1]['DEA']:
-                    logging.warning(f"day: {data[j]['day']}\tDIF: {data[j]['DIF']}\tDEA: {data[j]['DEA']}")
+        if data[-1]['DIF'] < 0 and data[-1]['DEA'] < 0:
+            if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA']:
+                logging.warning(f"day: {data[-1]['day']}\tDIF: {data[-1]['DIF']}\tDEA: {data[-1]['DEA']}")
+                result.append(i)
+    return result
 
 
 stock_filter_by_MACD()
