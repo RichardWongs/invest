@@ -521,13 +521,18 @@ def MACD(kline: list):
     return kline
 
 
-data = get_market_data('300750', start_date=20200101)
-data = MACD(data)
-for i in range(len(data)):
-    close = data[i]['close']
-    ema50 = data[i]['ema50']
-    if data[i]['DIF'] < 0 and data[i]['DEA'] < 0:
-        if data[i]['DIF'] > data[i]['DEA'] and data[i-1]['DIF'] < data[i-1]['DEA']:
-            logging.warning(f"day: {data[i]['day']}\tDIF: {data[i]['DIF']}\tDEA: {data[i]['DEA']}")
-    # print(data[i])
+def stock_filter_by_MACD():
+    from RPS.quantitative_screening import get_RPS_stock_pool
+    rps_pool = get_RPS_stock_pool()
+    pool = [{'code': i[0], 'name': i[1]} for i in rps_pool]
+    for i in pool:
+        data = get_market_data(i['code'], start_date=20200101)
+        data = MACD(data)
+        for j in range(len(data)):
+            if data[j]['DIF'] < 0 and data[j]['DEA'] < 0:
+                if data[j]['DIF'] > data[j]['DEA'] and data[j-1]['DIF'] < data[j-1]['DEA']:
+                    logging.warning(f"day: {data[j]['day']}\tDIF: {data[j]['DIF']}\tDEA: {data[j]['DEA']}")
+
+
+stock_filter_by_MACD()
 
