@@ -1,5 +1,6 @@
 # 凯利公式: (胜率 * 赔率 - (1 - 胜率)) / 赔率 * 100 = 每次投入本金占比
 # 凯利公式变体: f* = (p * rW - q * rL) / (rL * rW)  # rW 获胜后的净盈利率  rL 净损失率
+# b 赔率 p 胜率 q 失败概率(1-p)
 import numpy as np
 import random
 import matplotlib.pyplot as plt
