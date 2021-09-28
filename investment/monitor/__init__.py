@@ -123,22 +123,14 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                         new_data[i]['TRI'] = TRI(high=new_data[i]['high'],
                                                  low=new_data[i]['low'],
                                                  close=new_data[i]['last_close'])
-                    if i > 10:
+                    if i > 20:
                         tenth_volume = []
-                        ATR_10 = 0
-                        for j in range(i - 1, i - 11, -1):
+                        for j in range(i - 1, i - 21, -1):
                             tenth_volume.append(new_data[j]['volume'])
-                            ATR_10 += new_data[j]['TRI']
-                        new_data[i]['ATR_10'] = round(ATR_10 / 10, 2)
                         new_data[i]['10th_largest'] = max(tenth_volume)
                         new_data[i]['10th_minimum'] = min(tenth_volume)
                         new_data[i]['avg_volume'] = sum(tenth_volume) / 10
                         new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
-                    if i > 20:
-                        ATR_20 = 0
-                        for j in range(i - 1, i - 21, -1):
-                            ATR_20 += new_data[j]['TRI']
-                        new_data[i]['ATR_20'] = round(ATR_20 / 20, 2)
                 return new_data[1:]
     except SecurityException() as e:
         print(e)
@@ -167,22 +159,14 @@ def get_market_data(code, start_date=20210101):
     pool = pool[::-1]
     for i in range(len(pool)):
         pool[i]['TRI'] = TRI(pool[i]['high'], pool[i]['low'], pool[i]['last_close'])
-        if i > 10:
+        if i > 20:
             tenth_volume = []
-            ATR_10 = 0
-            for j in range(i - 1, i - 11, -1):
+            for j in range(i - 1, i - 21, -1):
                 tenth_volume.append(pool[j]['volume'])
-                ATR_10 += pool[j]['TRI']
-            pool[i]['ATR_10'] = round(ATR_10 / 10, 2)
             pool[i]['10th_largest'] = max(tenth_volume)
             pool[i]['10th_minimum'] = min(tenth_volume)
             pool[i]['avg_volume'] = sum(tenth_volume) / 10
             pool[i]['volume_ratio'] = round(pool[i]['volume'] / pool[i]['avg_volume'], 2)
-        if i > 20:
-            ATR_20 = 0
-            for j in range(i - 1, i - 21, -1):
-                ATR_20 += pool[j]['TRI']
-            pool[i]['ATR_20'] = round(ATR_20 / 20, 2)
     return pool[1:]
 
 
