@@ -520,5 +520,5 @@ def stock_filter_by_MACD():
     return result
 
 
-stock_filter_by_MACD()
+# stock_filter_by_MACD()
 
