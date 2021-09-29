@@ -177,6 +177,13 @@ def run():
     df.to_csv(filename, encoding='utf-8')
 
 
+def get_momentum_rank_top(filename="简放-动量模型.csv"):
+    df = pd.read_csv(filename, encoding='utf-8')
+    for i in df.values:
+        if i[-1] > 1:
+            print({'industry': i[0], df.columns[-5]: i[-5], df.columns[-4]: i[-4], df.columns[-3]: i[-3], df.columns[-2]: i[-2], df.columns[-1]: i[-1]})
+
+
 if __name__ == '__main__':
     run()
-
+    get_momentum_rank_top()
