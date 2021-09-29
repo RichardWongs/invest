@@ -52,15 +52,9 @@ def get_fund_detail_list(fund_list: list, start_date=date.today()-timedelta(days
         'endDate': end_date
     }
     response = requests.get(url, params=params).json()
+    # logging.warning(f"response: {response}")
     response = response['data']
-    result = [{'code': i['code'], 'name': i['name'], 'fundScale': i['fundScale'], 'manager': i['manager'], 'networthdata': i['netWorthData']} for i in response]
-    for i in fund_list:
-        for j in result:
-            if i['code'] == j['code']:
-                i['fundScale'] = j['fundScale']
-                i['manager'] = j['manager']
-                i['networthdata'] = j['networthdata']
-    return fund_list
+    return response
 
 
 def fund_ranking_summary():
@@ -93,11 +87,22 @@ def fund_ranking_summary():
     data = []
     for fund in target:
         tmp = {'code': fund['code'], 'name': fund['name']}
-        # for y in years:
-        #     tmp[y] = get_fund_yield(code=tmp['code'], year=y)
-        # tmp['3y'] = get_fund_year_yield(tmp['code'], 3)
-        # tmp['5y'] = get_fund_year_yield(tmp['code'], 5)
+        for y in years:
+            tmp[y] = get_fund_yield(code=tmp['code'], year=y)
+        tmp['3y'] = get_fund_year_yield(tmp['code'], 3)
+        tmp['5y'] = get_fund_year_yield(tmp['code'], 5)
         data.append(tmp)
     return data
 
+
+def fund_performance_calc(fund_list):
+    years = (2016, 2017, 2018, 2019, 2020, 2021)
+    data = []
+    for fund in fund_list:
+        for y in years:
+            fund[y] = get_fund_yield(code=fund['code'], year=y)
+        fund['3y'] = get_fund_year_yield(fund['code'], 3)
+        fund['5y'] = get_fund_year_yield(fund['code'], 5)
+        data.append(fund)
+    return fund_list
 
