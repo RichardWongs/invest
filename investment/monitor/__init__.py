@@ -131,6 +131,11 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                         new_data[i]['10th_minimum'] = min(tenth_volume)
                         new_data[i]['avg_volume'] = sum(tenth_volume) / 10
                         new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
+                    if i >= 50:
+                        tmp = []
+                        for j in range(i, i-50, -1):
+                            tmp.append(new_data[j]['close'])
+                        new_data[i]['ma50'] = sum(tmp)/len(tmp)
                 return new_data[1:]
     except SecurityException() as e:
         print(e)
@@ -167,6 +172,11 @@ def get_market_data(code, start_date=20210101):
             pool[i]['10th_minimum'] = min(tenth_volume)
             pool[i]['avg_volume'] = sum(tenth_volume) / 10
             pool[i]['volume_ratio'] = round(pool[i]['volume'] / pool[i]['avg_volume'], 2)
+        if i >= 50:
+            tmp = []
+            for j in range(i, i-50, -1):
+                tmp.append(pool[j]['close'])
+            pool[i]['ma50'] = sum(tmp)/len(tmp)
     return pool[1:]
 
 
