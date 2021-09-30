@@ -110,13 +110,13 @@ def fill_in_data(df, filename="RPS.csv"):
 
 
 def create_RPS_file():
-    stocks = get_stock_list()
-    get_all_data(stocks)
+    stocks = get_stock_list()  # 获取全市场股票列表
+    get_all_data(stocks)  # 获取行情数据并写入csv文件
     data = pd.read_csv(f'daily_price.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
     ret = cal_ret(data, w=rps_day)
     rps = all_RPS(ret)
-    fill_in_data(rps, filename=f'RPS{rps_day}.csv')
+    fill_in_data(rps, filename=f'RPS{rps_day}.csv')  # 计算个股20日RPS值并写入rps文件
 
 
 def get_fund_holdings(quarter, year=date.today().year):
@@ -177,13 +177,29 @@ def run():
     df.to_csv(filename, encoding='utf-8')
 
 
+def momentum_stock_filter(industry):
+    pool = []
+    df = pd.read_csv(f'RPS{rps_day}.csv', encoding='utf-8')
+    for i in df.values:
+        if i[2] == industry and i[-1] > 87:
+            pool.append({'code': i[0], 'name': i[1]})
+    return pool
+
+
 def get_momentum_rank_top(filename="简放-动量模型.csv"):
+    industry_list = []
+    fund_holding = get_fund_holdings(quarter=2)
+    print(fund_holding)
     df = pd.read_csv(filename, encoding='utf-8')
     for i in df.values:
         if i[-1] > 1:
-            print({'industry': i[0], df.columns[-5]: i[-5], df.columns[-4]: i[-4], df.columns[-3]: i[-3], df.columns[-2]: i[-2], df.columns[-1]: i[-1]})
+            industry_list.append({'industry': i[0], df.columns[-5]: i[-5], df.columns[-4]: i[-4], df.columns[-3]: i[-3], df.columns[-2]: i[-2], df.columns[-1]: i[-1]})
+            industry_pool = momentum_stock_filter(i[0])
+    industry_list = sorted(industry_list, key=lambda x: x[df.columns[-1]], reverse=True)
+    print(industry_list)
 
 
 if __name__ == '__main__':
-    run()
+    # run()
     get_momentum_rank_top()
+    # print(momentum_stock_filter('白酒'))
