@@ -200,6 +200,6 @@ def get_momentum_rank_top(filename="简放-动量模型.csv"):
 
 
 if __name__ == '__main__':
-    # run()
-    get_momentum_rank_top()
+    run()
+    # get_momentum_rank_top()
     # print(momentum_stock_filter('白酒'))

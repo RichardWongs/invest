@@ -17,20 +17,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\momentum\daily_price.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\momentum\简放-动量模型.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\momentum\陶博士_板块RPS_5.csv">
           <value>
             <Attribute>
