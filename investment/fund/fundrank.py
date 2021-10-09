@@ -59,8 +59,8 @@ def get_fund_detail_list(fund_list: list, start_date=date.today()-timedelta(days
 
 def fund_ranking_summary():
     # 基金业绩排行汇总
-    data_3m = get_fund_rank('3y', top_count=1000)
-    data_6m = get_fund_rank('6y', top_count=1000)
+    data_3m = get_fund_rank('3y', top_count=1500)
+    data_6m = get_fund_rank('6y', top_count=1500)
     data_1y = get_fund_rank('1n', top_count=500)
     data_2y = get_fund_rank('2n', top_count=500)
     data_3y = get_fund_rank('3n', top_count=500)
