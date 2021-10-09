@@ -96,13 +96,14 @@ def fund_ranking_summary():
 
 
 def fund_performance_calc(fund_list):
-    years = (2016, 2017, 2018, 2019, 2020, 2021)
+    years = (2017, 2018, 2019, 2020, 2021)
     data = []
     for fund in fund_list:
         for y in years:
             fund[y] = get_fund_yield(code=fund['code'], year=y)
         fund['3y'] = get_fund_year_yield(fund['code'], 3)
         fund['5y'] = get_fund_year_yield(fund['code'], 5)
+        print(fund)
         data.append(fund)
     return fund_list
 

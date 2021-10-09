@@ -16,7 +16,7 @@ def get_html(code, start_date, end_date, page=1, per=20):
 
 
 def get_fund(code, start_date=str(date.today() - timedelta(180)), end_date=str(date.today()), page=1, per=20):
-    time.sleep(1)
+    # time.sleep(1)
     # 获取html
     html = get_html(code, start_date, end_date, page, per)
     soup = BeautifulSoup(html, 'html.parser')
