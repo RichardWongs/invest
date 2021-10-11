@@ -135,7 +135,7 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                         tmp = []
                         for j in range(i, i-50, -1):
                             tmp.append(new_data[j]['close'])
-                        new_data[i]['ma50'] = sum(tmp)/len(tmp)
+                        new_data[i]['ma50'] = round(sum(tmp)/len(tmp), 2)
                 return new_data[1:]
     except SecurityException() as e:
         print(e)
@@ -487,6 +487,42 @@ def filter_stock_by_boolean_and_keltner_channel():
     return new
 
 
+def BBI(kline: list):
+    for i in range(len(kline)):
+        if i >= 3:
+            tmp = []
+            for j in range(i, i-3, -1):
+                tmp.append(kline[j]['close'])
+            kline[i]['ma3'] = sum(tmp)/len(tmp)
+        if i >= 6:
+            tmp = []
+            for j in range(i, i-6, -1):
+                tmp.append(kline[j]['close'])
+            kline[i]['ma6'] = sum(tmp)/len(tmp)
+        if i >= 12:
+            tmp = []
+            for j in range(i, i-12, -1):
+                tmp.append(kline[j]['close'])
+            kline[i]['ma12'] = sum(tmp)/len(tmp)
+        if i >= 24:
+            tmp = []
+            for j in range(i, i-24, -1):
+                tmp.append(kline[j]['close'])
+            kline[i]['ma24'] = sum(tmp)/len(tmp)
+    for i in range(len(kline)):
+        if i >= 24:
+            kline[i]['BBI'] = round((kline[i]['ma3'] + kline[i]['ma6'] + kline[i]['ma12'] + kline[i]['ma24'])/4, 2)
+        if 'ma3' in kline[i].keys():
+            del kline[i]['ma3']
+        if 'ma6' in kline[i].keys():
+            del kline[i]['ma6']
+        if 'ma12' in kline[i].keys():
+            del kline[i]['ma12']
+        if 'ma24' in kline[i].keys():
+            del kline[i]['ma24']
+    return kline
+
+
 def CCI(kline: list):
     N = 14
     for i in range(len(kline)):
@@ -530,5 +566,4 @@ def stock_filter_by_MACD():
     return result
 
 
-# stock_filter_by_MACD()
 
