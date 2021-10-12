@@ -6,7 +6,8 @@ import tushare as ts
 from datetime import date, timedelta
 import logging
 from RPS.foreign_capital_increase import foreign_capital_filter, foreignCapitalHoldingV2
-from security import get_interval_yield
+from security import get_interval_yield, get_stock_kline_with_volume
+
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 
 
@@ -38,13 +39,6 @@ def get_RPS_stock_pool():
         for i in df.values:
             if i[-1] >= 90:
                 pool.add((i[0].split('.')[0], i[1]))
-    # 增加一个50日RPS不低于70的条件, 避免长期RPS高但短期RPS开始下降的情况
-    # rps50_pool = set()
-    # rps50 = pd.read_csv('RPS_50_V2.csv', encoding='utf-8')
-    # for i in rps50.values:
-    #     if i[-1] >= 70:
-    #         rps50_pool.add((i[0].split('.')[0], i[1]))
-    # pool = [i for i in pool if i in rps50_pool]
     logging.warning(f"高RPS股票池: {pool}")
     return pool
 
@@ -95,6 +89,30 @@ def stock_pool_filter_process():
     return pool
 
 
-if __name__ == '__main__':
-    stock_pool_filter_process()
+def select_biggest_decline():
+    pool = get_RPS_stock_pool()
+    target = []
+    for i in pool:
+        data = get_stock_kline_with_volume(i[0], limit=120)
+        close = data[-1]['close']
+        max_price = {'day': '', 'high': 0}
+        for j in data:
+            if j['high'] > max_price['high']:
+                max_price['day'] = j['day']
+                max_price['high'] = j['high']
+        high = max_price['high']
+        for j in range(len(data)):
+            if max_price['day'] == data[j]['day']:
+                data = data[j:]
+                break
+        low = min([j['low'] for j in data])
+        biggest_decline = round((high - low)/high * 100, 2)
+        if biggest_decline <= 50:
+            target.append({'code': i[0], 'name': i[1], 'highest': high, 'lowest': low, 'current_price': close, 'biggest_decline': biggest_decline})
+        logging.warning(f"code: {i[0]}\tname: {i[1]}\t最高: {high}\t最低: {low}\t当前: {close}\tbiggest_decline: {biggest_decline}")
+    return target
 
+
+if __name__ == '__main__':
+    # stock_pool_filter_process()
+    select_biggest_decline()
