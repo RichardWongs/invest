@@ -567,9 +567,8 @@ def stock_filter_by_MACD():
 
 
 def stock_filter_by_MACD_and_BBI():
-    from RPS.quantitative_screening import get_RPS_stock_pool
-    rps_pool = get_RPS_stock_pool()
-    pool = [{'code': i[0], 'name': i[1]} for i in rps_pool]
+    from RPS.quantitative_screening import institutions_holding_rps_stock
+    pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
         data = get_market_data(i['code'], start_date=20210101)
@@ -580,7 +579,7 @@ def stock_filter_by_MACD_and_BBI():
 
 
 def stock_filter_by_MACD_and_BBI_test(code):
-    data = get_market_data(code, start_date=20200101)
+    data = get_market_data(code, start_date=20210101)
     data = BBI(MACD(data))
     for i in range(len(data)):
         if 'BBI' in data[i].keys():
