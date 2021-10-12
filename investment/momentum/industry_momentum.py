@@ -176,6 +176,7 @@ def run():
         for i in v:
             df.loc[i['industry'], k] = i['momentum_score']
     df.to_csv(filename, encoding='utf-8')
+    get_momentum_rank_top()
 
 
 def momentum_stock_filter(industry, fund_holding):
@@ -203,4 +204,4 @@ def get_momentum_rank_top(filename="简放-动量模型.csv"):
 
 if __name__ == '__main__':
     run()
-    get_momentum_rank_top()
+

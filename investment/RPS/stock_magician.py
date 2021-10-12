@@ -10,7 +10,6 @@
 （7）相对实力（RS）排名不低于70，更好的选择一般是在90左右（注：RS线不应该有明显的下跌趋势，我希望RS线上涨至少6周，最好是13周以上）
 （8）因股价上涨突破前期底部，现价格应在50日均线之上。
 '''
-from RPS.quantitative_screening import get_RPS_stock_pool
 
 
 def get_average_price(closes, weeks):
