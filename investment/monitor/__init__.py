@@ -578,6 +578,19 @@ def stock_filter_by_MACD_and_BBI():
     return result
 
 
+def stock_filter_by_BooleanLine():
+    from RPS.quantitative_screening import institutions_holding_rps_stock
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        data = get_stock_kline_with_indicators(i['code'])
+        data = BooleanLine(data)
+        if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
+            result.append(i)
+            logging.warning(i)
+    return result
+
+
 def stock_filter_by_MACD_and_BBI_test(code):
     data = get_market_data(code, start_date=20210101)
     data = BBI(MACD(data))
