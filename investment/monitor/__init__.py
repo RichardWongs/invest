@@ -576,7 +576,7 @@ def WAD(kline: list):
             del i['TRL']
             del i['TRH']
             del i['AD']
-    return kline
+    return kline[30:]
 
 
 def stock_filter_by_MACD():
@@ -603,6 +603,7 @@ def stock_filter_by_MACD_and_BBI():
         data = BBI(MACD(data))
         if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
             result.append(i)
+            logging.warning(i)
     return result
 
 
@@ -646,4 +647,4 @@ def stock_filter_by_MACD_and_BBI_test(code):
                 logging.warning(data[i])
 
 
-
+stock_filter_by_WAD()
