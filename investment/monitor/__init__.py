@@ -647,4 +647,13 @@ def stock_filter_by_MACD_and_BBI_test(code):
                 logging.warning(data[i])
 
 
+def stock_filter_by_WAD_test(code):
+    data = get_stock_kline_with_indicators(code, limit=250)
+    data = WAD(data)
+    for i in range(len(data)):
+        if i+3 <= len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i-1]['WAD'] < data[i-1]['MAWAD']:
+            logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
+
+
+
 
