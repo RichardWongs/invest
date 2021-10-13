@@ -71,7 +71,7 @@ def ATR(kline: list):
 
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     # 添加技术指标布林线,布林线宽度
-    time.sleep(1)
+    time.sleep(0.5)
     assert period in (5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
@@ -551,6 +551,34 @@ def MACD(kline: list):
     return kline
 
 
+def WAD(kline: list):
+    # 威廉多空力度线
+    for i in range(len(kline)):
+        if i > 0:
+            kline[i]['TRL'] = min(kline[i-1]['close'], kline[i]['low'])
+            kline[i]['TRH'] = min(kline[i-1]['close'], kline[i]['high'])
+            if kline[i]['close'] > kline[i-1]['close']:
+                kline[i]['AD'] = kline[i]['close'] - kline[i]['TRL']
+            if kline[i]['close'] < kline[i-1]['close']:
+                kline[i]['AD'] = kline[i]['close'] - kline[i]['TRH']
+            if kline[i]['close'] == kline[i-1]['close']:
+                kline[i]['AD'] = 0
+            kline[i]['WAD'] = round(kline[i]['AD'] + kline[i-1]['WAD'], 2)
+        else:
+            kline[i]['WAD'] = 0
+        if i >= 30:
+            tmp = []
+            for j in range(i, i-30, -1):
+                tmp.append(kline[j]['WAD'])
+            kline[i]['MAWAD'] = round(sum(tmp)/len(tmp), 2)
+    for i in kline:
+        if 'TRL' in i.keys():
+            del i['TRL']
+            del i['TRH']
+            del i['AD']
+    return kline
+
+
 def stock_filter_by_MACD():
     from RPS.quantitative_screening import get_RPS_stock_pool
     rps_pool = get_RPS_stock_pool()
@@ -571,7 +599,7 @@ def stock_filter_by_MACD_and_BBI():
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_market_data(i['code'], start_date=20210101)
+        data = get_stock_kline_with_indicators(i['code'])
         data = BBI(MACD(data))
         if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
             result.append(i)
@@ -586,6 +614,24 @@ def stock_filter_by_BooleanLine():
         data = get_stock_kline_with_indicators(i['code'])
         data = BooleanLine(data)
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
+            i['BBW'] = data[-1]['BBW']
+            i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close'])/data[-5]['last_close']*100, 2)
+            if i['week_applies'] > 0:
+                result.append(i)
+                logging.warning(i)
+    return result
+
+
+def stock_filter_by_WAD():
+    from RPS.quantitative_screening import institutions_holding_rps_stock
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        data = get_stock_kline_with_indicators(i['code'])
+        data = WAD(data)
+        if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
+            i['WAD'] = data[-1]['WAD']
+            i['MAWAD'] = data[-1]['MAWAD']
             result.append(i)
             logging.warning(i)
     return result
