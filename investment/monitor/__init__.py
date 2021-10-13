@@ -647,4 +647,4 @@ def stock_filter_by_MACD_and_BBI_test(code):
                 logging.warning(data[i])
 
 
-stock_filter_by_WAD()
+
