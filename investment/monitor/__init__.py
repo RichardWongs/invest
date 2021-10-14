@@ -602,6 +602,25 @@ def PVI_NVI(kline: list):
     return kline[N:]
 
 
+def Kaufman_Adaptive_Moving_Average(kline: list):
+    N = 5
+    for i in range(len(kline)):
+        if i > N:
+            DIR = abs(kline[i]['close'] - kline[i-N]['close'])   # 方向
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(abs(kline[j]['close']-kline[j-1]['close']))
+            VIR = sum(tmp)  # 波动率
+            ER = DIR/VIR    # 效率
+            # fast = 2/(n1+1)
+            # slow = 2/(n2+1)
+            CS = ER * (2/3 - 2/31) + 2/31  # 平滑
+            CQ = CS * CS
+            print(CQ)
+            # kline[i]['KAMA'] = kline[i-1]['KAMA'] + CQ * (kline[i]['close']-kline[i-1]['KAMA'])
+    return kline
+
+
 def stock_filter_by_MACD():
     from RPS.quantitative_screening import get_RPS_stock_pool
     rps_pool = get_RPS_stock_pool()
@@ -678,6 +697,9 @@ def stock_filter_by_WAD_test(code):
             logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
 
 
-stock_filter_by_MACD_and_BBI()
-stock_filter_by_BooleanLine()
-stock_filter_by_WAD()
+# stock_filter_by_MACD_and_BBI()
+# stock_filter_by_BooleanLine()
+# stock_filter_by_WAD()
+data = get_stock_kline_with_indicators(300750)
+data = Kaufman_Adaptive_Moving_Average(data)
+print(data)
