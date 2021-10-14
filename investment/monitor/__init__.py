@@ -580,6 +580,28 @@ def WAD(kline: list):
     return kline[30:]
 
 
+def PVI_NVI(kline: list):
+    N = 20
+    for i in range(len(kline)):
+        if i == 0:
+            kline[i]['PVI'] = 100
+            kline[i]['NVI'] = 100
+        if i > 0:
+            kline[i]['PV'] = kline[i]['close']/kline[i-1]['close'] if kline[i]['volume'] > kline[i-1]['volume'] else 1
+            kline[i]['NV'] = kline[i]['close']/kline[i-1]['close'] if kline[i]['volume'] < kline[i-1]['volume'] else 1
+            kline[i]['PVI'] = kline[i-1]['PVI'] * kline[i]['PV']
+            kline[i]['NVI'] = kline[i-1]['NVI'] * kline[i]['NV']
+        if i >= N:
+            tmp_pvi = []
+            tmp_nvi = []
+            for j in range(i, i-N, -1):
+                tmp_pvi.append(kline[j]['PVI'])
+                tmp_nvi.append(kline[j]['NVI'])
+            kline[i]['MA_PVI'] = round(sum(tmp_pvi)/len(tmp_pvi), 2)
+            kline[i]['MA_NVI'] = round(sum(tmp_nvi)/len(tmp_nvi), 2)
+    return kline[N:]
+
+
 def stock_filter_by_MACD():
     from RPS.quantitative_screening import get_RPS_stock_pool
     rps_pool = get_RPS_stock_pool()
@@ -625,11 +647,10 @@ def stock_filter_by_BooleanLine():
 
 
 def stock_filter_by_WAD():
-    from RPS.quantitative_screening import institutions_holding_rps_stock, biggest_decline_calc
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'], limit=150)
+        data = get_stock_kline_with_indicators(i['code'], limit=180)
         data = WAD(data)
         biggest_decline = biggest_decline_calc(data)
         if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
@@ -658,4 +679,5 @@ def stock_filter_by_WAD_test(code):
 
 
 stock_filter_by_MACD_and_BBI()
-
+stock_filter_by_BooleanLine()
+stock_filter_by_WAD()
