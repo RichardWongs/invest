@@ -3,6 +3,7 @@
 import logging
 from datetime import date, timedelta
 import requests, json, time
+from RPS.quantitative_screening import institutions_holding_rps_stock, biggest_decline_calc
 
 
 # 计算平均值
@@ -595,46 +596,47 @@ def stock_filter_by_MACD():
 
 
 def stock_filter_by_MACD_and_BBI():
-    from RPS.quantitative_screening import institutions_holding_rps_stock
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'])
+        data = get_stock_kline_with_indicators(i['code'], limit=150)
         data = BBI(MACD(data))
+        biggest_decline = biggest_decline_calc(data)
         if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
             result.append(i)
-            logging.warning(i)
+            logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
 
 
 def stock_filter_by_BooleanLine():
-    from RPS.quantitative_screening import institutions_holding_rps_stock
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'])
+        data = get_stock_kline_with_indicators(i['code'], limit=150)
         data = BooleanLine(data)
+        biggest_decline = biggest_decline_calc(data)
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
             i['BBW'] = data[-1]['BBW']
             i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close'])/data[-5]['last_close']*100, 2)
             if i['week_applies'] > 0:
                 result.append(i)
-                logging.warning(i)
+                logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
 
 
 def stock_filter_by_WAD():
-    from RPS.quantitative_screening import institutions_holding_rps_stock
+    from RPS.quantitative_screening import institutions_holding_rps_stock, biggest_decline_calc
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'])
+        data = get_stock_kline_with_indicators(i['code'], limit=150)
         data = WAD(data)
+        biggest_decline = biggest_decline_calc(data)
         if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
             i['WAD'] = data[-1]['WAD']
             i['MAWAD'] = data[-1]['MAWAD']
             result.append(i)
-            logging.warning(i)
+            logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
 
 
@@ -655,5 +657,5 @@ def stock_filter_by_WAD_test(code):
             logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
 
 
-
+stock_filter_by_MACD_and_BBI()
 

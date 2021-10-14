@@ -39,7 +39,7 @@ def get_RPS_stock_pool():
         for i in df.values:
             if i[-1] >= 90:
                 pool.add((i[0].split('.')[0], i[1]))
-    logging.warning(f"高RPS股票池: {pool}")
+    logging.warning(f"高RPS股票池:\t{len(pool)}\t{pool}")
     return pool
 
 
@@ -96,7 +96,29 @@ def institutions_holding_rps_stock():
     pool = fund_pool.union(foreign_capital_pool)
     pool = [i for i in pool if i in rps_pool]
     pool = [{'code': i[0], 'name': i[1]} for i in pool]
+    logging.warning(f"高RPS且机构持股:\t{len(pool)}\t{pool}")
     return pool
+
+
+def biggest_decline_calc(kline: list):
+    # 计算最近半年最大调整幅度
+    assert len(kline) >= 120
+    kline = kline[-120:]
+    close = kline[-1]['close']
+    max_price = {'day': '', 'high': 0}
+    for j in kline:
+        if j['high'] > max_price['high']:
+            max_price['day'] = j['day']
+            max_price['high'] = j['high']
+    high = max_price['high']
+    for j in range(len(kline)):
+        if max_price['day'] == kline[j]['day']:
+            kline = kline[j:]
+            break
+    low = min([j['low'] for j in kline])
+    biggest_decline = round((high - low)/high * 100, 2)
+    # logging.warning(f"最高: {high}\t最低: {low}\t当前: {close}\tbiggest_decline: {biggest_decline}")
+    return biggest_decline
 
 
 def select_biggest_decline():
@@ -123,7 +145,7 @@ def select_biggest_decline():
     return target
 
 
-if __name__ == '__main__':
-    # stock_pool_filter_process()
-    select_biggest_decline()
+# if __name__ == '__main__':
+#     # stock_pool_filter_process()
+#     select_biggest_decline()
 
