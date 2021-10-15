@@ -1,194 +1,57 @@
-# from scipy import stats
-import math
-import numpy as np
-import matplotlib.pyplot as plt
+price = [364.0, 359.0, 355.69, 362.36, 371.5, 349.0, 348.6, 367.03, 379.99, 388.17, 384.0, 367.28, 368.21, 366.6, 361.5, 351.1, 359.0, 373.18, 369.1, 375.05, 377.74, 375.57, 387.96, 395.53, 385.42, 384.0, 409.6, 434.1, 425.34, 424.5, 414.78, 432.21, 407.5, 409.59, 409.37, 434.63, 451.98, 445.0, 420.18, 434.51, 450.0, 452.8, 450.23, 468.45, 467.3, 476.23, 493.9, 508.51, 534.8, 529.5, 519.59, 519.27, 515.23, 542.5, 559.16, 545.88, 565.79, 563.01, 551.37, 568.0, 531.0, 523.5, 528.04, 555.78, 557.08, 547.01, 539.78, 495.0, 525.05, 556.8, 550.4, 552.0, 531.0, 569.0, 557.0, 543.88, 516.0, 510.5, 517.25, 502.0, 502.05, 477.0, 480.0, 495.0, 503.0, 494.11, 521.9, 523.0, 530.24, 521.0, 507.5, 505.24, 494.87, 488.71, 493.5, 486.5, 516.1, 514.01, 503.0, 507.2, 502.1, 502.8, 529.9, 525.35, 498.0, 503.0, 493.31, 492.99, 499.98, 513.5, 500.43, 502.51, 525.73, 534.0, 521.0, 505.0, 522.26, 532.3, 565.02]
+
+
+def zeros(length):
+    result = []
+    for i in range(length):
+        result.append(0)
+    return result
+
+
+def AMA(price, N=10, NF=2, NS=30):
+    direction = zeros(len(price))
+    for i in range(len(price)):
+        if i >= N:
+            direction[i] = price[i] - price[i-N]
+    volatility = zeros(len(price))
+    delt = [0 for _ in range(len(price))]
+    for i in range(1, len(price)):
+        delt[i] = abs(price[i] - price[i-1])
+    for i in range(N-1, len(price)):
+        sum = 0
+        for j in range(N):
+            sum = sum + delt[i-N+1+j]
+        volatility[i] = sum
+
+    fasttest = 2/(NF + 1)
+    slowtest = 2/(NS + 1)
+
+    ER = zeros(len(price))
+    smooth = zeros(len(price))
+    c = zeros(len(price))
+
+    for i in range(N, len(price)):
+        ER[i] = abs(direction[i]/volatility[i])
+        smooth[i] = ER[i] * (fasttest - slowtest) + slowtest
+        c[i] = smooth[i] * smooth[i]
+
+    ama = zeros(len(price))
+    ama[N-1] = price[N-1]
+    for i in range(N, len(price)):
+        ama[i] = ama[i-1] + c[i] * (price[i] - ama[i-1])
+    return ama
+
+
 """
-利用 Python 实现线性回归模型
+计算价格效率
+DIRECTION = CLOSE - REF(CLOSE, 10)
+VOLATILITY = SUM(ABS(CLOSE - REF(CLOSE, 1)), 10)
+ER = ABS(DIRECTION/VOLATILITY)
+计算平滑系数
+FASTSC = 2/(2+1)
+SLOWSC = 2/(30+1)
+SSC = ER * (FASTSC - SLOWSC) + SLOWSC
+CQ = SSC * SSC
+计算AMA1, AMA2 的值
+AMA1 = EMA(DMA(CLOSE, ))
 """
-
-
-class LinerRegressionModel(object):
-    def __init__(self, data):
-        self.data = data
-        self.x = data[:, 0]
-        self.y = data[:, 1]
-
-    def log(self, a, b):
-        print("计算出的线性回归函数为:\ny = {:.5f}x + {:.5f}".format(a, b))
-
-    def plt(self, a, b):
-        plt.plot(self.x, self.y, 'o', label='data', markersize=10)
-        plt.plot(self.x, a * self.x + b, 'r', label='line')
-        plt.legend()
-        plt.show()
-
-    def least_square_method(self):
-        """
-        最小二乘法的实现
-        """
-        def calc_ab(x, y):
-            sum_x, sum_y, sum_xy, sum_xx = 0, 0, 0, 0
-            n = len(x)
-            for i in range(0, n):
-                sum_x += x[i]
-                sum_y += y[i]
-                sum_xy += x[i] * y[i]
-                sum_xx += x[i]**2
-            a = (sum_xy - (1 / n) * (sum_x * sum_y)) / \
-                (sum_xx - (1 / n) * sum_x**2)
-            b = sum_y / n - a * sum_x / n
-            return a, b
-        a, b = calc_ab(self.x, self.y)
-        self.log(a, b)
-        self.plt(a, b)
-
-
-def run(data):
-    data = np.array([[1, 2.5], [2, 3.3], [2.5, 3.8],
-                     [3, 4.5], [4, 5.7], [5, 6]])
-    model = LinerRegressionModel(data)
-    model.least_square_method()
-# ===================================================================================
-
-testX = [
-    174.5,
-    171.2,
-    172.9,
-    161.6,
-    123.6,
-    112.1,
-    107.1,
-    98.6,
-    98.7,
-    97.5,
-    95.8,
-    93.5,
-    91.1,
-    85.2,
-    75.6,
-    72.7,
-    68.6,
-    69.1,
-    63.8,
-    60.1,
-    65.2,
-    71,
-    75.8,
-    77.8]
-testY = [
-    88.3,
-    87.1,
-    88.7,
-    85.8,
-    89.4,
-    88,
-    83.7,
-    73.2,
-    71.6,
-    71,
-    71.2,
-    70.5,
-    69.2,
-    65.1,
-    54.8,
-    56.7,
-    62,
-    68.2,
-    71.1,
-    76.1,
-    79.8,
-    80.9,
-    83.7,
-    85.8]
-
-
-def computeCorrelation(X, Y):
-    xBar = np.mean(X)
-    yBar = np.mean(Y)
-    SSR = 0
-    varX = 0
-    varY = 0
-    for i in range(0, len(X)):
-        diffXXBar = X[i] - xBar
-        diffYYBar = Y[i] - yBar
-        SSR += (diffXXBar * diffYYBar)
-        varX += diffXXBar**2
-        varY += diffYYBar**2
-
-    SST = math.sqrt(varX * varY)
-    print("使用math库：r：", SSR / SST, "r-squared：", (SSR / SST)**2)
-    return
-
-
-# computeCorrelation(testX, testY)
-#
-# x = np.array(testX)
-# y = np.array(testY)
-# # 拟合 y = ax + b
-# poly = np.polyfit(x, y, deg=1)
-# print("使用numpy库：a：" + str(poly[0]) + "，b：" + str(poly[1]))
-
-
-def rsquared(x, y):
-    slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-    # a、b、r
-    print(
-        "使用scipy库：a：",
-        slope,
-        "b：",
-        intercept,
-        "r：",
-        r_value,
-        "r-squared：",
-        r_value**2)
-
-
-rsquared(testX, testY)
-
-# ========================================================================================
-
-import tushare as ts
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-import matplotlib
-import datetime
-from sklearn import linear_model
-# token = 'b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487'
-# ts.set_token(token)
-pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-
-
-matplotlib.rcParams['font.family'] = 'SimHei'
-
-START_DATE = '20100101'
-END_DATE = '20201231'
-TS_CODE = '600085.SH'
-DATE_INTERAL = 'W'
-
-L_START_DATE = '20150101'
-L_END_DATE = '20201231'
-
-
-def get_data(ts_code):
-    data = ts.pro_bar(ts_code=ts_code, adj='hfq', start_date=START_DATE, end_date=END_DATE,freq=DATE_INTERAL)
-    data_close = data[['trade_date', 'close']].iloc[::-1,:]
-    data_close.index = range(1,len(data)+1)
-    return data_close
-
-
-def show_close(data):
-    fig = plt.figure(figsize=(20, 4), dpi=80)
-    plt.plot(data.trade_date, data.close, label='原始走势', color='green')
-    plt.xlabel('时间', fontsize=15)
-    plt.ylabel('股价', fontsize=15)
-    plt.legend(fontsize=15)
-    plt.grid()
-    plt.xticks(rotation=90, fontsize=15)
-    plt.yticks(fontsize=15)
-    plt.gca().xaxis.set_major_locator(MultipleLocator(30))
-
-
-
-
