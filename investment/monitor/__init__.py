@@ -291,6 +291,17 @@ def RSI_Deviation(data: list):
     return data
 
 
+def MA(kline, N):
+    assert len(kline) >= N
+    for i in range(len(kline)):
+        if i >= N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['close'])
+            kline[i][f'MA{N}'] = round(sum(tmp)/len(tmp), 2)
+    return kline
+
+
 def EMA(cps, days):
     emas = cps.copy()
     for i in range(len(cps)):
@@ -623,6 +634,41 @@ def Kaufman_Adaptive_Moving_Average(kline: list):
     return kline
 
 
+def KAMA(kline, N=10, NF=2, NS=30):
+    direction = [0 for _ in range(len(kline))]
+    for i in range(len(kline)):
+        if i >= N:
+            direction[i] = kline[i]['close'] - kline[i-N]['close']
+    volatility = [0 for _ in range(len(kline))]
+    delt = [0 for _ in range(len(kline))]
+    for i in range(1, len(kline)):
+        delt[i] = abs(kline[i]['close'] - kline[i-1]['close'])
+    for i in range(N-1, len(kline)):
+        sum = 0
+        for j in range(N):
+            sum = sum + delt[i-N+1+j]
+        volatility[i] = sum
+
+    fasttest = 2/(NF + 1)
+    slowtest = 2/(NS + 1)
+
+    ER = [0 for _ in range(len(kline))]
+    smooth = [0 for _ in range(len(kline))]
+    c = [0 for _ in range(len(kline))]
+
+    for i in range(N, len(kline)):
+        ER[i] = abs(direction[i]/volatility[i])
+        smooth[i] = ER[i] * (fasttest - slowtest) + slowtest
+        c[i] = smooth[i] * smooth[i]
+
+    ama = [0 for _ in range(len(kline))]
+    ama[N-1] = kline[N-1]['close']
+    for i in range(N, len(kline)):
+        ama[i] = ama[i-1] + c[i] * (kline[i]['close'] - ama[i-1])
+        kline[i]['KAMA'] = round(ama[i], 2)
+    return kline[N:]
+
+
 def stock_filter_by_MACD():
     from RPS.quantitative_screening import get_RPS_stock_pool
     rps_pool = get_RPS_stock_pool()
@@ -643,6 +689,7 @@ def stock_filter_by_MACD_and_BBI():
     result = []
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], limit=150)
+        data = ATR(data)
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
         if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
@@ -656,6 +703,7 @@ def stock_filter_by_BooleanLine():
     result = []
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], limit=150)
+        data = ATR(data)
         data = BooleanLine(data)
         biggest_decline = biggest_decline_calc(data)
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
@@ -672,6 +720,7 @@ def stock_filter_by_WAD():
     result = []
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], limit=180)
+        data = ATR(data)
         data = WAD(data)
         biggest_decline = biggest_decline_calc(data)
         if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
@@ -699,9 +748,8 @@ def stock_filter_by_WAD_test(code):
             logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
 
 
-# stock_filter_by_MACD_and_BBI()
-# stock_filter_by_BooleanLine()
-# stock_filter_by_WAD()
-data = get_stock_kline_with_indicators(300015)
-data = Kaufman_Adaptive_Moving_Average(data)
+stock_filter_by_MACD_and_BBI()
+stock_filter_by_BooleanLine()
+stock_filter_by_WAD()
+
 
