@@ -145,7 +145,6 @@ def select_biggest_decline():
     return target
 
 
-# if __name__ == '__main__':
-#     # stock_pool_filter_process()
-#     select_biggest_decline()
+# stock_pool_filter_process()
+# select_biggest_decline()
 

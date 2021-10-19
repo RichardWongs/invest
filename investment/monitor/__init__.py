@@ -118,19 +118,20 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                          'high': float(i[3]), 'low': float(i[4]), 'volume': float(i[6]),
                          'applies': float(i[8])}
                     new_data.append(i)
+                day = 10
                 for i in range(len(new_data)):
                     if i > 0:
                         new_data[i]['last_close'] = new_data[i - 1]['close']
                         new_data[i]['TRI'] = TRI(high=new_data[i]['high'],
                                                  low=new_data[i]['low'],
                                                  close=new_data[i]['last_close'])
-                    if i > 20:
+                    if i > day:
                         tenth_volume = []
-                        for j in range(i - 1, i - 21, -1):
+                        for j in range(i - 1, i - (day+1), -1):
                             tenth_volume.append(new_data[j]['volume'])
                         new_data[i]['10th_largest'] = max(tenth_volume)
                         new_data[i]['10th_minimum'] = min(tenth_volume)
-                        new_data[i]['avg_volume'] = sum(tenth_volume) / 10
+                        new_data[i]['avg_volume'] = sum(tenth_volume) / len(tenth_volume)
                         new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
                     if i >= 50:
                         tmp = []
@@ -163,15 +164,16 @@ def get_market_data(code, start_date=20210101):
         pool.append({'day': i[0], 'open': i[1], 'close': i[4], 'high': i[2], 'low': i[3],
                      'last_close': i[5], 'applies': i[6], 'volume': i[7]})
     pool = pool[::-1]
+    day = 10
     for i in range(len(pool)):
         pool[i]['TRI'] = TRI(pool[i]['high'], pool[i]['low'], pool[i]['last_close'])
-        if i > 20:
+        if i > day:
             tenth_volume = []
-            for j in range(i - 1, i - 21, -1):
+            for j in range(i - 1, i - (day+1), -1):
                 tenth_volume.append(pool[j]['volume'])
             pool[i]['10th_largest'] = max(tenth_volume)
             pool[i]['10th_minimum'] = min(tenth_volume)
-            pool[i]['avg_volume'] = sum(tenth_volume) / 10
+            pool[i]['avg_volume'] = sum(tenth_volume) / len(tenth_volume)
             pool[i]['volume_ratio'] = round(pool[i]['volume'] / pool[i]['avg_volume'], 2)
         if i >= 50:
             tmp = []
@@ -678,6 +680,31 @@ def KAMA(kline, N=10, NF=2, NS=30):
     return kline[N:]
 
 
+def pocket_protection(kline: list):
+    close = kline[-1]['close']
+    max_5 = max([i['close'] for i in kline[-5:]])
+    if biggest_decline_calc(kline) < 50 and close == max_5:
+        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
+            return True
+
+
+def stock_filter_by_pocket_protection():
+    from RPS.quantitative_screening import institutions_holding_rps_stock
+    from RPS.stock_pool import NEW_STOCK_LIST
+    logging.warning(f"stock filter by pocket protection !")
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        data = get_stock_kline_with_indicators(i['code'], limit=150)
+        if pocket_protection(data):
+            code = i['code']
+            code = f"{code}.SH" if code.startswith('6') else f"{code}.SZ"
+            i['industry'] = NEW_STOCK_LIST[code]['industry']
+            result.append(i)
+            logging.warning(f"{i}")
+    return result
+
+
 def stock_filter_by_MACD():
     from RPS.quantitative_screening import get_RPS_stock_pool
     rps_pool = get_RPS_stock_pool()
@@ -760,8 +787,8 @@ def stock_filter_by_WAD_test(code):
             logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
 
 
-stock_filter_by_MACD_and_BBI()
-stock_filter_by_BooleanLine()
-stock_filter_by_WAD()
-
+# stock_filter_by_MACD_and_BBI()
+# stock_filter_by_BooleanLine()
+# stock_filter_by_WAD()
+stock_filter_by_pocket_protection()
 
