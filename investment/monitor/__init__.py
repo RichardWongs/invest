@@ -335,34 +335,18 @@ def WMS(kline, N=30):
     return WR30
 
 
-def TRIX(data):
+def TRIX(kline: list):
     N, M = 12, 20
-    for i in range(len(data)):
-        if i >= N:
-            tmp = []
-            for j in range(i, i-N, -1):
-                tmp.append(data[j]['close'])
-            data[i][f'ma{N}'] = sum(tmp)/len(tmp)
-    data = data[12:]
-    TR = EMA_V2(EMA_V2(EMA_V2(data, N, key=f'ma{N}'), N, key=f'ma{N}'), N, key=f'ma{N}')
-    trix = []
-    for i in range(len(TR)):
+    kline = EMA_V2(EMA_V2(EMA_V2(kline, N), N, key=f'ema{N}'), N, key=f'ema{N}')
+    for i in range(len(kline)):
         if i > 0:
-            trix.append(round((TR[i][f'ema{N}'] - TR[i - 1][f'ema{N}']) / TR[i - 1][f'ema{N}'] * 100, 2))
-    matrix = []
-    for i in range(len(trix)):
+            kline[i]['TRIX'] = round((kline[i][f'ema{N}'] - kline[i-1][f'ema{N}'])/kline[i-1][f'ema{N}'] * 100, 2)
         if i >= M:
             tmp = []
-            for j in range(i, i - M, -1):
-                tmp.append(trix[j])
-            matrix.append(round(sum(tmp) / len(tmp), 2))
-    trix = trix[-len(matrix):]
-    data = data[-len(matrix):]
-    print(f"trix:{len(trix)}\tmatrix:{len(matrix)}\tdata:{len(data)}")
-    for i in range(len(data)):
-        data[i]['TRIX'] = trix[i]
-        data[i]['TRMA'] = matrix[i]
-    return data
+            for j in range(i, i-M, -1):
+                tmp.append(kline[j]['TRIX'])
+            kline[i]['TRIXMA'] = round(sum(tmp)/len(tmp), 2)
+    return kline
 
 
 def Linear_Regression(kline: list):
@@ -473,8 +457,8 @@ def linear_regression_stock_filter(limit=120):
     new_pool = [{'code': i[0], 'name': i[1]} for i in pool]
     start = int(str(date.today()-timedelta(days=365)).replace('-', ''))
     for i in new_pool:
-        # kline = get_stock_kline_with_indicators(i['code'], limit=limit)
-        kline = get_market_data(i['code'], start_date=start)
+        kline = get_stock_kline_with_indicators(i['code'], limit=limit)
+        # kline = get_market_data(i['code'], start_date=start)
         r = Linear_Regression(kline)
         i['R_Square'] = r['R_Square']
         i['slope'] = r['slope']
@@ -790,5 +774,5 @@ def stock_filter_by_WAD_test(code):
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
-stock_filter_by_pocket_protection()
+# stock_filter_by_pocket_protection()
 
