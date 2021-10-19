@@ -613,6 +613,15 @@ def PVI_NVI(kline: list):
     return kline[N:]
 
 
+def PVT(kline: list):
+    for i in range(len(kline)):
+        if i > 0:
+            kline[i]['PVT'] = (kline[i]['close'] - kline[i-1]['close'])/kline[i-1]['close']*kline[i]['volume']
+        if i > 1:
+            kline[i]['PVT'] = kline[i]['PVT'] + kline[i-1]['PVT']
+    return kline[1:]
+
+
 def Kaufman_Adaptive_Moving_Average(kline: list):
     N = 10
     fast = 2
@@ -649,8 +658,8 @@ def KAMA(kline, N=10, NF=2, NS=30):
             sum = sum + delt[i-N+1+j]
         volatility[i] = sum
 
-    fasttest = 2/(NF + 1)
-    slowtest = 2/(NS + 1)
+    fastest = 2/(NF + 1)
+    slowest = 2/(NS + 1)
 
     ER = [0 for _ in range(len(kline))]
     smooth = [0 for _ in range(len(kline))]
@@ -658,7 +667,7 @@ def KAMA(kline, N=10, NF=2, NS=30):
 
     for i in range(N, len(kline)):
         ER[i] = abs(direction[i]/volatility[i])
-        smooth[i] = ER[i] * (fasttest - slowtest) + slowtest
+        smooth[i] = ER[i] * (fastest - slowest) + slowest
         c[i] = smooth[i] * smooth[i]
 
     ama = [0 for _ in range(len(kline))]
