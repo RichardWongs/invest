@@ -685,6 +685,7 @@ def stock_filter_by_MACD():
 
 
 def stock_filter_by_MACD_and_BBI():
+    logging.warning(f"stock filter by MACD and BBI !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
@@ -699,6 +700,7 @@ def stock_filter_by_MACD_and_BBI():
 
 
 def stock_filter_by_BooleanLine():
+    logging.warning(f"stock filter by BooleanLine !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
@@ -716,6 +718,7 @@ def stock_filter_by_BooleanLine():
 
 
 def stock_filter_by_WAD():
+    logging.warning(f"stock filter by WAD !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
