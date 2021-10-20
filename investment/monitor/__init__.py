@@ -349,6 +349,32 @@ def TRIX(kline: list):
     return kline
 
 
+def DMA(kline: list):
+    N, M = 10, 50
+    for i in range(len(kline)):
+        if i >= 10:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['close'])
+            kline[i][f'ma{N}'] = sum(tmp)/len(tmp)
+        if i >= M:
+            tmp2 = []
+            for j in range(i, i-M, -1):
+                tmp2.append(kline[j]['close'])
+            kline[i][f'ma{M}'] = sum(tmp2)/len(tmp2)
+            kline[i]['DMA'] = round(kline[i][f'ma{N}']-kline[i][f'ma{M}'], 2)
+        if i >= M+N:
+            tmp3 = []
+            for j in range(i, i-N, -1):
+                tmp3.append(kline[j]['DMA'])
+            kline[i]['AMA'] = round(sum(tmp3)/len(tmp3), 2)
+        if f'ma{N}' in kline[i].keys():
+            del kline[i][f'ma{N}']
+        if f'ma{M}' in kline[i].keys():
+            del kline[i][f'ma{M}']
+    return kline[M+N:]
+
+
 def Linear_Regression(kline: list):
     # 线性回归 y = mx + b  y:因变量, m:斜率, b:截距
     points = []
@@ -375,15 +401,6 @@ def Linear_Regression(kline: list):
     R_square = 1 - SE_line / SE_y_mean
     # print(f"R_Square: {round(R_square, 2)}\t斜率: {round(m, 2)}\t截距: {round(b, 2)}")
     return {'R_Square': round(R_square, 2), 'slope': round(m, 2), 'intercept': round(b, 2)}
-
-
-def KDJ_test(code):
-    data = get_stock_kline_with_indicators(code)
-    data = KDJ(data)
-    for i in range(len(data)):
-        if 'K' in data[i].keys():
-            if data[i]['K'] > data[i]['D'] and data[i - 1]['K'] < data[i - 1]['D']:
-                print(data[i])
 
 
 def BooleanLine_filter(code, name=None):
@@ -686,21 +703,6 @@ def stock_filter_by_pocket_protection():
             i['industry'] = NEW_STOCK_LIST[code]['industry']
             result.append(i)
             logging.warning(f"{i}")
-    return result
-
-
-def stock_filter_by_MACD():
-    from RPS.quantitative_screening import get_RPS_stock_pool
-    rps_pool = get_RPS_stock_pool()
-    pool = [{'code': i[0], 'name': i[1]} for i in rps_pool]
-    result = []
-    for i in pool:
-        data = get_market_data(i['code'], start_date=20200101)
-        data = MACD(data)
-        if data[-1]['DIF'] < 0 and data[-1]['DEA'] < 0:
-            if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA']:
-                logging.warning(f"day: {data[-1]['day']}\tDIF: {data[-1]['DIF']}\tDEA: {data[-1]['DEA']}")
-                result.append(i)
     return result
 
 
