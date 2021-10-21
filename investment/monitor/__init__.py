@@ -70,6 +70,23 @@ def ATR(kline: list):
     return kline
 
 
+def Compact_Structure(kline: list):
+    # 根据方差值判断个股结构紧凑程度
+    N = 20
+    for i in range(len(kline)):
+        if i > 0:
+            kline[i]['v'] = kline[i]['close']/kline[i-1]['close']-1
+        if i > N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['v'])
+            kline[i]['variance'] = round(variance(tmp) * 1000, 2)
+    for i in range(len(kline)):
+        if 'v' in kline[i].keys():
+            del kline[i]['v']
+    return kline
+
+
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     # 添加技术指标布林线,布林线宽度
     time.sleep(0.5)
@@ -684,8 +701,11 @@ def KAMA(kline, N=10, NF=2, NS=30):
 def pocket_protection(kline: list):
     close = kline[-1]['close']
     max_5 = max([i['close'] for i in kline[-5:]])
-    if biggest_decline_calc(kline) < 50 and close == max_5:
+    ma50 = kline[-1]['ma50']
+    if biggest_decline_calc(kline) < 50 and close == max_5 and close > ma50:
+        # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
         if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
+            # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
             return True
 
 
@@ -772,6 +792,17 @@ def stock_filter_by_WAD_test(code):
         if i+3 <= len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i-1]['WAD'] < data[i-1]['MAWAD']:
             logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
 
+
+def stock_filter_by_Compact_Structure():
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        data = get_stock_kline_with_indicators(i['code'])
+        data = Compact_Structure(data)
+        i['variance'] = data[-1]['variance']
+        result.append(i)
+        logging.warning(i)
+    return sorted(result, key=lambda x: x['variance'], reverse=True)
 
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()

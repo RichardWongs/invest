@@ -1,3 +1,6 @@
+import time
+import requests, json
+
 
 def AMA(price, N=10, NF=2, NS=30):
     direction = [0 for _ in range(len(price))]
@@ -83,3 +86,32 @@ def KAMA(kline, N=10, NF=2, NS=30):
     return kline[N:]
 
 
+def select_composition_stock(plate_code):
+    # 查询板块成分股
+    url = "http://35.push2.eastmoney.com/api/qt/clist/get"
+    timestamp = time.time()*1000
+    params = {
+        'cb': f"jQuery112404887515372200757_{timestamp}",
+        'pn': 1,
+        'pz': 500,
+        'po': 1,
+        'np': 1,
+        'ut': 'bd1d9ddb04089700cf9c27f6f7426281',
+        'fltt': 2,
+        'invt': 2,
+        'fid': 'f3',
+        'fs': f"b:{plate_code}+f:!50",
+        'fields': "f12,f14",
+        '_': timestamp
+    }
+    r = requests.get(url, params=params).text
+    r = r.split('(')[1].split(')')[0]
+    r = json.loads(r)
+    r = r['data']['diff']
+    result = []
+    for i in r:
+        result.append({'code': i['f12'], 'name': i['f14']})
+    return result
+
+
+print(select_composition_stock("BK0918"))

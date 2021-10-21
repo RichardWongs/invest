@@ -202,22 +202,63 @@ def run():
     get_main_up()
 
 
+def select_composition_stock(plate_code):
+    # 查询板块成分股
+    url = "http://35.push2.eastmoney.com/api/qt/clist/get"
+    timestamp = time.time()*1000
+    params = {
+        'cb': f"jQuery112404887515372200757_{timestamp}",
+        'pn': 1,
+        'pz': 500,
+        'po': 1,
+        'np': 1,
+        'ut': 'bd1d9ddb04089700cf9c27f6f7426281',
+        'fltt': 2,
+        'invt': 2,
+        'fid': 'f3',
+        'fs': f"b:{plate_code}+f:!50",
+        'fields': "f12,f14",
+        '_': timestamp
+    }
+    r = requests.get(url, params=params).text
+    r = r.split('(')[1].split(')')[0]
+    r = json.loads(r)
+    r = r['data']['diff']
+    result = []
+    for i in r:
+        result.append({'code': i['f12'], 'name': i['f14']})
+    return result
+
+
+def stock_pool_filter_by_plate(pool, plate_code):
+    composition = select_composition_stock(plate_code)
+    target = [i for i in pool if i in composition]
+    return target
+
+
 def get_main_up():
     files = [f"陶博士_板块RPS_{i}.csv" for i in rps_days]
     rps90 = []
     for i in files:
         f = pd.read_csv(i, encoding='utf-8')
         for j in f.values:
-            if j[-1] >= 90:
+            if j[-1] >= 90 and (j[0], j[1]) not in rps90:
                 rps90.append((j[0], j[1]))
-    sets = set()
+    # sets = set()
+    # for i in rps90:
+    #     if rps90.count(i) >= 3:
+    #         sets.add(i)
+    from RPS.quantitative_screening import institutions_holding_rps_stock
+    pool = institutions_holding_rps_stock()
+    result = []
     for i in rps90:
-        if rps90.count(i) >= 3:
-            sets.add(i)
-    [print(i[0], i[1]) for i in sets]
+        result.append({'plate_code': i[0], 'name': i[1], 'stock_pool': stock_pool_filter_by_plate(pool, i[0])})
+    for i in result:
+        if i['stock_pool']:
+            print(i)
 
 
 if __name__ == "__main__":
-    run()
-
+    # run()
+    get_main_up()
 
