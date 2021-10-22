@@ -657,12 +657,6 @@ def OBV(kline: list):
     return kline
 
 
-def AD(kline: list):
-    for i in range(len(kline)):
-        kline[i]['AD'] = (kline[i]['close'] - kline[i]['open'])/(kline[i]['high'] - kline[i]['low']) * kline[i]['volume']
-    return kline
-
-
 def Force_Index(kline: list):
     N, M = 2, 13
     for i in range(len(kline)):
