@@ -132,8 +132,8 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                 new_data = []
                 for i in r:
                     i = {'day': i[0], 'open': float(i[1]), 'close': float(i[2]),
-                         'high': float(i[3]), 'low': float(i[4]), 'volume': float(i[6]),
-                         'applies': float(i[8])}
+                         'high': float(i[3]), 'low': float(i[4]), 'VOL': int(i[5]),
+                         'volume': float(i[6]), 'applies': float(i[8])}
                     new_data.append(i)
                 day = 10
                 for i in range(len(new_data)):
@@ -178,6 +178,7 @@ def get_market_data(code, start_date=20210101):
     df = pro.daily(ts_code=code, start_date=start, end_date=end,
                    fields='trade_date,open,close,high,low,vol,pct_chg,pre_close')
     for i in df.values:
+        print(i)
         pool.append({'day': i[0], 'open': i[1], 'close': i[4], 'high': i[2], 'low': i[3],
                      'last_close': i[5], 'applies': i[6], 'volume': i[7]})
     pool = pool[::-1]
@@ -640,6 +641,36 @@ def PVT(kline: list):
         if i > 1:
             kline[i]['PVT'] = kline[i]['PVT'] + kline[i-1]['PVT']
     return kline[1:]
+
+
+def OBV(kline: list):
+    for i in range(len(kline)):
+        if i == 0:
+            kline[i]['OBV'] = kline[i]['volume']
+        else:
+            if kline[i]['close'] > kline[i-1]['close']:
+                kline[i]['OBV'] = kline[i-1]['OBV'] + kline[i]['volume']
+            elif kline[i]['close'] < kline[i-1]['close']:
+                kline[i]['OBV'] = kline[i-1]['OBV'] - kline[i]['volume']
+            else:
+                pass
+    return kline
+
+
+def AD(kline: list):
+    for i in range(len(kline)):
+        kline[i]['AD'] = (kline[i]['close'] - kline[i]['open'])/(kline[i]['high'] - kline[i]['low']) * kline[i]['volume']
+    return kline
+
+
+def Force_Index(kline: list):
+    N, M = 2, 13
+    for i in range(len(kline)):
+        if i > 0:
+            kline[i]['FI'] = kline[i]['volume'] * (kline[i]['close'] - kline[i-1]['close'])
+    kline = kline[1:]
+    kline = EMA_V2(EMA_V2(kline, N, key="FI", out_key=f"FI_EMA_{N}"), M, key="FI", out_key=f"FI_EMA_{M}")
+    return kline
 
 
 def Kaufman_Adaptive_Moving_Average(kline: list):

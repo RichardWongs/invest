@@ -10,7 +10,7 @@ import pandas as pd
 from datetime import date, timedelta
 from momentum import CONCEPT_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-rps_days = [5, 10, 20, 60]
+rps_days = [5, 10, 20]
 day = 150
 begin = int(str(date.today()-timedelta(days=day)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
@@ -25,7 +25,7 @@ def get_industry_list():
     params = {
         'cb': 'jQuery112404742947900780148_1629014352777',
         'pn': 1,
-        'pz': 350,
+        'pz': 500,
         'po': 1,
         'np': 1,
         'ut': 'bd1d9ddb04089700cf9c27f6f7426281',
@@ -53,7 +53,7 @@ def get_concept_list():
     params = {
         'cb': 'jQuery112409358425433864748_1629007955206',
         'pn': 1,
-        'pz': 350,
+        'pz': 500,
         'po': 1,
         'np': 1,
         'ut': 'bd1d9ddb04089700cf9c27f6f7426281',
@@ -252,7 +252,8 @@ def get_main_up():
     pool = institutions_holding_rps_stock()
     result = []
     for i in rps90:
-        result.append({'plate_code': i[0], 'name': i[1], 'stock_pool': stock_pool_filter_by_plate(pool, i[0])})
+        plate_stock_pool = stock_pool_filter_by_plate(pool, i[0])
+        result.append({'plate_code': i[0], 'name': i[1], 'stock_count': len(plate_stock_pool), 'stock_pool': plate_stock_pool})
     for i in result:
         if i['stock_pool']:
             print(i)
