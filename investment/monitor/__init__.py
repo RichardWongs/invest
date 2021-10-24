@@ -575,12 +575,18 @@ def CCI(kline: list):
 
 
 def MACD(kline: list):
-    kline = EMA_V2(EMA_V2(EMA_V2(kline, days=12), days=26), days=50)
+    N, M = 12, 26
+    kline = EMA_V2(EMA_V2(EMA_V2(kline, days=N), days=M), days=50)
     for i in range(len(kline)):
-        kline[i]['DIF'] = kline[i]['ema12'] - kline[i]['ema26']
+        kline[i]['DIF'] = kline[i][f'ema{N}'] - kline[i][f'ema{M}']
     kline = EMA_V2(kline, days=9, key='DIF', out_key='DEA')
     for i in range(len(kline)):
         kline[i]['MACD'] = 2 * (kline[i]['DIF'] - kline[i]['DEA'])
+        if i > 0:
+            if kline[i]['MACD'] > kline[i-1]['MACD']:
+                kline[i]['macd_direction'] = 'UP'
+            else:
+                kline[i]['macd_direction'] = 'DOWN'
     return kline
 
 
@@ -819,6 +825,7 @@ def stock_filter_by_WAD_test(code):
 
 
 def stock_filter_by_Compact_Structure():
+    # 股价结构紧凑
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
@@ -828,6 +835,42 @@ def stock_filter_by_Compact_Structure():
         result.append(i)
         logging.warning(i)
     return sorted(result, key=lambda x: x['variance'], reverse=True)
+
+
+def Channel_Trade_System(kline: list):
+    N, M = 13, 26
+    baseline = find_channel_coefficients(kline)
+    kline = EMA_V2(EMA_V2(kline, N), M)
+    for i in range(len(kline)):
+        kline[i]['up_channel'] = kline[i][f'ema{M}'] + baseline * kline[i][f'ema{M}']
+        kline[i]['down_channel'] = kline[i][f'ema{M}'] - baseline * kline[i][f'ema{M}']
+    return kline
+
+
+def calc_coefficients(kline, N=13, M=26, channel_coefficients=0.05):
+    count = 0
+    total_count = len(kline)
+    kline = EMA_V2(EMA_V2(kline, N), M)
+    for i in range(len(kline)):
+        kline[i]['up_channel'] = kline[i][f'ema{M}'] + channel_coefficients * kline[i][f'ema{M}']
+        kline[i]['down_channel'] = kline[i][f'ema{M}'] - channel_coefficients * kline[i][f'ema{M}']
+    for i in range(len(kline)):
+        if kline[i]['close'] > kline[i]['up_channel'] or kline[i]['close'] < kline[i]['down_channel']:
+            count += 1
+    return round((total_count - count)/total_count, 2)
+
+
+def find_channel_coefficients(kline: list):
+    channel_coefficients = 0.05
+    standard = 0.95
+    while True:
+        ratio = calc_coefficients(kline, channel_coefficients=channel_coefficients)
+        if ratio < standard:
+            channel_coefficients += 0.01
+        else:
+            break
+    return round(channel_coefficients, 2)
+
 
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()
