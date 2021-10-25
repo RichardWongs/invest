@@ -839,18 +839,18 @@ def stock_filter_by_Compact_Structure():
 
 def Channel_Trade_System(kline: list):
     N, M = 13, 26
-    baseline = find_channel_coefficients(kline)
     kline = EMA_V2(EMA_V2(kline, N), M)
+    baseline = find_channel_coefficients(kline)
+    logging.warning(f"channel_coefficients:{baseline}")
     for i in range(len(kline)):
         kline[i]['up_channel'] = kline[i][f'ema{M}'] + baseline * kline[i][f'ema{M}']
         kline[i]['down_channel'] = kline[i][f'ema{M}'] - baseline * kline[i][f'ema{M}']
     return kline
 
 
-def calc_coefficients(kline, N=13, M=26, channel_coefficients=0.05):
+def calc_coefficients(kline, M=26, channel_coefficients=0.05):
     count = 0
     total_count = len(kline)
-    kline = EMA_V2(EMA_V2(kline, N), M)
     for i in range(len(kline)):
         kline[i]['up_channel'] = kline[i][f'ema{M}'] + channel_coefficients * kline[i][f'ema{M}']
         kline[i]['down_channel'] = kline[i][f'ema{M}'] - channel_coefficients * kline[i][f'ema{M}']
@@ -872,8 +872,36 @@ def find_channel_coefficients(kline: list):
     return round(channel_coefficients, 2)
 
 
+def Power_System(kline: list):
+    N, M, L = 13, 26, 150
+    kline = EMA_V2(EMA_V2(EMA_V2(kline, L), N), M)
+    kline = MACD(kline)
+    if kline[-1]['close'] > kline[-1][f'ema{L}']:
+        if kline[-1][f'ema{N}'] > kline[-2][f'ema{N}'] \
+                and kline[-1][f'ema{M}'] > kline[-2][f'ema{M}'] \
+                and kline[-1]['macd_direction'] == 'UP':
+            return True
+
+
+def ATR_Channel_System(kline: list):
+    N, M = 13, 26
+    ATR_parameter = 20
+    kline = EMA_V2(EMA_V2(ATR(kline), N), M)
+    for i in range(len(kline)):
+        kline[i]['+1ATR'] = round(kline[i][f'ema{M}'] + kline[i][f'ATR_{ATR_parameter}'], 2)
+        kline[i]['+2ATR'] = round(kline[i][f'ema{M}'] + 2 * kline[i][f'ATR_{ATR_parameter}'], 2)
+        kline[i]['+3ATR'] = round(kline[i][f'ema{M}'] + 3 * kline[i][f'ATR_{ATR_parameter}'], 2)
+        kline[i]['-1ATR'] = round(kline[i][f'ema{M}'] - kline[i][f'ATR_{ATR_parameter}'], 2)
+        kline[i]['-2ATR'] = round(kline[i][f'ema{M}'] - 2 * kline[i][f'ATR_{ATR_parameter}'], 2)
+        kline[i]['-3ATR'] = round(kline[i][f'ema{M}'] - 3 * kline[i][f'ATR_{ATR_parameter}'], 2)
+    return kline
+
+
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
 # stock_filter_by_pocket_protection()
-
+data = get_stock_kline_with_indicators('002585')
+data = ATR_Channel_System(data)
+for i in data:
+    print(f"日期:{i['day']}\t最高:{i['high']}\t最低:{i['low']}\t通道上沿:{i['+3ATR']}\t通道下沿:{i['-3ATR']}")
