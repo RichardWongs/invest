@@ -897,11 +897,63 @@ def ATR_Channel_System(kline: list):
     return kline
 
 
+class Channel:
+
+    def __init__(self, code, name):
+        self.code = code
+        self.name = name
+        self.kline = get_stock_kline_with_indicators(code)
+        self.channel_trade_system()
+
+    def channel_trade_system(self):
+        N, M = 13, 26
+        self.kline = EMA_V2(EMA_V2(self.kline, N), M)
+        up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(self.kline)
+        logging.warning(f"code: {self.code}\tname: {self.name}\t"
+                        f"up_channel_coefficients:{up_channel_coefficients}\t"
+                        f"down_channel_coefficients:{down_channel_coefficients}")
+        for i in range(len(self.kline)):
+            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + up_channel_coefficients * self.kline[i][f'ema{M}']
+            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - down_channel_coefficients * self.kline[i][f'ema{M}']
+
+    def calc_coefficients(self, M=26, up_channel_coefficients=0.05, down_channel_coefficients=0.05):
+        up_count, down_count = 0, 0
+        total_count = len(self.kline)
+        for i in range(len(self.kline)):
+            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + up_channel_coefficients * self.kline[i][f'ema{M}']
+            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - down_channel_coefficients * self.kline[i][f'ema{M}']
+        for i in range(len(self.kline)):
+            if self.kline[i]['close'] > self.kline[i]['up_channel']:
+                up_count += 1
+            if self.kline[i]['close'] < self.kline[i]['down_channel']:
+                down_count += 1
+        return round((total_count - up_count)/total_count, 2), round((total_count - down_count)/total_count, 2)
+
+    def find_channel_coefficients(self):
+        up_channel_coefficients, down_channel_coefficients = 0.05, 0.05
+        standard = 0.95
+        ucc, dcc = None, None
+        while True:
+            up_ratio, down_ratio = self.calc_coefficients(up_channel_coefficients=up_channel_coefficients,
+                                                          down_channel_coefficients=down_channel_coefficients)
+            if up_ratio < standard:
+                up_channel_coefficients += 0.01
+            else:
+                ucc = up_channel_coefficients
+            if down_ratio < standard:
+                down_channel_coefficients += 0.01
+            else:
+                dcc = down_channel_coefficients
+            if ucc and dcc:
+                break
+        return round(up_channel_coefficients, 2), round(down_channel_coefficients, 2)
+
+
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
 # stock_filter_by_pocket_protection()
-data = get_stock_kline_with_indicators('002585')
-data = ATR_Channel_System(data)
-for i in data:
-    print(f"日期:{i['day']}\t最高:{i['high']}\t最低:{i['low']}\t通道上沿:{i['+3ATR']}\t通道下沿:{i['-3ATR']}")
+# data = get_stock_kline_with_indicators('002585')
+# data = ATR_Channel_System(data)
+# for i in data:
+#     print(f"日期:{i['day']}\t最高:{i['high']}\t最低:{i['low']}\t通道上沿:{i['+3ATR']}\t通道下沿:{i['-3ATR']}")
