@@ -899,7 +899,7 @@ def ATR_Channel_System(kline: list):
 
 class Channel:
 
-    def __init__(self, code, name):
+    def __init__(self, code, name="UNKONW"):
         self.code = code
         self.name = name
         self.kline = get_stock_kline_with_indicators(code)
@@ -908,7 +908,7 @@ class Channel:
     def channel_trade_system(self):
         N, M = 13, 26
         self.kline = EMA_V2(EMA_V2(self.kline, N), M)
-        up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(self.kline)
+        up_channel_coefficients, down_channel_coefficients = self.find_channel_coefficients()
         logging.warning(f"code: {self.code}\tname: {self.name}\t"
                         f"up_channel_coefficients:{up_channel_coefficients}\t"
                         f"down_channel_coefficients:{down_channel_coefficients}")
@@ -953,7 +953,24 @@ class Channel:
 # stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
 # stock_filter_by_pocket_protection()
-# data = get_stock_kline_with_indicators('002585')
-# data = ATR_Channel_System(data)
-# for i in data:
-#     print(f"日期:{i['day']}\t最高:{i['high']}\t最低:{i['low']}\t通道上沿:{i['+3ATR']}\t通道下沿:{i['-3ATR']}")
+
+def price_range_statistics(code):
+    kline = get_stock_kline_with_indicators('300750')
+    N, M = 13, 26
+    up, down = 0.14, 0.05
+    kline = EMA_V2(EMA_V2(kline, 13), 26)
+    ttl = len(kline)
+    count = 0   # 两条均线之间
+    count1 = 0  # 长均线与下通道线之间
+    count2 = 0  # 短均线与上通道线之间
+    for i in range(len(kline)):
+        kline[i]['up_channel'] = kline[i][f'ema{M}'] + up * kline[i][f'ema{M}']
+        kline[i]['down_channel'] = kline[i][f'ema{M}'] - down * kline[i][f'ema{M}']
+        if kline[i][f'ema{N}'] >= kline[i]['close'] >= kline[i][f'ema{M}'] or kline[i][f'ema{N}'] <= kline[i]['close'] <= kline[i][f'ema{M}']:
+            count += 1
+        if kline[i][f'ema{N}'] <= kline[i]['close'] <= kline[i]['up_channel']:
+            count2 += 1
+        if kline[i][f'ema{M}'] <= kline[i]['close'] <= kline[i]['down_channel']:
+            count1 += 1
+    # logging.warning(f"价格位于短均线与上通道线之间:{}\n价格位于长短均线之间\n价格位于长均线与下通道线之间:{}")
+    print(round(count2/ttl*100, 2), round(count/ttl*100, 2), round(count1/ttl*100, 2))
