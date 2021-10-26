@@ -930,7 +930,7 @@ class Channel:
         return round((total_count - up_count)/total_count, 2), round((total_count - down_count)/total_count, 2)
 
     def find_channel_coefficients(self):
-        up_channel_coefficients, down_channel_coefficients = 0.05, 0.05
+        up_channel_coefficients, down_channel_coefficients = 0.01, 0.01
         standard = 0.95
         ucc, dcc = None, None
         while True:
@@ -954,23 +954,6 @@ class Channel:
 # stock_filter_by_WAD()
 # stock_filter_by_pocket_protection()
 
-def price_range_statistics(code):
-    kline = get_stock_kline_with_indicators('300750')
-    N, M = 13, 26
-    up, down = 0.14, 0.05
-    kline = EMA_V2(EMA_V2(kline, 13), 26)
-    ttl = len(kline)
-    count = 0   # 两条均线之间
-    count1 = 0  # 长均线与下通道线之间
-    count2 = 0  # 短均线与上通道线之间
-    for i in range(len(kline)):
-        kline[i]['up_channel'] = kline[i][f'ema{M}'] + up * kline[i][f'ema{M}']
-        kline[i]['down_channel'] = kline[i][f'ema{M}'] - down * kline[i][f'ema{M}']
-        if kline[i][f'ema{N}'] >= kline[i]['close'] >= kline[i][f'ema{M}'] or kline[i][f'ema{N}'] <= kline[i]['close'] <= kline[i][f'ema{M}']:
-            count += 1
-        if kline[i][f'ema{N}'] <= kline[i]['close'] <= kline[i]['up_channel']:
-            count2 += 1
-        if kline[i][f'ema{M}'] <= kline[i]['close'] <= kline[i]['down_channel']:
-            count1 += 1
-    # logging.warning(f"价格位于短均线与上通道线之间:{}\n价格位于长短均线之间\n价格位于长均线与下通道线之间:{}")
-    print(round(count2/ttl*100, 2), round(count/ttl*100, 2), round(count1/ttl*100, 2))
+
+
+
