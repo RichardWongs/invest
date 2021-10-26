@@ -795,7 +795,7 @@ def stock_filter_by_WAD():
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'], limit=180)
+        data = get_stock_kline_with_indicators(i['code'], limit=180, period=30)
         data = ATR(data)
         data = WAD(data)
         biggest_decline = biggest_decline_calc(data)
