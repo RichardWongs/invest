@@ -123,7 +123,7 @@ def find_channel_coefficients(kline: list):
 
 def price_range_statistics(code, name="UNKNOWN"):
     kline = get_stock_kline_with_indicators(code, limit=120)
-    N, M = 13, 26
+    N, M = 10, 50
     kline = EMA_V2(EMA_V2(kline, N), M)
     kline = Channel_Trade_System(kline, code=code, name=name)
     ttl = len(kline)
@@ -141,29 +141,37 @@ def price_range_statistics(code, name="UNKNOWN"):
                     f"\t价格位于长均线与下通道线之间: {round(under_range/ttl*100, 2)}%")
 
 
-url = "https://www.jisilu.cn/data/cbnew/cb_list_new/?___jsl=LST___t=1635232720194"
-headers = {
-    'Cookie': "kbzw__Session=fs8oure2m3mrir3m4toc4cbh77; Hm_lvt_164fe01b1433a19b507595a43bf58262=1635233006; kbz_newcookie=1; kbzw_r_uname=RichardWongs; kbzw__user_login=7Obd08_P1ebax9aXycvZydjp18_Q3sjnmrCW6c3q1e3Q6dvR1YyhmNjcqpqwzdrI25HZ2qzbkabF2NrWy97R2cbckqyopJmcndbd3dPGpJ2skq-Sq6qUs47FotLWoLbo5uDO4sKmrKGogZi43efZ2PDfl7DKgainoaickLjd56udtIzvmKqKl7jj6M3VuNnbwNLtm6yVrY-qrZOgrLi1wcWhieXV4seWqNza3ueKkKTc6-TW3puwlqSRpaupqJeemKWZyMrfzenLpZaqrqGrlw..; Hm_lpvt_164fe01b1433a19b507595a43bf58262=1635233039"
-}
-body = {
-    'is_search': 'N',
-    'rp': 50,
-    'page': 1
-}
-r = requests.post(url, headers=headers).json()
-r = r['rows']
-for i in r:
-    i = i['cell']
-    del i['bond_py']
-    del i['stock_py']
-    del i['volatility_rate']
-    del i['real_force_redeem_price']
-    del i['redeem_dt']
-    del i['adjusted']
-    del i['convert_price_valid']
-    del i['market_cd']
-    del i['btype']
-    print(i)
+def select_convertible_bond():
+    url = "https://www.jisilu.cn/data/cbnew/cb_list_new/?___jsl=LST___t=1635232720194"
+    headers = {
+        'Cookie': "kbzw__Session=fs8oure2m3mrir3m4toc4cbh77; Hm_lvt_164fe01b1433a19b507595a43bf58262=1635233006; kbz_newcookie=1; kbzw_r_uname=RichardWongs; kbzw__user_login=7Obd08_P1ebax9aXycvZydjp18_Q3sjnmrCW6c3q1e3Q6dvR1YyhmNjcqpqwzdrI25HZ2qzbkabF2NrWy97R2cbckqyopJmcndbd3dPGpJ2skq-Sq6qUs47FotLWoLbo5uDO4sKmrKGogZi43efZ2PDfl7DKgainoaickLjd56udtIzvmKqKl7jj6M3VuNnbwNLtm6yVrY-qrZOgrLi1wcWhieXV4seWqNza3ueKkKTc6-TW3puwlqSRpaupqJeemKWZyMrfzenLpZaqrqGrlw..; Hm_lpvt_164fe01b1433a19b507595a43bf58262=1635233039"
+    }
+    body = {
+        'is_search': 'N',
+        'rp': 50,
+        'page': 1
+    }
+    r = requests.post(url, headers=headers).json()
+    r = r['rows']
+    for i in r:
+        i = i['cell']
+        del i['bond_py']
+        del i['stock_py']
+        del i['volatility_rate']
+        del i['real_force_redeem_price']
+        del i['redeem_dt']
+        del i['adjusted']
+        del i['convert_price_valid']
+        del i['market_cd']
+        del i['btype']
+        del i['qflag2']
+        del i['bond_value']
+        del i['option_value']
+        del i['fund_rt']
+        del i['put_ytm_rt']
+        del i['notes']
+        del i['redeem_icon']
+        print(i)
 
 
 

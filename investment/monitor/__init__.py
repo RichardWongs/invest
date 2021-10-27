@@ -3,6 +3,7 @@
 import logging
 from datetime import date, timedelta
 import requests, json, time
+from RPS.stock_pool import NEW_STOCK_LIST
 from RPS.quantitative_screening import institutions_holding_rps_stock, biggest_decline_calc
 
 
@@ -57,6 +58,13 @@ def correlation(x, y):
 
 class SecurityException(BaseException):
     pass
+
+
+def get_industry_by_code(code):
+    assert '.SZ' not in str(code) or '.SH' not in str(code)
+    assert str(code)[0] in ('0', '3', '6')
+    code = f"{code}.SH" if str(code).startswith('6') else f"{code}.SZ"
+    return NEW_STOCK_LIST[code]['industry']
 
 
 def TRI(high, low, close):
@@ -595,7 +603,7 @@ def WAD(kline: list):
     for i in range(len(kline)):
         if i > 0:
             kline[i]['TRL'] = min(kline[i-1]['close'], kline[i]['low'])
-            kline[i]['TRH'] = min(kline[i-1]['close'], kline[i]['high'])
+            kline[i]['TRH'] = max(kline[i-1]['close'], kline[i]['high'])
             if kline[i]['close'] > kline[i-1]['close']:
                 kline[i]['AD'] = kline[i]['close'] - kline[i]['TRL']
             if kline[i]['close'] < kline[i-1]['close']:
@@ -643,9 +651,13 @@ def PVI_NVI(kline: list):
 def PVT(kline: list):
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['PVT'] = (kline[i]['close'] - kline[i-1]['close'])/kline[i-1]['close']*kline[i]['volume']
+            kline[i]['PVT'] = (kline[i]['close'] - kline[i-1]['close'])/kline[i-1]['close']*kline[i]['VOL']
         if i > 1:
             kline[i]['PVT'] = kline[i]['PVT'] + kline[i-1]['PVT']
+            if kline[i]['close'] < kline[i-1]['close'] and kline[i]['PVT'] > kline[i-1]['PVT']:
+                kline[i]['PVT_SIG'] = "BUY"
+            if kline[i]['close'] > kline[i-1]['close'] and kline[i]['PVT'] < kline[i-1]['PVT']:
+                kline[i]['PVT_SIG'] = "SELL"
     return kline[1:]
 
 
@@ -740,18 +752,47 @@ def pocket_protection(kline: list):
             return True
 
 
+def BIAS(kline: list):
+    N = 18
+    A1 = 0.15
+    for i in range(len(kline)):
+        if i >= N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j]['close'])
+            kline[i]['BIAS1'] = round(kline[i]['close']/(sum(tmp)/len(tmp)) - 1, 2)
+            kline[i]['BIAS2'] = kline[i]['BIAS1'] * (1 + A1)
+            kline[i]['BIAS3'] = kline[i]['BIAS1'] * (1 - A1)
+    return kline
+
+
+def ARBR(kline: list):
+    N = 42
+    for i in range(len(kline)):
+        if i >= N:
+            AR1, AR2 = [], []
+            for j in range(i, i-N, -1):
+                AR1.append(kline[j]['high'] - kline[j]['close'])
+                AR2.append(kline[j]['open'] - kline[j]['low'])
+            kline[i]['AR'] = round(sum(AR1)/sum(AR2), 2)
+        if i > N:
+            BR1, BR2 = [], []
+            for j in range(i, i-N, -1):
+                BR1.append(kline[j]['high'] - kline[j-1]['close'])
+                BR2.append(kline[j-1]['close'] - kline[j]['low'])
+            kline[i]['BR'] = round(sum(BR1)/sum(BR2), 2)
+    return kline[N:]
+
+
 def stock_filter_by_pocket_protection():
     from RPS.quantitative_screening import institutions_holding_rps_stock
-    from RPS.stock_pool import NEW_STOCK_LIST
     logging.warning(f"stock filter by pocket protection !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], limit=150)
         if pocket_protection(data):
-            code = i['code']
-            code = f"{code}.SH" if code.startswith('6') else f"{code}.SZ"
-            i['industry'] = NEW_STOCK_LIST[code]['industry']
+            i['industry'] = get_industry_by_code(i['code'])
             result.append(i)
             logging.warning(f"{i}")
     return result
@@ -767,6 +808,7 @@ def stock_filter_by_MACD_and_BBI():
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
         if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
+            i['industry'] = get_industry_by_code(i['code'])
             result.append(i)
             logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
@@ -785,6 +827,7 @@ def stock_filter_by_BooleanLine():
             i['BBW'] = data[-1]['BBW']
             i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close'])/data[-5]['last_close']*100, 2)
             if i['week_applies'] > 0:
+                i['industry'] = get_industry_by_code(i['code'])
                 result.append(i)
                 logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
@@ -795,13 +838,14 @@ def stock_filter_by_WAD():
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'], limit=180, period=30)
+        data = get_stock_kline_with_indicators(i['code'], limit=180)
         data = ATR(data)
         data = WAD(data)
         biggest_decline = biggest_decline_calc(data)
         if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
             i['WAD'] = data[-1]['WAD']
             i['MAWAD'] = data[-1]['MAWAD']
+            i['industry'] = get_industry_by_code(i['code'])
             result.append(i)
             logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
