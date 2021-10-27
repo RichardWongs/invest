@@ -260,6 +260,6 @@ def get_main_up():
 
 
 if __name__ == "__main__":
-    # run()
-    get_main_up()
+    run()
+    # get_main_up()
 
