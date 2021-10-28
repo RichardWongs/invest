@@ -679,7 +679,7 @@ def Force_Index(kline: list):
     N, M = 2, 13
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['FI'] = kline[i]['volume'] * (kline[i]['close'] - kline[i-1]['close'])
+            kline[i]['FI'] = kline[i]['VOL'] * (kline[i]['close'] - kline[i-1]['close'])
     kline = kline[1:]
     kline = EMA_V2(EMA_V2(kline, N, key="FI", out_key=f"FI_EMA_{N}"), M, key="FI", out_key=f"FI_EMA_{M}")
     return kline
