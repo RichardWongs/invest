@@ -784,6 +784,21 @@ def ARBR(kline: list):
     return kline[N:]
 
 
+def MTM(kline: list):
+    N, M = 2, 30
+    for i in range(len(kline)):
+        if i >= N:
+            kline[i]['MTM'] = round(kline[i]['close'] - kline[i-N]['close'], 2)
+    kline = kline[N:]
+    for i in range(len(kline)):
+        if i >= M:
+            tmp = []
+            for j in range(i, i-M, -1):
+                tmp.append(kline[j]['MTM'])
+            kline[i]['MTMMA'] = round(sum(tmp)/len(tmp), 2)
+    return kline[M:]
+
+
 def stock_filter_by_pocket_protection():
     from RPS.quantitative_screening import institutions_holding_rps_stock
     logging.warning(f"stock filter by pocket protection !")
@@ -864,7 +879,7 @@ def stock_filter_by_WAD_test(code):
     data = get_stock_kline_with_indicators(code, limit=250)
     data = WAD(data)
     for i in range(len(data)):
-        if i+3 <= len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i-1]['WAD'] < data[i-1]['MAWAD']:
+        if i > 0 and i+3 < len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i-1]['WAD'] < data[i-1]['MAWAD']:
             logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
 
 
