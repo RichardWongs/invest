@@ -1,8 +1,10 @@
+# encoding: gbk
 import logging
-
 import requests
-
-from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock
+import matplotlib.pyplot as plt
+from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA
+plt.rcParams["font.sans-serif"] = ["SimHei"]  # ÉèÖÃ×ÖÌå
+plt.rcParams["axes.unicode_minus"] = False  # ¸ÃÓï¾ä½â¾öÍ¼ÏñÖÐµÄ¡°-¡±¸ººÅµÄÂÒÂëÎÊÌâ
 
 
 class Channel:
@@ -10,12 +12,12 @@ class Channel:
     def __init__(self, code, name):
         self.code = code
         self.name = name
-        self.kline = get_stock_kline_with_indicators(code)
+        self.kline = get_stock_kline_with_indicators(code, limit=250)
         self.channel_trade_system()
 
     def channel_trade_system(self):
         N, M = 13, 26
-        self.kline = EMA_V2(EMA_V2(self.kline, N), M)
+        self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
         up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(
             self.kline)
         logging.warning(f"code: {self.code}\tname: {self.name}\t"
@@ -71,8 +73,8 @@ def Channel_Trade_System(kline: list, code=None, name=None):
     up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(
         kline)
     logging.warning(f"code: {code}\tname: {name if name else 'UNKNOWN'}\t"
-                    f"ä¸Šé€šé“ç³»æ•°:{up_channel_coefficients}\t"
-                    f"ä¸‹é€šé“ç³»æ•°:{down_channel_coefficients}")
+                    f"ÉÏÍ¨µÀÏµÊý:{up_channel_coefficients}\t"
+                    f"ÏÂÍ¨µÀÏµÊý:{down_channel_coefficients}")
     for i in range(len(kline)):
         kline[i]['up_channel'] = kline[i][f'ema{M}'] + \
             up_channel_coefficients * kline[i][f'ema{M}']
@@ -127,9 +129,9 @@ def price_range_statistics(code, name="UNKNOWN"):
     kline = EMA_V2(EMA_V2(kline, N), M)
     kline = Channel_Trade_System(kline, code=code, name=name)
     ttl = len(kline)
-    mid_range = 0   # ä¸¤æ¡å‡çº¿ä¹‹é—´
-    under_range = 0  # é•¿å‡çº¿ä¸Žä¸‹é€šé“çº¿ä¹‹é—´
-    up_range = 0  # çŸ­å‡çº¿ä¸Žä¸Šé€šé“çº¿ä¹‹é—´
+    mid_range = 0   # Á½Ìõ¾ùÏßÖ®¼ä
+    under_range = 0  # ³¤¾ùÏßÓëÏÂÍ¨µÀÏßÖ®¼ä
+    up_range = 0  # ¶Ì¾ùÏßÓëÉÏÍ¨µÀÏßÖ®¼ä
     for i in range(len(kline)):
         if kline[i][f'ema{N}'] > kline[i]['close'] >= kline[i][f'ema{M}'] or kline[i][f'ema{N}'] < kline[i]['close'] < kline[i][f'ema{M}']:
             mid_range += 1
@@ -137,8 +139,8 @@ def price_range_statistics(code, name="UNKNOWN"):
             up_range += 1
         if kline[i]['down_channel'] < kline[i]['close'] < kline[i][f'ema{M}']:
             under_range += 1
-    logging.warning(f"ä»·æ ¼ä½äºŽçŸ­å‡çº¿ä¸Žä¸Šé€šé“çº¿ä¹‹é—´: {round(up_range/ttl*100, 2)}%\tä»·æ ¼ä½äºŽé•¿çŸ­å‡çº¿ä¹‹é—´: {round(mid_range/ttl*100, 2)}%"
-                    f"\tä»·æ ¼ä½äºŽé•¿å‡çº¿ä¸Žä¸‹é€šé“çº¿ä¹‹é—´: {round(under_range/ttl*100, 2)}%")
+    logging.warning(f"¼Û¸ñÎ»ÓÚ¶Ì¾ùÏßÓëÉÏÍ¨µÀÏßÖ®¼ä: {round(up_range/ttl*100, 2)}%\t¼Û¸ñÎ»ÓÚ³¤¶Ì¾ùÏßÖ®¼ä: {round(mid_range/ttl*100, 2)}%"
+                    f"\t¼Û¸ñÎ»ÓÚ³¤¾ùÏßÓëÏÂÍ¨µÀÏßÖ®¼ä: {round(under_range/ttl*100, 2)}%")
 
 
 def select_convertible_bond():
@@ -172,6 +174,29 @@ def select_convertible_bond():
         del i['notes']
         del i['redeem_icon']
         print(i)
+
+
+def draw_line_by_input(code, name, save_path=r"C:\Users\Administrator\Desktop\STOCK_CHANNEL/ETF"):
+    c = Channel(code, name)
+    x = [i for i in range(len(c.kline))]
+    close = [i['close'] for i in c.kline]
+    ema13 = [i['ema13'] for i in c.kline]
+    ema26 = [i['ema26'] for i in c.kline]
+    ema50 = [i['ema50'] for i in c.kline]
+    up_channel = [i['up_channel'] for i in c.kline]
+    down_channel = [i['down_channel'] for i in c.kline]
+    kama = [i['KAMA'] for i in c.kline]
+    plt.plot(x, close, color='black')
+    plt.plot(x, ema13, color='blue')
+    plt.plot(x, ema26, color='green')
+    plt.plot(x, ema50, color='pink')
+    plt.plot(x, up_channel, color="red", linestyle='dashed')
+    plt.plot(x, down_channel, color="green", linestyle='dashed')
+    plt.plot(x, kama, color="red")
+    plt.title(name)
+    # plt.savefig(f'{save_path}/{name}.png', dpi=180)
+    plt.show()
+    plt.close()
 
 
 
