@@ -176,7 +176,7 @@ def select_convertible_bond():
         print(i)
 
 
-def draw_line_by_input(code, name, save_path=r"C:\Users\Administrator\Desktop\STOCK_CHANNEL/ETF"):
+def draw_line_by_input(code, name="UNKNOWN", save_path=r"C:\Users\Administrator\Desktop\STOCK_CHANNEL/ETF"):
     c = Channel(code, name)
     x = [i for i in range(len(c.kline))]
     close = [i['close'] for i in c.kline]
@@ -199,4 +199,16 @@ def draw_line_by_input(code, name, save_path=r"C:\Users\Administrator\Desktop\ST
     plt.close()
 
 
+def stock_filter_by_down_channle():
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        c = Channel(i['code'], i['name'])
+        if c.kline[-1]['ema50'] >= c.kline[-2]['ema50']:
+            if c.kline[-1]['close'] <= c.kline[-1]['down_channel'] * 1.03:
+                logging.warning(i)
+                result.append(i)
+    return result
 
+
+stock_filter_by_down_channle()
