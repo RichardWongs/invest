@@ -176,7 +176,7 @@ def select_convertible_bond():
         print(i)
 
 
-def draw_line_by_input(code, name="UNKNOWN", save_path=r"C:\Users\Administrator\Desktop\STOCK_CHANNEL/ETF"):
+def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL"):
     c = Channel(code, name)
     x = [i for i in range(len(c.kline))]
     close = [i['close'] for i in c.kline]
@@ -194,8 +194,8 @@ def draw_line_by_input(code, name="UNKNOWN", save_path=r"C:\Users\Administrator\
     plt.plot(x, down_channel, color="green", linestyle='dashed')
     plt.plot(x, kama, color="red")
     plt.title(name)
-    # plt.savefig(f'{save_path}/{name}.png', dpi=180)
-    plt.show()
+    plt.savefig(f'{save_path}/{name}.png', dpi=180)
+    # plt.show()
     plt.close()
 
 
