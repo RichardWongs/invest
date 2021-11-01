@@ -9,10 +9,10 @@ plt.rcParams["axes.unicode_minus"] = False  # ¸ÃÓï¾ä½â¾öÍ¼ÏñÖÐµÄ¡°-¡±¸ººÅµÄÂÒÂëÎ
 
 class Channel:
 
-    def __init__(self, code, name):
+    def __init__(self, code, name, period=101):
         self.code = code
         self.name = name
-        self.kline = get_stock_kline_with_indicators(code, limit=250)
+        self.kline = get_stock_kline_with_indicators(code, limit=120, period=period)
         self.channel_trade_system()
 
     def channel_trade_system(self):
@@ -176,8 +176,8 @@ def select_convertible_bond():
         print(i)
 
 
-def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL"):
-    c = Channel(code, name)
+def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", period=101):
+    c = Channel(code, name, period=period)
     x = [i for i in range(len(c.kline))]
     close = [i['close'] for i in c.kline]
     ema13 = [i['ema13'] for i in c.kline]
@@ -187,8 +187,8 @@ def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL"):
     down_channel = [i['down_channel'] for i in c.kline]
     kama = [i['KAMA'] for i in c.kline]
     plt.plot(x, close, color='black')
-    plt.plot(x, ema13, color='blue')
-    plt.plot(x, ema26, color='green')
+    # plt.plot(x, ema13, color='blue')
+    # plt.plot(x, ema26, color='green')
     plt.plot(x, ema50, color='pink')
     plt.plot(x, up_channel, color="red", linestyle='dashed')
     plt.plot(x, down_channel, color="green", linestyle='dashed')
@@ -205,7 +205,7 @@ def stock_filter_by_down_channle():
     for i in pool:
         c = Channel(i['code'], i['name'])
         if c.kline[-1]['ema50'] >= c.kline[-2]['ema50']:
-            if c.kline[-1]['close'] <= c.kline[-1]['down_channel'] * 1.03:
+            if c.kline[-1]['close'] <= c.kline[-1]['down_channel']:
                 logging.warning(i)
                 result.append(i)
     return result

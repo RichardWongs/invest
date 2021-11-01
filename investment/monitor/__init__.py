@@ -824,6 +824,9 @@ def stock_filter_by_MACD_and_BBI():
         biggest_decline = biggest_decline_calc(data)
         if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
             i['industry'] = get_industry_by_code(i['code'])
+            i['applies'] = data[-1]['applies']
+            i['volume'] = data[-1]['volume']
+            i['10th_largest'] = data[-1]['10th_largest']
             result.append(i)
             logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
@@ -1008,11 +1011,22 @@ class Channel:
         return round(up_channel_coefficients, 2), round(down_channel_coefficients, 2)
 
 
+def FIP(kline: list):
+    # 温水煮青蛙动量算法
+    if len(kline) < 250:
+        logging.warning(f"行情数据不足一年, 可能导致算法计算准确度不足")
+    kline = kline[-250:]
+    profit = int((kline[-1]['close']/kline[0]['last_close']-1)*100)
+    positive = round(len([1 for i in kline if i['applies'] > 0])/len(kline), 2)
+    negative = round(len([1 for i in kline if i['applies'] < 0])/len(kline), 2)
+    logging.warning(f"profit:{profit}\tpositive:{positive}\tnegative:{negative}")
+    return round(profit * (negative - positive), 2)
+
+
 # stock_filter_by_MACD_and_BBI()
-# stock_filter_by_BooleanLine()
+stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
 # stock_filter_by_pocket_protection()
-
 
 
 
