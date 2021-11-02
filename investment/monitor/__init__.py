@@ -752,6 +752,39 @@ def pocket_protection(kline: list):
             return True
 
 
+def pocket_protection_V2(kline: list):
+    close = kline[-1]['close']
+    H250 = max(i['high'] for i in kline[-250:])
+    high, low, kline = calc_v(kline)
+    L40 = min(i['low'] for i in kline[-40:])
+    if L40 > high/2 or close >= H250:
+        if round((high - low)/high * 100, 2) < 46:
+            # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
+            if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
+                # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
+                return True
+
+
+def calc_v(kline: list):
+    # 计算最近半年最大调整幅度
+    assert len(kline) >= 120
+    kline = kline[-120:]
+    close = kline[-1]['close']
+    max_price = {'day': '', 'high': 0}
+    for j in kline:
+        if j['high'] > max_price['high']:
+            max_price['day'] = j['day']
+            max_price['high'] = j['high']
+    high = max_price['high']
+    for j in range(len(kline)):
+        if max_price['day'] == kline[j]['day']:
+            kline = kline[j:]
+            break
+    low = min([j['low'] for j in kline])
+    # biggest_decline = round((high - low)/high * 100, 2)
+    return high, low, kline
+
+
 def BIAS(kline: list):
     N = 18
     A1 = 0.15
@@ -899,6 +932,21 @@ def stock_filter_by_Compact_Structure():
     return sorted(result, key=lambda x: x['variance'], reverse=True)
 
 
+def stock_filter_by_kama():
+    # 根据考夫曼自适应均线对股票池进行筛选
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        data = get_stock_kline_with_indicators(i['code'])
+        data = KAMA(data)
+        if data[-1]['close'] > data[-1]['KAMA'] and data[-2]['close'] < data[-2]['KAMA']:
+            i['close'] = data[-1]['close']
+            i['applies'] = data[-1]['applies']
+            result.append(i)
+            logging.warning(i)
+    return result
+
+
 def Channel_Trade_System(kline: list):
     N, M = 13, 26
     kline = EMA_V2(EMA_V2(kline, N), M)
@@ -1024,8 +1072,9 @@ def FIP(kline: list):
 
 
 # stock_filter_by_MACD_and_BBI()
-stock_filter_by_BooleanLine()
+# stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
+# stock_filter_by_kama()
 # stock_filter_by_pocket_protection()
 
 

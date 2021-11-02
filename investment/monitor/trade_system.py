@@ -9,10 +9,10 @@ plt.rcParams["axes.unicode_minus"] = False  # ¸ÃÓï¾ä½â¾öÍ¼ÏñÖÐµÄ¡°-¡±¸ººÅµÄÂÒÂëÎ
 
 class Channel:
 
-    def __init__(self, code, name, period=101):
+    def __init__(self, code, name, period=101, limit=120):
         self.code = code
         self.name = name
-        self.kline = get_stock_kline_with_indicators(code, limit=120, period=period)
+        self.kline = get_stock_kline_with_indicators(code, limit=limit, period=period)
         self.channel_trade_system()
 
     def channel_trade_system(self):
@@ -176,19 +176,19 @@ def select_convertible_bond():
         print(i)
 
 
-def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", period=101):
-    c = Channel(code, name, period=period)
+def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", period=101, limit=101):
+    if str(code).startswith('1') or str(code).startswith('5'):
+        save_path += "/ETF"
+    else:
+        save_path += "/STOCK"
+    c = Channel(code, name, period=period, limit=limit)
     x = [i for i in range(len(c.kline))]
     close = [i['close'] for i in c.kline]
-    ema13 = [i['ema13'] for i in c.kline]
-    ema26 = [i['ema26'] for i in c.kline]
     ema50 = [i['ema50'] for i in c.kline]
     up_channel = [i['up_channel'] for i in c.kline]
     down_channel = [i['down_channel'] for i in c.kline]
     kama = [i['KAMA'] for i in c.kline]
     plt.plot(x, close, color='black')
-    # plt.plot(x, ema13, color='blue')
-    # plt.plot(x, ema26, color='green')
     plt.plot(x, ema50, color='pink')
     plt.plot(x, up_channel, color="red", linestyle='dashed')
     plt.plot(x, down_channel, color="green", linestyle='dashed')
@@ -199,7 +199,7 @@ def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", peri
     plt.close()
 
 
-def stock_filter_by_down_channle():
+def stock_filter_by_down_channel():
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
@@ -211,4 +211,34 @@ def stock_filter_by_down_channle():
     return result
 
 
+def get_etf_list():
+    etf_list = [{"name": "´´³É³¤", "code": 159967},
+                {"name": "ÖÊÁ¿ETF", "code": 515910},
+                {"name": "ÉÏÖ¤50", "code": 510050},
+                {"name": "¿Æ´´50", "code": 588000},
+                {"name": "¹â·üETF", "code": 515790},
+                {"name": "Ò½ÁÆETF", "code": 510050},
+                {"name": "ÉúÎïÒ½Ò©ETF", "code": 161726},
+                {"name": "ÓÐÉ«½ðÊôETF", "code": 512400},
+                {"name": "¼ÒµçETF", "code": 159996},
+                {"name": "¾ÆETF", "code": 512690},
+                {"name": "Å©ÒµETF", "code": 159825},
+                {"name": "¸ÖÌúETF", "code": 515210},
+                {"name": "ÃºÌ¿ETF", "code": 515220},
+                {"name": "ÒøÐÐETF", "code": 512800},
+                {"name": "Ö¤È¯ETF", "code": 159841},
+                {"name": "·¿µØ²úETF", "code": 512200},
+                {"name": "ºãÉú»¥ÁªETF", "code": 513330},
+                {"name": "5G ETF", "code": 515050},
+                {"name": "¾ü¹¤ETF", "code": 512660},
+                {"name": "Ð¾Æ¬ETF", "code": 159995},
+                {"name": "»¯¹¤ETF", "code": 159870},
+                {'name': 'Éî´´100', 'code': 159721},
+                {"name": "ÐÂÄÜÔ´Æû³µETF", "code": 516390},
+                {"name": "¹â·üETF", "code": 515790},
+                {"name": "Ò½ÁÆ´´ÐÂETF", "code": 516820},
+                {"name": "ºãÉú¿Æ¼¼30ETF", "code": 513010},
+                {"name": "ºãÉúÒ½ÁÆETF", "code": 513060},
+                {'name': "Ì¼ÖÐºÍ50ETF", "code": 516070}]
+    return etf_list
 
