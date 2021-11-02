@@ -330,6 +330,20 @@ def MA(kline, N):
     return kline
 
 
+def MA(kline: list, N, key="close"):
+    assert len(kline) > N
+    for i in range(len(kline)):
+        if i >= N:
+            tmp = []
+            for j in range(i, i-N, -1):
+                tmp.append(kline[j][key])
+            if key == "close":
+                kline[i][f'ma{N}'] = round(sum(tmp)/len(tmp), 2)
+            else:
+                kline[i][f'ma_{key}_{N}'] = round(sum(tmp)/len(tmp), 2)
+    return kline
+
+
 def EMA(cps, days):
     emas = cps.copy()
     for i in range(len(cps)):

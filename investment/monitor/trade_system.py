@@ -1,9 +1,8 @@
 # encoding: gbk
 import logging
 import os
-
 import requests
-from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA
+from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA, MA
 
 
 class Channel:
@@ -198,6 +197,28 @@ def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", peri
     plt.title(name)
     plt.savefig(f'{save_path}/{name}.png', dpi=180)
     # plt.show()
+    plt.close()
+
+
+def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=101):
+    import matplotlib.pyplot as plt
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
+    c = Channel(code, name, period=period, limit=limit)
+    c.kline = MA(MA(c.kline, 10), 20)
+    x = [i for i in range(len(c.kline))]
+    close = [i['close'] for i in c.kline]
+    ema50 = [i['ema50'] for i in c.kline]
+    up_channel = [i['up_channel'] for i in c.kline]
+    down_channel = [i['down_channel'] for i in c.kline]
+    kama = [i['KAMA'] for i in c.kline]
+    plt.plot(x, close, color='black')
+    plt.plot(x, ema50, color='pink')
+    plt.plot(x, up_channel, color="red", linestyle='dashed')
+    plt.plot(x, down_channel, color="green", linestyle='dashed')
+    plt.plot(x, kama, color="red")
+    plt.title(name)
+    plt.show()
     plt.close()
 
 
