@@ -91,7 +91,7 @@ def stock_pool_filter_process():
 
 def institutions_holding_rps_stock():
     rps_pool = get_RPS_stock_pool()
-    fund_pool = get_fund_holdings(quarter=2)
+    fund_pool = get_fund_holdings(quarter=3)
     foreign_capital_pool = foreignCapitalHoldingV2()
     pool = fund_pool.union(foreign_capital_pool)
     pool = [i for i in pool if i in rps_pool]

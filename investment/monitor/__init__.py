@@ -80,6 +80,7 @@ def ATR(kline: list):
 
 def Compact_Structure(kline: list):
     # 根据方差值判断个股结构紧凑程度
+    # kline 最好为周K线,N>=4, 方差值越小,代表结构越紧凑
     N = 20
     for i in range(len(kline)):
         if i > 0:
@@ -158,11 +159,11 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                         new_data[i]['10th_minimum'] = min(tenth_volume)
                         new_data[i]['avg_volume'] = sum(tenth_volume) / len(tenth_volume)
                         new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
-                    if i >= 50:
-                        tmp = []
-                        for j in range(i, i-50, -1):
-                            tmp.append(new_data[j]['close'])
-                        new_data[i]['ma50'] = round(sum(tmp)/len(tmp), 2)
+                    # if i >= 50:
+                    #     tmp = []
+                    #     for j in range(i, i-50, -1):
+                    #         tmp.append(new_data[j]['close'])
+                    #     new_data[i]['ma50'] = round(sum(tmp)/len(tmp), 2)
                 return new_data[1:]
     except SecurityException() as e:
         print(e)
@@ -341,6 +342,8 @@ def MA(kline: list, N, key="close"):
                 kline[i][f'ma{N}'] = round(sum(tmp)/len(tmp), 2)
             else:
                 kline[i][f'ma_{key}_{N}'] = round(sum(tmp)/len(tmp), 2)
+        else:
+            kline[i][f'ma{N}'] = kline[i]['close']
     return kline
 
 
@@ -756,6 +759,8 @@ def KAMA(kline, N=10, NF=2, NS=30):
 
 
 def pocket_protection(kline: list):
+    # 口袋支点公式
+    assert len(kline) >= 250
     close = kline[-1]['close']
     max_5 = max([i['close'] for i in kline[-5:]])
     ma50 = kline[-1]['ma50']
@@ -763,6 +768,10 @@ def pocket_protection(kline: list):
         # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
         if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
             # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
+            highest_250 = [i['high'] for i in kline[-250:]]
+            lowest_15 = [i['low'] for i in kline[-15:]]
+            lowest_50 = [i['low'] for i in kline[-50:]]
+
             return True
 
 

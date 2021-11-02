@@ -200,20 +200,24 @@ def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", peri
     plt.close()
 
 
-def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=101):
+def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=120):
     import matplotlib.pyplot as plt
     plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
     plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
     c = Channel(code, name, period=period, limit=limit)
-    c.kline = MA(MA(c.kline, 10), 20)
+    c.kline = EMA_V2(EMA_V2(EMA_V2(c.kline, 10), 20), 50)
     x = [i for i in range(len(c.kline))]
     close = [i['close'] for i in c.kline]
-    ema50 = [i['ema50'] for i in c.kline]
+    ma10 = [i['ema10'] for i in c.kline]
+    ma20 = [i['ema20'] for i in c.kline]
+    ma50 = [i['ema50'] for i in c.kline]
     up_channel = [i['up_channel'] for i in c.kline]
     down_channel = [i['down_channel'] for i in c.kline]
     kama = [i['KAMA'] for i in c.kline]
     plt.plot(x, close, color='black')
-    plt.plot(x, ema50, color='pink')
+    plt.plot(x, ma10, color='blue')
+    plt.plot(x, ma20, color='purple')
+    plt.plot(x, ma50, color='pink')
     plt.plot(x, up_channel, color="red", linestyle='dashed')
     plt.plot(x, down_channel, color="green", linestyle='dashed')
     plt.plot(x, kama, color="red")
@@ -266,6 +270,4 @@ def get_etf_list():
     return etf_list
 
 
-for i in institutions_holding_rps_stock():
-    draw_line_by_input(i['code'], i['name'], limit=120)
 
