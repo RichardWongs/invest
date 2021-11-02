@@ -1009,38 +1009,45 @@ def ATR_Channel_System(kline: list):
 
 class Channel:
 
-    def __init__(self, code, name="UNKONW"):
+    def __init__(self, code, name, period=101, limit=120):
         self.code = code
         self.name = name
-        self.kline = get_stock_kline_with_indicators(code)
+        self.kline = get_stock_kline_with_indicators(code, limit=limit, period=period)
         self.channel_trade_system()
 
     def channel_trade_system(self):
         N, M = 13, 26
-        self.kline = EMA_V2(EMA_V2(self.kline, N), M)
-        up_channel_coefficients, down_channel_coefficients = self.find_channel_coefficients()
+        self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
+        up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(
+            self.kline)
         logging.warning(f"code: {self.code}\tname: {self.name}\t"
                         f"up_channel_coefficients:{up_channel_coefficients}\t"
                         f"down_channel_coefficients:{down_channel_coefficients}")
         for i in range(len(self.kline)):
-            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + up_channel_coefficients * self.kline[i][f'ema{M}']
-            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - down_channel_coefficients * self.kline[i][f'ema{M}']
+            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
+                                          up_channel_coefficients * self.kline[i][f'ema{M}']
+            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - \
+                                            down_channel_coefficients * self.kline[i][f'ema{M}']
 
-    def calc_coefficients(self, M=26, up_channel_coefficients=0.05, down_channel_coefficients=0.05):
+    def calc_coefficients(
+            self, M=26, up_channel_coefficients=0.01, down_channel_coefficients=0.01):
         up_count, down_count = 0, 0
         total_count = len(self.kline)
         for i in range(len(self.kline)):
-            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + up_channel_coefficients * self.kline[i][f'ema{M}']
-            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - down_channel_coefficients * self.kline[i][f'ema{M}']
+            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
+                                          up_channel_coefficients * self.kline[i][f'ema{M}']
+            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - \
+                                            down_channel_coefficients * self.kline[i][f'ema{M}']
         for i in range(len(self.kline)):
             if self.kline[i]['close'] > self.kline[i]['up_channel']:
                 up_count += 1
             if self.kline[i]['close'] < self.kline[i]['down_channel']:
                 down_count += 1
-        return round((total_count - up_count)/total_count, 2), round((total_count - down_count)/total_count, 2)
+        return round((total_count - up_count) / total_count,
+                     2), round((total_count - down_count) / total_count, 2)
 
     def find_channel_coefficients(self):
-        up_channel_coefficients, down_channel_coefficients = 0.01, 0.01
+        up_channel_coefficients, down_channel_coefficients = 0.05, 0.05
         standard = 0.95
         ucc, dcc = None, None
         while True:
@@ -1056,7 +1063,8 @@ class Channel:
                 dcc = down_channel_coefficients
             if ucc and dcc:
                 break
-        return round(up_channel_coefficients, 2), round(down_channel_coefficients, 2)
+        return round(up_channel_coefficients, 2), round(
+            down_channel_coefficients, 2)
 
 
 def FIP(kline: list):

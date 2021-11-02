@@ -1,10 +1,9 @@
 # encoding: gbk
 import logging
+import os
+
 import requests
-import matplotlib.pyplot as plt
 from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA
-plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
-plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
 
 
 class Channel:
@@ -177,6 +176,9 @@ def select_convertible_bond():
 
 
 def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", period=101, limit=101):
+    import matplotlib.pyplot as plt
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
     if str(code).startswith('1') or str(code).startswith('5'):
         save_path += "/ETF"
     else:
@@ -241,4 +243,8 @@ def get_etf_list():
                 {"name": "恒生医疗ETF", "code": 513060},
                 {'name': "碳中和50ETF", "code": 516070}]
     return etf_list
+
+
+for i in institutions_holding_rps_stock():
+    draw_line_by_input(i['code'], i['name'], limit=120)
 
