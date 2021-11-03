@@ -221,11 +221,13 @@ def BooleanLine(kline: list):
             ma20 = round(sum(closes) / N, 2)
             BBU = ma20 + 2 * standard_deviation(closes)  # 布林线上轨
             BBL = ma20 - 2 * standard_deviation(closes)  # 布林线下轨
+            kline[i]['BBU_minus'] = ma20 + 1 * standard_deviation(closes)
+            kline[i]['BBL_minus'] = ma20 - 1 * standard_deviation(closes)
             BBW = (BBU - BBL) / ma20
             kline[i]['BBU'] = round(BBU, 2)
             kline[i]['BBL'] = round(BBL, 2)
             kline[i]['BBW'] = round(BBW, 2)
-    return kline
+    return kline[N:]
 
 
 def RSI(data: list):

@@ -5,6 +5,38 @@ import requests
 from monitor import *
 
 
+def get_etf_list():
+    etf_list = [{"name": "创成长", "code": 159967},
+                {"name": "质量ETF", "code": 515910},
+                {"name": "上证50", "code": 510050},
+                {"name": "科创50", "code": 588000},
+                {"name": "光伏ETF", "code": 515790},
+                {"name": "医疗ETF", "code": 510050},
+                {"name": "生物医药ETF", "code": 161726},
+                {"name": "有色金属ETF", "code": 512400},
+                {"name": "家电ETF", "code": 159996},
+                {"name": "酒ETF", "code": 512690},
+                {"name": "农业ETF", "code": 159825},
+                {"name": "钢铁ETF", "code": 515210},
+                {"name": "煤炭ETF", "code": 515220},
+                {"name": "银行ETF", "code": 512800},
+                {"name": "证券ETF", "code": 159841},
+                {"name": "房地产ETF", "code": 512200},
+                {"name": "恒生互联ETF", "code": 513330},
+                {"name": "5G ETF", "code": 515050},
+                {"name": "军工ETF", "code": 512660},
+                {"name": "芯片ETF", "code": 159995},
+                {"name": "化工ETF", "code": 159870},
+                {'name': '深创100', 'code': 159721},
+                {"name": "新能源汽车ETF", "code": 516390},
+                {"name": "光伏ETF", "code": 515790},
+                {"name": "医疗创新ETF", "code": 516820},
+                {"name": "恒生科技30ETF", "code": 513010},
+                {"name": "恒生医疗ETF", "code": 513060},
+                {'name': "碳中和50ETF", "code": 516070}]
+    return etf_list
+
+
 def price_range_statistics(code, name="UNKNOWN"):
     kline = get_stock_kline_with_indicators(code, limit=120)
     N, M = 10, 50
@@ -74,6 +106,7 @@ def draw_line_and_save2local(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL"
     up_channel = [i['up_channel'] for i in c.kline]
     down_channel = [i['down_channel'] for i in c.kline]
     kama = [i['KAMA'] for i in c.kline]
+    plt.rcParams['figure.figsize'] = (16, 8)
     plt.plot(x, close, color='black')
     plt.plot(x, ema50, color='pink')
     plt.plot(x, up_channel, color="red", linestyle='dashed')
@@ -99,6 +132,7 @@ def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=120):
     up_channel = [i['up_channel'] for i in c.kline]
     down_channel = [i['down_channel'] for i in c.kline]
     kama = [i['KAMA'] for i in c.kline]
+    plt.rcParams['figure.figsize'] = (16, 8)
     plt.plot(x, close, color='black')
     plt.plot(x, ma10, color='blue')
     plt.plot(x, ma20, color='purple')
@@ -109,38 +143,6 @@ def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=120):
     plt.title(name)
     plt.show()
     plt.close()
-
-
-def get_etf_list():
-    etf_list = [{"name": "创成长", "code": 159967},
-                {"name": "质量ETF", "code": 515910},
-                {"name": "上证50", "code": 510050},
-                {"name": "科创50", "code": 588000},
-                {"name": "光伏ETF", "code": 515790},
-                {"name": "医疗ETF", "code": 510050},
-                {"name": "生物医药ETF", "code": 161726},
-                {"name": "有色金属ETF", "code": 512400},
-                {"name": "家电ETF", "code": 159996},
-                {"name": "酒ETF", "code": 512690},
-                {"name": "农业ETF", "code": 159825},
-                {"name": "钢铁ETF", "code": 515210},
-                {"name": "煤炭ETF", "code": 515220},
-                {"name": "银行ETF", "code": 512800},
-                {"name": "证券ETF", "code": 159841},
-                {"name": "房地产ETF", "code": 512200},
-                {"name": "恒生互联ETF", "code": 513330},
-                {"name": "5G ETF", "code": 515050},
-                {"name": "军工ETF", "code": 512660},
-                {"name": "芯片ETF", "code": 159995},
-                {"name": "化工ETF", "code": 159870},
-                {'name': '深创100', 'code': 159721},
-                {"name": "新能源汽车ETF", "code": 516390},
-                {"name": "光伏ETF", "code": 515790},
-                {"name": "医疗创新ETF", "code": 516820},
-                {"name": "恒生科技30ETF", "code": 513010},
-                {"name": "恒生医疗ETF", "code": 513060},
-                {'name': "碳中和50ETF", "code": 516070}]
-    return etf_list
 
 
 def draw_line_by_ATR_Channel(code, name="UNKNOWN", period=101, limit=120):
@@ -159,6 +161,7 @@ def draw_line_by_ATR_Channel(code, name="UNKNOWN", period=101, limit=120):
     ATR_minus_1 = [i['-1ATR'] for i in kline]
     ATR_minus_2 = [i['-2ATR'] for i in kline]
     ATR_minus_3 = [i['-3ATR'] for i in kline]
+    plt.rcParams['figure.figsize'] = (16, 8)
     plt.plot(x, close, color='black')
     plt.plot(x, ma50, color='pink')
     plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
@@ -168,6 +171,29 @@ def draw_line_by_ATR_Channel(code, name="UNKNOWN", period=101, limit=120):
     plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
     plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
     plt.title(name)
+    plt.show()
+    plt.close()
+
+
+def draw_boolean(code):
+    import matplotlib.pyplot as plt
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
+    kline = get_stock_kline_with_indicators(code)
+    kline = BooleanLine(kline)
+    x = [i for i in range(len(kline))]
+    close = [i['close'] for i in kline]
+    BBU_minus = [i['BBU_minus'] for i in kline]
+    BBL_minus = [i['BBL_minus'] for i in kline]
+    BBU = [i['BBU'] for i in kline]
+    BBL = [i['BBL'] for i in kline]
+    plt.rcParams['figure.figsize'] = (16, 8)
+    plt.plot(x, close)
+    plt.plot(x, BBU_minus, linestyle='dashed')
+    plt.plot(x, BBL_minus, linestyle='dashed')
+    plt.plot(x, BBU, linestyle='dashed')
+    plt.plot(x, BBL, linestyle='dashed')
+    plt.title(code)
     plt.show()
     plt.close()
 
