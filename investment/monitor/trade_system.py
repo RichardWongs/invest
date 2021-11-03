@@ -2,123 +2,7 @@
 import logging
 import os
 import requests
-from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA, MA
-
-
-class Channel:
-
-    def __init__(self, code, name, period=101, limit=120):
-        self.code = code
-        self.name = name
-        self.kline = get_stock_kline_with_indicators(code, limit=limit, period=period)
-        self.channel_trade_system()
-
-    def channel_trade_system(self):
-        N, M = 13, 26
-        self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
-        up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(
-            self.kline)
-        logging.warning(f"code: {self.code}\tname: {self.name}\t"
-                        f"up_channel_coefficients:{up_channel_coefficients}\t"
-                        f"down_channel_coefficients:{down_channel_coefficients}")
-        for i in range(len(self.kline)):
-            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
-                up_channel_coefficients * self.kline[i][f'ema{M}']
-            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - \
-                down_channel_coefficients * self.kline[i][f'ema{M}']
-
-    def calc_coefficients(
-            self, M=26, up_channel_coefficients=0.01, down_channel_coefficients=0.01):
-        up_count, down_count = 0, 0
-        total_count = len(self.kline)
-        for i in range(len(self.kline)):
-            self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
-                up_channel_coefficients * self.kline[i][f'ema{M}']
-            self.kline[i]['down_channel'] = self.kline[i][f'ema{M}'] - \
-                down_channel_coefficients * self.kline[i][f'ema{M}']
-        for i in range(len(self.kline)):
-            if self.kline[i]['close'] > self.kline[i]['up_channel']:
-                up_count += 1
-            if self.kline[i]['close'] < self.kline[i]['down_channel']:
-                down_count += 1
-        return round((total_count - up_count) / total_count,
-                     2), round((total_count - down_count) / total_count, 2)
-
-    def find_channel_coefficients(self):
-        up_channel_coefficients, down_channel_coefficients = 0.05, 0.05
-        standard = 0.95
-        ucc, dcc = None, None
-        while True:
-            up_ratio, down_ratio = self.calc_coefficients(up_channel_coefficients=up_channel_coefficients,
-                                                          down_channel_coefficients=down_channel_coefficients)
-            if up_ratio < standard:
-                up_channel_coefficients += 0.01
-            else:
-                ucc = up_channel_coefficients
-            if down_ratio < standard:
-                down_channel_coefficients += 0.01
-            else:
-                dcc = down_channel_coefficients
-            if ucc and dcc:
-                break
-        return round(up_channel_coefficients, 2), round(
-            down_channel_coefficients, 2)
-
-
-def Channel_Trade_System(kline: list, code=None, name=None):
-    N, M = 13, 26
-    kline = EMA_V2(EMA_V2(kline, N), M)
-    up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(
-        kline)
-    logging.warning(f"code: {code}\tname: {name if name else 'UNKNOWN'}\t"
-                    f"上通道系数:{up_channel_coefficients}\t"
-                    f"下通道系数:{down_channel_coefficients}")
-    for i in range(len(kline)):
-        kline[i]['up_channel'] = kline[i][f'ema{M}'] + \
-            up_channel_coefficients * kline[i][f'ema{M}']
-        kline[i]['down_channel'] = kline[i][f'ema{M}'] - \
-            down_channel_coefficients * kline[i][f'ema{M}']
-    return kline
-
-
-def calc_coefficients(kline, M=26, up_channel_coefficients=0.01,
-                      down_channel_coefficients=0.01):
-    up_count, down_count = 0, 0
-    total_count = len(kline)
-    for i in range(len(kline)):
-        kline[i]['up_channel'] = kline[i][f'ema{M}'] + \
-            up_channel_coefficients * kline[i][f'ema{M}']
-        kline[i]['down_channel'] = kline[i][f'ema{M}'] - \
-            down_channel_coefficients * kline[i][f'ema{M}']
-    for i in range(len(kline)):
-        if kline[i]['close'] > kline[i]['up_channel']:
-            up_count += 1
-        if kline[i]['close'] < kline[i]['down_channel']:
-            down_count += 1
-    return round((total_count - up_count) / total_count,
-                 2), round((total_count - down_count) / total_count, 2)
-
-
-def find_channel_coefficients(kline: list):
-    up_channel_coefficients, down_channel_coefficients = 0.01, 0.01
-    standard = 0.95
-    ucc, dcc = None, None
-    while True:
-        up_ratio, down_ratio = calc_coefficients(kline,
-                                                 up_channel_coefficients=up_channel_coefficients,
-                                                 down_channel_coefficients=down_channel_coefficients)
-        if up_ratio < standard:
-            up_channel_coefficients += 0.01
-        else:
-            ucc = up_channel_coefficients
-        if down_ratio < standard:
-            down_channel_coefficients += 0.01
-        else:
-            dcc = down_channel_coefficients
-        if ucc and dcc:
-            break
-    return round(up_channel_coefficients, 2), round(
-        down_channel_coefficients, 2)
+from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA, MA, Channel, Channel_Trade_System
 
 
 def price_range_statistics(code, name="UNKNOWN"):
@@ -144,7 +28,7 @@ def price_range_statistics(code, name="UNKNOWN"):
 def select_convertible_bond():
     url = "https://www.jisilu.cn/data/cbnew/cb_list_new/?___jsl=LST___t=1635232720194"
     headers = {
-        'Cookie': "kbzw__Session=fs8oure2m3mrir3m4toc4cbh77; Hm_lvt_164fe01b1433a19b507595a43bf58262=1635233006; kbz_newcookie=1; kbzw_r_uname=RichardWongs; kbzw__user_login=7Obd08_P1ebax9aXycvZydjp18_Q3sjnmrCW6c3q1e3Q6dvR1YyhmNjcqpqwzdrI25HZ2qzbkabF2NrWy97R2cbckqyopJmcndbd3dPGpJ2skq-Sq6qUs47FotLWoLbo5uDO4sKmrKGogZi43efZ2PDfl7DKgainoaickLjd56udtIzvmKqKl7jj6M3VuNnbwNLtm6yVrY-qrZOgrLi1wcWhieXV4seWqNza3ueKkKTc6-TW3puwlqSRpaupqJeemKWZyMrfzenLpZaqrqGrlw..; Hm_lpvt_164fe01b1433a19b507595a43bf58262=1635233039"
+        'Cookie': "kbzw__Session=hr6788crd3h7ss0560u1bdtam4; Hm_lvt_164fe01b1433a19b507595a43bf58262=1635233006,1635908529; kbz_newcookie=1; kbzw_r_uname=RichardWongs; kbzw__user_login=7Obd08_P1ebax9aXycvZydjp18_Q3sjnmrCW6c3q1e3Q6dvR1YyhmNjcqpqwzdrI25HZ2qzbkabF2NrWy97R2cbckqyopJmcndbd3dPGpJ2skq-Sq6qUs47FotLWoLbo5uDO4sKmrKGogZi43efZ2PDfl7DKgainoaickLjd56udtIzvmKqKl7jj6M3VuNnbwNLtm6yVrY-qrZOgrLi1wcWhieXV4seWqNza3ueKkKTc6-TW3puwl6SRpaupq5melqiZyMrfzenLpZaqrqGrlw..; Hm_lpvt_164fe01b1433a19b507595a43bf58262=1635908547"
     }
     body = {
         'is_search': 'N',
@@ -152,6 +36,7 @@ def select_convertible_bond():
         'page': 1
     }
     r = requests.post(url, headers=headers).json()
+    logging.warning(str(r)[-30:])
     r = r['rows']
     for i in r:
         i = i['cell']
@@ -174,7 +59,7 @@ def select_convertible_bond():
         print(i)
 
 
-def draw_line_by_input(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", period=101, limit=101):
+def draw_line_and_save2local(code, name="UNKNOWN", save_path=r"../STOCK_CHANNEL", period=101, limit=101):
     import matplotlib.pyplot as plt
     plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
     plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
@@ -226,18 +111,6 @@ def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
-def stock_filter_by_down_channel():
-    pool = institutions_holding_rps_stock()
-    result = []
-    for i in pool:
-        c = Channel(i['code'], i['name'])
-        if c.kline[-1]['ema50'] >= c.kline[-2]['ema50']:
-            if c.kline[-1]['close'] <= c.kline[-1]['down_channel']:
-                logging.warning(i)
-                result.append(i)
-    return result
-
-
 def get_etf_list():
     etf_list = [{"name": "创成长", "code": 159967},
                 {"name": "质量ETF", "code": 515910},
@@ -268,6 +141,9 @@ def get_etf_list():
                 {"name": "恒生医疗ETF", "code": 513060},
                 {'name': "碳中和50ETF", "code": 516070}]
     return etf_list
+
+
+
 
 
 

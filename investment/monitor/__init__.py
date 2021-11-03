@@ -1041,8 +1041,7 @@ class Channel:
     def channel_trade_system(self):
         N, M = 13, 26
         self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
-        up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(
-            self.kline)
+        up_channel_coefficients, down_channel_coefficients = self.find_channel_coefficients()
         logging.warning(f"code: {self.code}\tname: {self.name}\t"
                         f"up_channel_coefficients:{up_channel_coefficients}\t"
                         f"down_channel_coefficients:{down_channel_coefficients}")
@@ -1090,6 +1089,18 @@ class Channel:
             down_channel_coefficients, 2)
 
 
+def stock_filter_by_down_channel():
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        c = Channel(i['code'], i['name'])
+        if c.kline[-1]['ema50'] >= c.kline[-2]['ema50']:
+            if c.kline[-1]['close'] <= c.kline[-1]['down_channel']:
+                logging.warning(i)
+                result.append(i)
+    return result
+
+
 def FIP(kline: list):
     # 温水煮青蛙动量算法
     if len(kline) < 250:
@@ -1107,6 +1118,6 @@ def FIP(kline: list):
 # stock_filter_by_WAD()
 # stock_filter_by_kama()
 # stock_filter_by_pocket_protection()
-
+# stock_filter_by_down_channel()
 
 
