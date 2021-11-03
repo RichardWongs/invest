@@ -2,7 +2,7 @@
 import logging
 import os
 import requests
-from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA, MA, Channel, Channel_Trade_System
+from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA, MA, Channel, Channel_Trade_System, ATR_Channel_System
 
 
 def price_range_statistics(code, name="UNKNOWN"):
@@ -143,7 +143,32 @@ def get_etf_list():
     return etf_list
 
 
-
-
+def draw_line_by_ATR_Channel(code, name="UNKNOWN", period=101, limit=120):
+    import matplotlib.pyplot as plt
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
+    kline = get_stock_kline_with_indicators(code, period=period, limit=limit)
+    kline = EMA_V2(kline, 50)
+    kline = ATR_Channel_System(kline)
+    x = [i for i in range(len(kline))]
+    close = [i['close'] for i in kline]
+    ma50 = [i['ema50'] for i in kline]
+    ATR_plus_1 = [i['+1ATR'] for i in kline]
+    ATR_plus_2 = [i['+2ATR'] for i in kline]
+    ATR_plus_3 = [i['+3ATR'] for i in kline]
+    ATR_minus_1 = [i['-1ATR'] for i in kline]
+    ATR_minus_2 = [i['-2ATR'] for i in kline]
+    ATR_minus_3 = [i['-3ATR'] for i in kline]
+    plt.plot(x, close, color='black')
+    plt.plot(x, ma50, color='pink')
+    plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_3, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
+    plt.title(name)
+    plt.show()
+    plt.close()
 
 
