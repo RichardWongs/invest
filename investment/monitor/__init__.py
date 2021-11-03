@@ -68,7 +68,7 @@ def get_industry_by_code(code):
 
 
 def TRI(high, low, close):
-    return round(max(high-low, abs(high-close), abs(low-close)), 3)
+    return round(max(high - low, abs(high - close), abs(low - close)), 3)
 
 
 def ATR(kline: list):
@@ -84,10 +84,10 @@ def Compact_Structure(kline: list):
     N = 20
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['v'] = kline[i]['close']/kline[i-1]['close']-1
+            kline[i]['v'] = kline[i]['close'] / kline[i - 1]['close'] - 1
         if i > N:
             tmp = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp.append(kline[j]['v'])
             kline[i]['variance'] = round(variance(tmp) * 1000, 2)
     for i in range(len(kline)):
@@ -153,7 +153,7 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                                                  close=new_data[i]['last_close'])
                     if i > day:
                         tenth_volume = []
-                        for j in range(i - 1, i - (day+1), -1):
+                        for j in range(i - 1, i - (day + 1), -1):
                             tenth_volume.append(new_data[j]['volume'])
                         new_data[i]['10th_largest'] = max(tenth_volume)
                         new_data[i]['10th_minimum'] = min(tenth_volume)
@@ -196,7 +196,7 @@ def get_market_data(code, start_date=20210101):
         pool[i]['TRI'] = TRI(pool[i]['high'], pool[i]['low'], pool[i]['last_close'])
         if i > day:
             tenth_volume = []
-            for j in range(i - 1, i - (day+1), -1):
+            for j in range(i - 1, i - (day + 1), -1):
                 tenth_volume.append(pool[j]['volume'])
             pool[i]['10th_largest'] = max(tenth_volume)
             pool[i]['10th_minimum'] = min(tenth_volume)
@@ -204,9 +204,9 @@ def get_market_data(code, start_date=20210101):
             pool[i]['volume_ratio'] = round(pool[i]['volume'] / pool[i]['avg_volume'], 2)
         if i >= 50:
             tmp = []
-            for j in range(i, i-50, -1):
+            for j in range(i, i - 50, -1):
                 tmp.append(pool[j]['close'])
-            pool[i]['ma50'] = sum(tmp)/len(tmp)
+            pool[i]['ma50'] = sum(tmp) / len(tmp)
     return pool[1:]
 
 
@@ -325,9 +325,9 @@ def MA(kline, N):
     for i in range(len(kline)):
         if i >= N:
             tmp = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp.append(kline[j]['close'])
-            kline[i][f'MA{N}'] = round(sum(tmp)/len(tmp), 2)
+            kline[i][f'MA{N}'] = round(sum(tmp) / len(tmp), 2)
     return kline
 
 
@@ -336,12 +336,12 @@ def MA(kline: list, N, key="close"):
     for i in range(len(kline)):
         if i >= N:
             tmp = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp.append(kline[j][key])
             if key == "close":
-                kline[i][f'ma{N}'] = round(sum(tmp)/len(tmp), 2)
+                kline[i][f'ma{N}'] = round(sum(tmp) / len(tmp), 2)
             else:
-                kline[i][f'ma_{key}_{N}'] = round(sum(tmp)/len(tmp), 2)
+                kline[i][f'ma_{key}_{N}'] = round(sum(tmp) / len(tmp), 2)
         else:
             kline[i][f'ma{N}'] = kline[i]['close']
     return kline
@@ -383,12 +383,12 @@ def TRIX(kline: list):
     kline = EMA_V2(EMA_V2(EMA_V2(kline, N), N, key=f'ema{N}'), N, key=f'ema{N}')
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['TRIX'] = round((kline[i][f'ema{N}'] - kline[i-1][f'ema{N}'])/kline[i-1][f'ema{N}'] * 100, 2)
+            kline[i]['TRIX'] = round((kline[i][f'ema{N}'] - kline[i - 1][f'ema{N}']) / kline[i - 1][f'ema{N}'] * 100, 2)
         if i >= M:
             tmp = []
-            for j in range(i, i-M, -1):
+            for j in range(i, i - M, -1):
                 tmp.append(kline[j]['TRIX'])
-            kline[i]['TRIXMA'] = round(sum(tmp)/len(tmp), 2)
+            kline[i]['TRIXMA'] = round(sum(tmp) / len(tmp), 2)
     return kline
 
 
@@ -397,25 +397,25 @@ def DMA(kline: list):
     for i in range(len(kline)):
         if i >= 10:
             tmp = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp.append(kline[j]['close'])
-            kline[i][f'ma{N}'] = sum(tmp)/len(tmp)
+            kline[i][f'ma{N}'] = sum(tmp) / len(tmp)
         if i >= M:
             tmp2 = []
-            for j in range(i, i-M, -1):
+            for j in range(i, i - M, -1):
                 tmp2.append(kline[j]['close'])
-            kline[i][f'ma{M}'] = sum(tmp2)/len(tmp2)
-            kline[i]['DMA'] = round(kline[i][f'ma{N}']-kline[i][f'ma{M}'], 2)
-        if i >= M+N:
+            kline[i][f'ma{M}'] = sum(tmp2) / len(tmp2)
+            kline[i]['DMA'] = round(kline[i][f'ma{N}'] - kline[i][f'ma{M}'], 2)
+        if i >= M + N:
             tmp3 = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp3.append(kline[j]['DMA'])
-            kline[i]['AMA'] = round(sum(tmp3)/len(tmp3), 2)
+            kline[i]['AMA'] = round(sum(tmp3) / len(tmp3), 2)
         if f'ma{N}' in kline[i].keys():
             del kline[i][f'ma{N}']
         if f'ma{M}' in kline[i].keys():
             del kline[i][f'ma{M}']
-    return kline[M+N:]
+    return kline[M + N:]
 
 
 def Linear_Regression(kline: list):
@@ -515,7 +515,7 @@ def linear_regression_stock_filter(limit=120):
     from RPS.quantitative_screening import get_RPS_stock_pool
     pool = get_RPS_stock_pool()
     new_pool = [{'code': i[0], 'name': i[1]} for i in pool]
-    start = int(str(date.today()-timedelta(days=365)).replace('-', ''))
+    start = int(str(date.today() - timedelta(days=365)).replace('-', ''))
     for i in new_pool:
         kline = get_stock_kline_with_indicators(i['code'], limit=limit)
         # kline = get_market_data(i['code'], start_date=start)
@@ -549,27 +549,27 @@ def BBI(kline: list):
     for i in range(len(kline)):
         if i >= 3:
             tmp = []
-            for j in range(i, i-3, -1):
+            for j in range(i, i - 3, -1):
                 tmp.append(kline[j]['close'])
-            kline[i]['ma3'] = sum(tmp)/len(tmp)
+            kline[i]['ma3'] = sum(tmp) / len(tmp)
         if i >= 6:
             tmp = []
-            for j in range(i, i-6, -1):
+            for j in range(i, i - 6, -1):
                 tmp.append(kline[j]['close'])
-            kline[i]['ma6'] = sum(tmp)/len(tmp)
+            kline[i]['ma6'] = sum(tmp) / len(tmp)
         if i >= 12:
             tmp = []
-            for j in range(i, i-12, -1):
+            for j in range(i, i - 12, -1):
                 tmp.append(kline[j]['close'])
-            kline[i]['ma12'] = sum(tmp)/len(tmp)
+            kline[i]['ma12'] = sum(tmp) / len(tmp)
         if i >= 24:
             tmp = []
-            for j in range(i, i-24, -1):
+            for j in range(i, i - 24, -1):
                 tmp.append(kline[j]['close'])
-            kline[i]['ma24'] = sum(tmp)/len(tmp)
+            kline[i]['ma24'] = sum(tmp) / len(tmp)
     for i in range(len(kline)):
         if i >= 24:
-            kline[i]['BBI'] = round((kline[i]['ma3'] + kline[i]['ma6'] + kline[i]['ma12'] + kline[i]['ma24'])/4, 2)
+            kline[i]['BBI'] = round((kline[i]['ma3'] + kline[i]['ma6'] + kline[i]['ma12'] + kline[i]['ma24']) / 4, 2)
         if 'ma3' in kline[i].keys():
             del kline[i]['ma3']
         if 'ma6' in kline[i].keys():
@@ -584,18 +584,18 @@ def BBI(kline: list):
 def CCI(kline: list):
     N = 14
     for i in range(len(kline)):
-        kline[i]['TP'] = (kline[i]['high'] + kline[i]['low'] + kline[i]['close'])/3
+        kline[i]['TP'] = (kline[i]['high'] + kline[i]['low'] + kline[i]['close']) / 3
         if i >= N:
             tmp = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp.append(kline[j]['close'])
-            kline[i][f'ma{N}'] = sum(tmp)/len(tmp)
+            kline[i][f'ma{N}'] = sum(tmp) / len(tmp)
         if i >= 2 * N:
             tmp = []
-            for j in range(i, i-N, -1):
-                tmp.append(abs(kline[j][f'ma{N}']-kline[j]['close']))
-            kline[i]['MD'] = sum(tmp)/len(tmp)
-            kline[i]['CCI'] = (kline[i]['TP']-kline[i][f'ma{N}'])/kline[i]['MD']/0.015
+            for j in range(i, i - N, -1):
+                tmp.append(abs(kline[j][f'ma{N}'] - kline[j]['close']))
+            kline[i]['MD'] = sum(tmp) / len(tmp)
+            kline[i]['CCI'] = (kline[i]['TP'] - kline[i][f'ma{N}']) / kline[i]['MD'] / 0.015
     return kline
 
 
@@ -608,7 +608,7 @@ def MACD(kline: list):
     for i in range(len(kline)):
         kline[i]['MACD'] = 2 * (kline[i]['DIF'] - kline[i]['DEA'])
         if i > 0:
-            if kline[i]['MACD'] > kline[i-1]['MACD']:
+            if kline[i]['MACD'] > kline[i - 1]['MACD']:
                 kline[i]['macd_direction'] = 'UP'
             else:
                 kline[i]['macd_direction'] = 'DOWN'
@@ -619,22 +619,22 @@ def WAD(kline: list):
     # 威廉多空力度线
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['TRL'] = min(kline[i-1]['close'], kline[i]['low'])
-            kline[i]['TRH'] = max(kline[i-1]['close'], kline[i]['high'])
-            if kline[i]['close'] > kline[i-1]['close']:
+            kline[i]['TRL'] = min(kline[i - 1]['close'], kline[i]['low'])
+            kline[i]['TRH'] = max(kline[i - 1]['close'], kline[i]['high'])
+            if kline[i]['close'] > kline[i - 1]['close']:
                 kline[i]['AD'] = kline[i]['close'] - kline[i]['TRL']
-            if kline[i]['close'] < kline[i-1]['close']:
+            if kline[i]['close'] < kline[i - 1]['close']:
                 kline[i]['AD'] = kline[i]['close'] - kline[i]['TRH']
-            if kline[i]['close'] == kline[i-1]['close']:
+            if kline[i]['close'] == kline[i - 1]['close']:
                 kline[i]['AD'] = 0
-            kline[i]['WAD'] = round(kline[i]['AD'] + kline[i-1]['WAD'], 2)
+            kline[i]['WAD'] = round(kline[i]['AD'] + kline[i - 1]['WAD'], 2)
         else:
             kline[i]['WAD'] = 0
         if i >= 30:
             tmp = []
-            for j in range(i, i-30, -1):
+            for j in range(i, i - 30, -1):
                 tmp.append(kline[j]['WAD'])
-            kline[i]['MAWAD'] = round(sum(tmp)/len(tmp), 2)
+            kline[i]['MAWAD'] = round(sum(tmp) / len(tmp), 2)
     for i in kline:
         if 'TRL' in i.keys():
             del i['TRL']
@@ -650,30 +650,32 @@ def PVI_NVI(kline: list):
             kline[i]['PVI'] = 100
             kline[i]['NVI'] = 100
         if i > 0:
-            kline[i]['PV'] = kline[i]['close']/kline[i-1]['close'] if kline[i]['volume'] > kline[i-1]['volume'] else 1
-            kline[i]['NV'] = kline[i]['close']/kline[i-1]['close'] if kline[i]['volume'] < kline[i-1]['volume'] else 1
-            kline[i]['PVI'] = kline[i-1]['PVI'] * kline[i]['PV']
-            kline[i]['NVI'] = kline[i-1]['NVI'] * kline[i]['NV']
+            kline[i]['PV'] = kline[i]['close'] / kline[i - 1]['close'] if kline[i]['volume'] > kline[i - 1][
+                'volume'] else 1
+            kline[i]['NV'] = kline[i]['close'] / kline[i - 1]['close'] if kline[i]['volume'] < kline[i - 1][
+                'volume'] else 1
+            kline[i]['PVI'] = kline[i - 1]['PVI'] * kline[i]['PV']
+            kline[i]['NVI'] = kline[i - 1]['NVI'] * kline[i]['NV']
         if i >= N:
             tmp_pvi = []
             tmp_nvi = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp_pvi.append(kline[j]['PVI'])
                 tmp_nvi.append(kline[j]['NVI'])
-            kline[i]['MA_PVI'] = round(sum(tmp_pvi)/len(tmp_pvi), 2)
-            kline[i]['MA_NVI'] = round(sum(tmp_nvi)/len(tmp_nvi), 2)
+            kline[i]['MA_PVI'] = round(sum(tmp_pvi) / len(tmp_pvi), 2)
+            kline[i]['MA_NVI'] = round(sum(tmp_nvi) / len(tmp_nvi), 2)
     return kline[N:]
 
 
 def PVT(kline: list):
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['PVT'] = (kline[i]['close'] - kline[i-1]['close'])/kline[i-1]['close']*kline[i]['VOL']
+            kline[i]['PVT'] = (kline[i]['close'] - kline[i - 1]['close']) / kline[i - 1]['close'] * kline[i]['VOL']
         if i > 1:
-            kline[i]['PVT'] = kline[i]['PVT'] + kline[i-1]['PVT']
-            if kline[i]['close'] < kline[i-1]['close'] and kline[i]['PVT'] > kline[i-1]['PVT']:
+            kline[i]['PVT'] = kline[i]['PVT'] + kline[i - 1]['PVT']
+            if kline[i]['close'] < kline[i - 1]['close'] and kline[i]['PVT'] > kline[i - 1]['PVT']:
                 kline[i]['PVT_SIG'] = "BUY"
-            if kline[i]['close'] > kline[i-1]['close'] and kline[i]['PVT'] < kline[i-1]['PVT']:
+            if kline[i]['close'] > kline[i - 1]['close'] and kline[i]['PVT'] < kline[i - 1]['PVT']:
                 kline[i]['PVT_SIG'] = "SELL"
     return kline[1:]
 
@@ -683,10 +685,10 @@ def OBV(kline: list):
         if i == 0:
             kline[i]['OBV'] = kline[i]['volume']
         else:
-            if kline[i]['close'] > kline[i-1]['close']:
-                kline[i]['OBV'] = kline[i-1]['OBV'] + kline[i]['volume']
-            elif kline[i]['close'] < kline[i-1]['close']:
-                kline[i]['OBV'] = kline[i-1]['OBV'] - kline[i]['volume']
+            if kline[i]['close'] > kline[i - 1]['close']:
+                kline[i]['OBV'] = kline[i - 1]['OBV'] + kline[i]['volume']
+            elif kline[i]['close'] < kline[i - 1]['close']:
+                kline[i]['OBV'] = kline[i - 1]['OBV'] - kline[i]['volume']
             else:
                 pass
     return kline
@@ -696,7 +698,7 @@ def Force_Index(kline: list):
     N, M = 2, 13
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['FI'] = kline[i]['VOL'] * (kline[i]['close'] - kline[i-1]['close'])
+            kline[i]['FI'] = kline[i]['VOL'] * (kline[i]['close'] - kline[i - 1]['close'])
     kline = kline[1:]
     kline = EMA_V2(EMA_V2(kline, N, key="FI", out_key=f"FI_EMA_{N}"), M, key="FI", out_key=f"FI_EMA_{M}")
     return kline
@@ -709,12 +711,12 @@ def Kaufman_Adaptive_Moving_Average(kline: list):
     kline = EMA_V2(EMA_V2(kline, fast), slow)
     for i in range(len(kline)):
         if i > N:
-            DIRECTION = abs(kline[i]['close'] - kline[i-N]['close'])   # 方向
+            DIRECTION = abs(kline[i]['close'] - kline[i - N]['close'])  # 方向
             tmp = []
-            for j in range(i, i-N, -1):
-                tmp.append(abs(kline[j]['close']-kline[j-1]['close']))
+            for j in range(i, i - N, -1):
+                tmp.append(abs(kline[j]['close'] - kline[j - 1]['close']))
             VOLATILITY = sum(tmp)  # 波动率
-            ER = abs(DIRECTION/VOLATILITY)    # 效率
+            ER = abs(DIRECTION / VOLATILITY)  # 效率
             FAST_SC = fast / (fast + 1)
             SLOW_SC = slow / (slow + 1)
             SSC = ER * (FAST_SC - SLOW_SC) + SLOW_SC
@@ -727,33 +729,33 @@ def KAMA(kline, N=10, NF=2, NS=30):
     direction = [0 for _ in range(len(kline))]
     for i in range(len(kline)):
         if i >= N:
-            direction[i] = kline[i]['close'] - kline[i-N]['close']
+            direction[i] = kline[i]['close'] - kline[i - N]['close']
     volatility = [0 for _ in range(len(kline))]
     delt = [0 for _ in range(len(kline))]
     for i in range(1, len(kline)):
-        delt[i] = abs(kline[i]['close'] - kline[i-1]['close'])
-    for i in range(N-1, len(kline)):
+        delt[i] = abs(kline[i]['close'] - kline[i - 1]['close'])
+    for i in range(N - 1, len(kline)):
         sum = 0
         for j in range(N):
-            sum = sum + delt[i-N+1+j]
+            sum = sum + delt[i - N + 1 + j]
         volatility[i] = sum
 
-    fastest = 2/(NF + 1)
-    slowest = 2/(NS + 1)
+    fastest = 2 / (NF + 1)
+    slowest = 2 / (NS + 1)
 
     ER = [0 for _ in range(len(kline))]
     smooth = [0 for _ in range(len(kline))]
     c = [0 for _ in range(len(kline))]
 
     for i in range(N, len(kline)):
-        ER[i] = abs(direction[i]/volatility[i])
+        ER[i] = abs(direction[i] / volatility[i])
         smooth[i] = ER[i] * (fastest - slowest) + slowest
         c[i] = smooth[i] * smooth[i]
 
     ama = [0 for _ in range(len(kline))]
-    ama[N-1] = kline[N-1]['close']
+    ama[N - 1] = kline[N - 1]['close']
     for i in range(N, len(kline)):
-        ama[i] = ama[i-1] + c[i] * (kline[i]['close'] - ama[i-1])
+        ama[i] = ama[i - 1] + c[i] * (kline[i]['close'] - ama[i - 1])
         kline[i]['KAMA'] = round(ama[i], 2)
     return kline[N:]
 
@@ -766,7 +768,8 @@ def pocket_protection(kline: list):
     ma50 = kline[-1]['ma50']
     if biggest_decline_calc(kline) < 50 and close == max_5 and close > ma50:
         # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
-        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
+        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1][
+            'applies'] > 9.9:
             # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
             highest_250 = [i['high'] for i in kline[-250:]]
             lowest_15 = [i['low'] for i in kline[-15:]]
@@ -780,10 +783,11 @@ def pocket_protection_V2(kline: list):
     H250 = max(i['high'] for i in kline[-250:])
     high, low, kline = calc_v(kline)
     L40 = min(i['low'] for i in kline[-40:])
-    if L40 > high/2 or close >= H250:
-        if round((high - low)/high * 100, 2) < 46:
+    if L40 > high / 2 or close >= H250:
+        if round((high - low) / high * 100, 2) < 46:
             # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
-            if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
+            if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1][
+                'applies'] > 9.9:
                 # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
                 return True
 
@@ -814,9 +818,9 @@ def BIAS(kline: list):
     for i in range(len(kline)):
         if i >= N:
             tmp = []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp.append(kline[j]['close'])
-            kline[i]['BIAS1'] = round(kline[i]['close']/(sum(tmp)/len(tmp)) - 1, 2)
+            kline[i]['BIAS1'] = round(kline[i]['close'] / (sum(tmp) / len(tmp)) - 1, 2)
             kline[i]['BIAS2'] = kline[i]['BIAS1'] * (1 + A1)
             kline[i]['BIAS3'] = kline[i]['BIAS1'] * (1 - A1)
     return kline
@@ -827,16 +831,16 @@ def ARBR(kline: list):
     for i in range(len(kline)):
         if i >= N:
             AR1, AR2 = [], []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 AR1.append(kline[j]['high'] - kline[j]['close'])
                 AR2.append(kline[j]['open'] - kline[j]['low'])
-            kline[i]['AR'] = round(sum(AR1)/sum(AR2), 2)
+            kline[i]['AR'] = round(sum(AR1) / sum(AR2), 2)
         if i > N:
             BR1, BR2 = [], []
-            for j in range(i, i-N, -1):
-                BR1.append(kline[j]['high'] - kline[j-1]['close'])
-                BR2.append(kline[j-1]['close'] - kline[j]['low'])
-            kline[i]['BR'] = round(sum(BR1)/sum(BR2), 2)
+            for j in range(i, i - N, -1):
+                BR1.append(kline[j]['high'] - kline[j - 1]['close'])
+                BR2.append(kline[j - 1]['close'] - kline[j]['low'])
+            kline[i]['BR'] = round(sum(BR1) / sum(BR2), 2)
     return kline[N:]
 
 
@@ -844,14 +848,14 @@ def MTM(kline: list):
     N, M = 2, 30
     for i in range(len(kline)):
         if i >= N:
-            kline[i]['MTM'] = round(kline[i]['close'] - kline[i-N]['close'], 2)
+            kline[i]['MTM'] = round(kline[i]['close'] - kline[i - N]['close'], 2)
     kline = kline[N:]
     for i in range(len(kline)):
         if i >= M:
             tmp = []
-            for j in range(i, i-M, -1):
+            for j in range(i, i - M, -1):
                 tmp.append(kline[j]['MTM'])
-            kline[i]['MTMMA'] = round(sum(tmp)/len(tmp), 2)
+            kline[i]['MTMMA'] = round(sum(tmp) / len(tmp), 2)
     return kline[M:]
 
 
@@ -878,7 +882,8 @@ def stock_filter_by_MACD_and_BBI():
         data = ATR(data)
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
-        if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
+        if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1][
+            'BBI']:
             i['industry'] = get_industry_by_code(i['code'])
             i['applies'] = data[-1]['applies']
             i['volume'] = data[-1]['volume']
@@ -899,7 +904,7 @@ def stock_filter_by_BooleanLine():
         biggest_decline = biggest_decline_calc(data)
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
             i['BBW'] = data[-1]['BBW']
-            i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close'])/data[-5]['last_close']*100, 2)
+            i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close']) / data[-5]['last_close'] * 100, 2)
             if i['week_applies'] > 0:
                 i['industry'] = get_industry_by_code(i['code'])
                 result.append(i)
@@ -930,7 +935,8 @@ def stock_filter_by_MACD_and_BBI_test(code):
     data = BBI(MACD(data))
     for i in range(len(data)):
         if 'BBI' in data[i].keys():
-            if data[i]['DIF'] > data[i]['DEA'] and data[i-1]['DIF'] < data[i-1]['DEA'] and data[i]['close'] > data[i]['BBI']:
+            if data[i]['DIF'] > data[i]['DEA'] and data[i - 1]['DIF'] < data[i - 1]['DEA'] and data[i]['close'] > \
+                    data[i]['BBI']:
                 logging.warning(data[i])
 
 
@@ -938,8 +944,10 @@ def stock_filter_by_WAD_test(code):
     data = get_stock_kline_with_indicators(code, limit=250)
     data = WAD(data)
     for i in range(len(data)):
-        if i > 0 and i+3 < len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i-1]['WAD'] < data[i-1]['MAWAD']:
-            logging.warning(f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i+1]['applies']}\t第三天:{data[i+2]['applies']}\t第四天:{data[i+3]['applies']}")
+        if i > 0 and i + 3 < len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i - 1]['WAD'] < data[i - 1][
+            'MAWAD']:
+            logging.warning(
+                f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i + 1]['applies']}\t第三天:{data[i + 2]['applies']}\t第四天:{data[i + 3]['applies']}")
 
 
 def stock_filter_by_Compact_Structure():
@@ -990,7 +998,7 @@ def calc_coefficients(kline, M=26, channel_coefficients=0.05):
     for i in range(len(kline)):
         if kline[i]['close'] > kline[i]['up_channel'] or kline[i]['close'] < kline[i]['down_channel']:
             count += 1
-    return round((total_count - count)/total_count, 2)
+    return round((total_count - count) / total_count, 2)
 
 
 def find_channel_coefficients(kline: list):
@@ -1017,9 +1025,9 @@ def Power_System(kline: list):
 
 
 def ATR_Channel_System(kline: list):
-    N, M = 13, 26
+    M = 26
     ATR_parameter = 20
-    kline = EMA_V2(EMA_V2(ATR(kline), N), M)
+    kline = EMA_V2(ATR(kline), M)
     for i in range(len(kline)):
         kline[i]['+1ATR'] = round(kline[i][f'ema{M}'] + kline[i][f'ATR_{ATR_parameter}'], 2)
         kline[i]['+2ATR'] = round(kline[i][f'ema{M}'] + 2 * kline[i][f'ATR_{ATR_parameter}'], 2)
@@ -1069,7 +1077,7 @@ class Channel:
                      2), round((total_count - down_count) / total_count, 2)
 
     def find_channel_coefficients(self):
-        up_channel_coefficients, down_channel_coefficients = 0.05, 0.05
+        up_channel_coefficients, down_channel_coefficients = 0.01, 0.01
         standard = 0.95
         ucc, dcc = None, None
         while True:
@@ -1106,12 +1114,11 @@ def FIP(kline: list):
     if len(kline) < 250:
         logging.warning(f"行情数据不足一年, 可能导致算法计算准确度不足")
     kline = kline[-250:]
-    profit = int((kline[-1]['close']/kline[0]['last_close']-1)*100)
-    positive = round(len([1 for i in kline if i['applies'] > 0])/len(kline), 2)
-    negative = round(len([1 for i in kline if i['applies'] < 0])/len(kline), 2)
+    profit = int((kline[-1]['close'] / kline[0]['last_close'] - 1) * 100)
+    positive = round(len([1 for i in kline if i['applies'] > 0]) / len(kline), 2)
+    negative = round(len([1 for i in kline if i['applies'] < 0]) / len(kline), 2)
     logging.warning(f"profit:{profit}\tpositive:{positive}\tnegative:{negative}")
     return round(profit * (negative - positive), 2)
-
 
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()
@@ -1119,5 +1126,3 @@ def FIP(kline: list):
 # stock_filter_by_kama()
 # stock_filter_by_pocket_protection()
 # stock_filter_by_down_channel()
-
-

@@ -2,7 +2,7 @@
 import logging
 import os
 import requests
-from monitor import EMA_V2, get_stock_kline_with_indicators, institutions_holding_rps_stock, KAMA, MA, Channel, Channel_Trade_System, ATR_Channel_System
+from monitor import *
 
 
 def price_range_statistics(code, name="UNKNOWN"):
@@ -170,5 +170,67 @@ def draw_line_by_ATR_Channel(code, name="UNKNOWN", period=101, limit=120):
     plt.title(name)
     plt.show()
     plt.close()
+
+
+def draw(code, name="UNKNOWN"):
+    import matplotlib.pyplot as plt
+
+    save_path = "../STOCK_CHANNEL"
+    if str(code).startswith('1') or str(code).startswith('5'):
+        save_path += "/ETF"
+    else:
+        save_path += "/STOCK"
+
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
+    data = get_stock_kline_with_indicators(code)
+    data = EMA_V2(EMA_V2(EMA_V2(EMA_V2(data, 10), 20), 50), 26)
+    data = ATR_Channel_System(data)
+    c = Channel(code=code, name=name)
+    ucc, dcc = c.find_channel_coefficients()
+    for i in data:
+        i['up_channel'] = i['ema26'] * (1+ucc)
+        i['down_channel'] = i['ema26'] * (1-dcc)
+    x = [i for i in range(len(data))]
+    close = [i['close'] for i in data]
+    ma10 = [i['ema10'] for i in data]
+    ma50 = [i['ema50'] for i in data]
+
+    up_channel = [i['up_channel'] for i in data]
+    down_channel = [i['down_channel'] for i in data]
+    plt.rcParams['figure.figsize'] = (16, 8)
+    plt.subplot(1, 2, 1)
+    plt.plot(x, close)
+    plt.plot(x, ma10)
+    plt.plot(x, ma50)
+    plt.plot(x, up_channel, color="red", linestyle='dashed')
+    plt.plot(x, down_channel, color="green", linestyle='dashed')
+    plt.title("Channel")
+
+    ATR_plus_1 = [i['+1ATR'] for i in data]
+    ATR_plus_2 = [i['+2ATR'] for i in data]
+    ATR_plus_3 = [i['+3ATR'] for i in data]
+    ATR_minus_1 = [i['-1ATR'] for i in data]
+    ATR_minus_2 = [i['-2ATR'] for i in data]
+    ATR_minus_3 = [i['-3ATR'] for i in data]
+
+    plt.subplot(1, 2, 2)
+    plt.plot(x, close)
+    plt.plot(x, ma10)
+    plt.plot(x, ma50)
+    plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_3, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
+    plt.title("ATR Channel")
+
+    plt.suptitle(name)
+    plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
+    # plt.show()
+    plt.close()
+
+
 
 
