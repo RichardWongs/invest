@@ -238,7 +238,7 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     data = get_stock_kline_with_indicators(code, period=period, limit=limit)
     data = EMA_V2(EMA_V2(EMA_V2(EMA_V2(data, 10), 20), 50), 26)
     data = ATR_Channel_System(data)
-    c = Channel(code=code, name=name)
+    c = Channel(code=code, name=name, period=period, limit=limit)
     ucc, dcc = c.find_channel_coefficients()
     for i in data:
         i['up_channel'] = i['ema26'] * (1+ucc)
