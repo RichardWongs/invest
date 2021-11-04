@@ -147,6 +147,29 @@ def draw_line_by_simple(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
+def draw_line_macd(code, name="UNKNOWN", period=101, limit=120):
+    import matplotlib.pyplot as plt
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
+    kline = get_stock_kline_with_indicators(code, period=period, limit=limit)
+    kline = MACD(EMA_V2(EMA_V2(EMA_V2(kline, 10), 20), 50))
+    x = [i for i in range(len(kline))]
+    close = [i['close'] for i in kline]
+    ma50 = [i['ema50'] for i in kline]
+    dif = [i['DIF'] for i in kline]
+    dea = [i['DEA'] for i in kline]
+    macd = [i['MACD'] for i in kline]
+    plt.rcParams['figure.figsize'] = (16, 8)
+    plt.plot(x, close, color='black')
+    plt.plot(x, ma50, color='pink')
+    plt.plot(x, dif, color="red", linestyle='dashed')
+    plt.plot(x, dea, color="green", linestyle='dashed')
+    plt.bar(x, macd, color="red")
+    plt.title(name)
+    plt.show()
+    plt.close()
+
+
 def draw_line_by_ATR_Channel(code, name="UNKNOWN", period=101, limit=120):
     import matplotlib.pyplot as plt
     plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
@@ -200,7 +223,7 @@ def draw_boolean(code):
     plt.close()
 
 
-def draw(code, name="UNKNOWN"):
+def draw(code, name="UNKNOWN", period=101, limit=120):
     import matplotlib.pyplot as plt
     plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
     plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
@@ -212,7 +235,7 @@ def draw(code, name="UNKNOWN"):
     else:
         save_path += "/STOCK"
 
-    data = get_stock_kline_with_indicators(code)
+    data = get_stock_kline_with_indicators(code, period=period, limit=limit)
     data = EMA_V2(EMA_V2(EMA_V2(EMA_V2(data, 10), 20), 50), 26)
     data = ATR_Channel_System(data)
     c = Channel(code=code, name=name)
@@ -266,8 +289,8 @@ def draw(code, name="UNKNOWN"):
     # plt.title("Boolean Channel")
 
     plt.suptitle(name)
-    # plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
-    plt.show()
+    plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
+    # plt.show()
     plt.close()
 
 

@@ -99,7 +99,7 @@ def Compact_Structure(kline: list):
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     # 添加技术指标布林线,布林线宽度
     time.sleep(0.5)
-    assert period in (5, 15, 30, 60, 101, 102, 103)
+    assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
             secid = f'0.{code}'
@@ -958,6 +958,7 @@ def stock_filter_by_Compact_Structure():
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'])
         data = Compact_Structure(data)
+        i['industry'] = get_industry_by_code(i['code'])
         i['variance'] = data[-1]['variance']
         result.append(i)
         logging.warning(i)
@@ -1051,9 +1052,9 @@ class Channel:
         N, M = 13, 26
         self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
         up_channel_coefficients, down_channel_coefficients = self.find_channel_coefficients()
-        # logging.warning(f"code: {self.code}\tname: {self.name}\t"
-        #                 f"up_channel_coefficients:{up_channel_coefficients}\t"
-        #                 f"down_channel_coefficients:{down_channel_coefficients}")
+        logging.warning(f"code: {self.code}\tname: {self.name}\t"
+                        f"up_channel_coefficients:{up_channel_coefficients}\t"
+                        f"down_channel_coefficients:{down_channel_coefficients}")
         for i in range(len(self.kline)):
             self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
                                           up_channel_coefficients * self.kline[i][f'ema{M}']
@@ -1105,6 +1106,7 @@ def stock_filter_by_down_channel():
         c = Channel(i['code'], i['name'])
         if c.kline[-1]['ema50'] >= c.kline[-2]['ema50']:
             if c.kline[-1]['close'] <= c.kline[-1]['down_channel']:
+                i['industry'] = get_industry_by_code(i['code'])
                 logging.warning(i)
                 result.append(i)
     return result
@@ -1132,6 +1134,7 @@ def stock_filter_by_Shrank_back_to_trample():
         kline = MA(MA(kline, N), M)
         if kline[-1][f'MA{M}'] >= kline[-2][f'MA{M}'] and kline[-1]['close'] <= kline[-1][f'MA{N}']:
             if kline[-1]['applies'] < 0 and kline[-1]['volume'] < kline[-1]['10th_minimum']:
+                i['industry'] = get_industry_by_code(i['code'])
                 i['applies'] = kline[-1]['applies']
                 i['volume_ratio'] = kline[-1]['volume_ratio']
                 result.append(i)
