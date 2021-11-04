@@ -52,11 +52,11 @@ def get_stock_kline(code, is_index=False, period=101, limit=120):
             if isinstance(r['data'], dict) and 'klines' in r['data'].keys():
                 r = r['data']['klines']
                 r = [i.split(',') for i in r]
-                new_data = []
+                new_data = {}
                 for i in r:
-                    i = {'day': i[0], 'volume': float(i[6]), 'applies': float(i[8])}
-                    new_data.append(i)
-                return new_data[1:]
+                    tmp = {'day': i[0], 'volume': float(i[6]), 'applies': float(i[8])}
+                    new_data[i[0]] = tmp
+                return new_data
     except SecurityException() as e:
         print(e)
         return None
@@ -74,19 +74,25 @@ def select_whole_market_stock():
     return stock_list
 
 
-s = STOCK_LIST
-with open("whole_market.bin", "wb") as f:
-    result = {}
-    for i in s:
-        print(i)
-        code = i['code'].split('.')[0]
-        data = get_stock_kline(code, period=103, limit=250)
-        result[code] = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}
-    f.write(pickle.dumps(result))
+def save_whole_market_data():
+    s = STOCK_LIST
+    with open("whole_market.bin", "wb") as f:
+        result = {}
+        for i in s:
+            print(i)
+            code = i['code'].split('.')[0]
+            data = get_stock_kline(code, period=103, limit=250)
+            result[code] = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}
+        f.write(pickle.dumps(result))
+
+
 # with open("whole_market.bin", "rb") as f:
 #     content = f.read()
 #     content = pickle.loads(content)
-#     print(content)
+#     for _, v in content.items():
+#         print(v['kline'])
+
+
 
 
 

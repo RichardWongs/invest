@@ -9,6 +9,8 @@ def get_etf_list():
     etf_list = [{"name": "创成长", "code": 159967},
                 {"name": "质量ETF", "code": 515910},
                 {"name": "上证50", "code": 510050},
+                {"name": "沪深300ETF", "code": 510300},
+                {"name": "中证500ETF", "code": 510500},
                 {"name": "科创50", "code": 588000},
                 {"name": "光伏ETF", "code": 515790},
                 {"name": "医疗ETF", "code": 510050},
@@ -200,6 +202,9 @@ def draw_boolean(code):
 
 def draw(code, name="UNKNOWN"):
     import matplotlib.pyplot as plt
+    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
+    rows, columns = 1, 2
 
     save_path = "../STOCK_CHANNEL"
     if str(code).startswith('1') or str(code).startswith('5'):
@@ -207,8 +212,6 @@ def draw(code, name="UNKNOWN"):
     else:
         save_path += "/STOCK"
 
-    plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
-    plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
     data = get_stock_kline_with_indicators(code)
     data = EMA_V2(EMA_V2(EMA_V2(EMA_V2(data, 10), 20), 50), 26)
     data = ATR_Channel_System(data)
@@ -225,7 +228,7 @@ def draw(code, name="UNKNOWN"):
     up_channel = [i['up_channel'] for i in data]
     down_channel = [i['down_channel'] for i in data]
     plt.rcParams['figure.figsize'] = (16, 8)
-    plt.subplot(1, 2, 1)
+    plt.subplot(rows, columns, 1)
     plt.plot(x, close)
     plt.plot(x, ma10)
     plt.plot(x, ma50)
@@ -240,7 +243,7 @@ def draw(code, name="UNKNOWN"):
     ATR_minus_2 = [i['-2ATR'] for i in data]
     ATR_minus_3 = [i['-3ATR'] for i in data]
 
-    plt.subplot(1, 2, 2)
+    plt.subplot(rows, columns, 2)
     plt.plot(x, close)
     plt.plot(x, ma10)
     plt.plot(x, ma50)
@@ -252,9 +255,19 @@ def draw(code, name="UNKNOWN"):
     plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
     plt.title("ATR Channel")
 
+    # plt.subplot(2, 2, 3)
+    # bool_data = BooleanLine(data)
+    # x = x[:-20]
+    # plt.plot(x, [i['close'] for i in bool_data])
+    # plt.plot(x, [i['BBL'] for i in bool_data])
+    # plt.plot(x, [i['BBU'] for i in bool_data])
+    # plt.plot(x, [i['BBU_minus'] for i in bool_data])
+    # plt.plot(x, [i['BBL_minus'] for i in bool_data])
+    # plt.title("Boolean Channel")
+
     plt.suptitle(name)
-    plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
-    # plt.show()
+    # plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
+    plt.show()
     plt.close()
 
 

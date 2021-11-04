@@ -1,133 +1,126 @@
-import tushare as ts
-import numpy as np
+# ecoding: utf-8
+import backtrader as bt
+import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-import matplotlib
-import datetime
-from sklearn import linear_model
-# token = 'b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487'
-# ts.set_token(token)
-pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-matplotlib.rcParams['font.family'] = 'SimHei'
+import backtrader.analyzers as btanalyzers
 
 
-def get_data(ts_code):
-    data = ts.pro_bar(ts_code=ts_code, adj='hfq', start_date=START_DATE, end_date=END_DATE,freq=DATE_INTERAL)
-    data_close = data[['trade_date', 'close']].iloc[::-1,:]
-    data_close.index = range(1,len(data)+1)
-    print(data_close)
-    return data_close
+class Ketler(bt.Indicator):
+    params = dict(ema=20, atr=17)
+    lines = ('expo', 'atr', 'upper', 'lower')
+    plotinfo = dict(subplot=False)
+    plotlines = dict(
+        upper=dict(ls='--'),
+        lower=dict(_samecolor=True)
+    )
+
+    def __init__(self):
+        self.l.expo = bt.talib.EMA(
+            self.datas[0].close,
+            timeperiod=self.params.ema)
+        self.l.atr = bt.talib.ATR(
+            self.data.high,
+            self.data.low,
+            self.data.close,
+            timeperiod=self.params.atr)
+        self.l.upper = self.l.expo + self.l.atr
+        self.l.lower = self.l.expo - self.l.atr
 
 
-START_DATE = '20100101'  # 获取数据起始日期
-END_DATE = '20201231'
-TS_CODE = '600085.SH'
-DATE_INTERAL = 'W'    # 周线
+class Strategy(bt.Strategy):
+    def log(self, txt, dt=None):
+        ''' Logging function fot this strategy'''
+        dt = dt or self.datas[0].datetime.date(0)
+        print('%s, %s' % (dt.isoformat(), txt))
 
-L_START_DATE = '20150101'    # 需要拟合趋势起始日期
-L_END_DATE = '20201231'
+    def __init__(self):
+        self.ketler = Ketler()
+        self.close = self.data.close
 
-shares = ['002820.SZ', '600186.SH', '600866.SH', '002910.SZ', '000590.SZ',
-          '000650.SZ', '000989.SZ', '002566.SZ', '002644.SZ', '002728.SZ',
-          '002693.SZ', '002900.SZ', '002907.SZ', '600062.SH', '600227.SH',]
+    def notify_order(self, order):
+        if order.status in [order.Submitted, order.Accepted]:
+            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+            return
 
+        # Check if an order has been completed
+        # Attention: broker could reject order if not enough cash
+        if order.status in [order.Completed]:
+            if order.isbuy():
+                self.log(
+                    'BUY EXECUTED, Price: {:.2f}, Cost: {:.2f}, Comm {:.2f}'.format(
+                        order.executed.price,
+                        order.executed.value,
+                        order.executed.comm))
 
+                self.buyprice = order.executed.price
+                self.buycomm = order.executed.comm
+            else:  # Sell
+                self.log('SELL EXECUTED, Price: {:.2f}, Cost: {:.2f}, Comm {:.2f}'.format(
+                    order.executed.price,
+                    order.executed.value,
+                    order.executed.comm))
 
+            self.bar_executed = len(self)
 
-def main_point(shares):
-    for share in shares[:5]:
-        data_close = get_data(share)
-        regr_data = reg_p(data_close,L_START_DATE,L_END_DATE,point)
-        show_regr_data(data_close,regr_data,share)
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log('Order Canceled/Margin/Rejected')
 
+        self.order = None
 
-def reg_l(data_close,s_date,e_date):
-    l_data = data_close.loc[(data_close.trade_date>=s_date)&(data_close.trade_date<=e_date)]
-    y = l_data.close
-    x = np.array(l_data.index).reshape(-1,1)
-    regr = linear_model.LinearRegression()
-    regr.fit(x,y)
-    return regr,l_data
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            return
 
+        self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
+                 (trade.pnl, trade.pnlcomm))
 
-def reg_p(data_close,s_date,e_date,point):
-    l_data = data_close.loc[(data_close.trade_date>=s_date)&(data_close.trade_date<=e_date)]
-    l_index = l_data.index
-    index = list(map(int,np.linspace(l_index[0],l_index[-1],point, endpoint=True)))
-    index = [np.int64(i) for i in index]
-    regs = []
-    for i in range(0,point-1):
-        x = l_data.loc[(l_data.index>=index[i])&(l_data.index<=index[i+1])]
-        xx = np.array(x.index).reshape(-1,1)
-        y = x.close
-        regr = linear_model.LinearRegression()
-        regr.fit(xx,y)
-        y1 = [ i*regr.coef_ + regr.intercept_ for i in x.index ]
-        regs.append((x.index,y1,regr.coef_))
-
-    return regs
-
-
-def show_l(data, l_data, regr, title):
-    fig = plt.figure(figsize=(25, 4), dpi=80)
-    l_index = l_data.index
-    l_y = [y*regr.coef_ + regr.intercept_ for y in l_index]
-    plt.title(title)
-    if regr.coef_ >= 0:
-        colr = 'red'
-    else:
-        colr = 'green'
-    plt.plot(l_index, l_y, label='趋势 {} '.format(np.round(regr.coef_, 6)*100), color=colr)
-    plt.xlabel('时间', fontsize=15)
-    plt.ylabel('股价', fontsize=15)
-    plt.plot(data.trade_date, data.close, label='股价变化', color='gray')
-    plt.legend(fontsize=15)
-    plt.xticks(rotation=90, fontsize=15)
-    plt.yticks(fontsize=15)
-    plt.gca().xaxis.set_major_locator(MultipleLocator(30))
-    plt.show()
-
-
-def show_regr_data(data_close, regr_data, share):
-    fig = plt.figure(figsize=(25, 4), dpi=80)
-    plt.title(share)
-    for data in regr_data:
-        if data[2] >= 0:
-            colr = 'red'
+    def next(self):
+        if not self.position:
+            if self.close[0] > self.ketler.upper[0]:
+                self.order = self.order_target_percent(target=0.95)
         else:
-            colr = 'green'
-        plt.plot(data[0], data[1], label='趋势 {} '.format(np.round(data[2], 4)*100), color=colr)
-    plt.xlabel('时间', fontsize=15)
-    plt.ylabel('股价', fontsize=15)
-    plt.plot(data_close.trade_date, data_close.close, label='股价变化', color='gray')
-    plt.legend(fontsize=15)
-    plt.xticks(rotation=90,fontsize=15)
-    plt.yticks(fontsize=15)
-    plt.gca().xaxis.set_major_locator(MultipleLocator(30))
-    plt.show()
+            if self.close[0] < self.ketler.expo[0]:
+                self.order = self.sell()
 
 
-def main(shares):
-    # shares 股票代码列表
-    for share in shares:
-        data_close = get_data(share)
-        regr, l_data = reg_l(data_close, L_START_DATE, L_END_DATE)
-        show_l(data_close,l_data,regr,share)
+if __name__ == '__main__':
+    cerebro = bt.Cerebro()
 
+    data = bt.feeds.YahooFinanceData(
+        dataname='AAPL',
+        fromdate=datetime.datetime(2015, 1, 1),
+        todate=datetime.datetime(2020, 12, 14),
+        timeframe=bt.TimeFrame.Days
+    )
 
-START_DATE = '20200101'
-END_DATE = '20210101'
-TS_CODE = '600085.SH'
-DATE_INTERAL = 'W'
+    cerebro.adddata(data)
 
-L_START_DATE = '20150101'
-L_END_DATE = '20201231'
+    cerebro.addstrategy(Strategy)
+    cerebro.broker.setcash(1000000)
+    cerebro.broker.setcommission(commission=0)
+    cerebro.addsizer(bt.sizers.PercentSizer, percents=98)
 
-point = 6
+    cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='sharpe')
+    cerebro.addanalyzer(btanalyzers.DrawDown, _name='drawdown')
+    cerebro.addanalyzer(btanalyzers.Returns, _name='returns')
 
-# shares = ['002820.SZ', '600186.SH', '600866.SH', '002910.SZ', '000590.SZ', '000650.SZ', '000989.SZ', '002566.SZ', '002644.SZ', '002728.SZ', '002693.SZ', '002900.SZ', '002907.SZ', '600062.SH', '600227.SH',]
-shares = ['300760.SZ']
-main(shares)
-# main_point(shares)
+    print('Starte Portfolio Value {}'.format(cerebro.broker.getvalue()))
+    back = cerebro.run()
+    print('end portfolio value {}'.format(cerebro.broker.getvalue()))
 
+    par_list = [[x.analyzers.returns.get_analysis()['rtot'],
+                 x.analyzers.returns.get_analysis()['rnorm100'],
+                 x.analyzers.drawdown.get_analysis()['max']['drawdown'],
+                 x.analyzers.sharpe.get_analysis()['sharperatio']
+                 ] for x in back]
+    par_df = pd.DataFrame(
+        par_list,
+        columns=[
+            'Total Return',
+            'APR',
+            'Drawdown',
+            'SharpRatio'])
+    print(par_df)
+
+    cerebro.plot(style='candle')

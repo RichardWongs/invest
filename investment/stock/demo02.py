@@ -1,95 +1,36 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-import array
-import numpy as np
-import math
-
-def get_data(filename):
-    data = pd.read_csv(filename)
-
-    # 构造X列表和Y列表
-    X_parameter = []
-    Y_parameter = []
-    for single_square, single_price_value in zip(data['square_feet'], data['price']):
-        X_parameter.append([float(single_square)])
-        Y_parameter.append(float(single_price_value))
-    return X_parameter, Y_parameter
-
-def linear_model_main(X_parameter, Y_parameter, predict_square_feet):
-    # 构造回归对象
-    regr = LinearRegression()
-    regr.fit(X_parameter, Y_parameter)
-
-    # 获取预测值
-    predict_outcome = regr.predict(predict_square_feet)
-
-    # 构造返回字典
-    predictions = {}
-    # 截距值
-    predictions["截距值intercept"] = regr.intercept_
-    # 回归系数(斜率值)
-    predictions["回归系数(斜率值)coefficient"] = regr.coef_
-    # 预测值
-    predictions["预测值predict_value"] = predict_outcome
-    print(f"截距值: {regr.intercept_}\t斜率值: {regr.coef_}")
-    return predictions
-
-def show_linear_line(X_parameter, Y_parameter):
-    # 构造回归对象
-    regr = LinearRegression()
-    regr.fit(X_parameter, Y_parameter)
-
-    # 绘出已知数据散点图
-    plt.scatter(X_parameter, Y_parameter, color="blue")
-    # 绘出预测直线
-    plt.plot(X_parameter, regr.predict(X_parameter), color="red", linewidth=4)
-    plt.show()
-
-def main():
-    # 读取数据
-    X, Y = get_data("data.csv")
-    # 获取预测值,在这里我们预测700平方英尺的房子房价
-    predict_square_feet = [700]
-    result = linear_model_main(X, Y, [predict_square_feet])
-    for key, value in result.items():
-        show_linear_line(X, Y)
+# ecoding: utf-8
+import backtrader as bt
 
 
-def R2(X, Y):
-    xBar = np.mean(X)
-    yBar = np.mean(Y)
-    SSR = 0
-    varX = 0
-    varY = 0
-    for i in range(0, len(X)):
-        diffXXBar = X[i] - xBar
-        diffYYBar = Y[i] - yBar
-        SSR += (diffXXBar * diffYYBar)
-        varX += diffXXBar ** 2
-        varY += diffYYBar ** 2
-    SST = math.sqrt(varX * varY)
-    return SSR / SST
+class my_strategy1(bt.Strategy):
+    # 全局设定交易策略的参数
+    params = (
+        ('maperiod', 20),
+    )
 
+    def __init__(self):
+        # 指定价格序列
+        self.dataclose = self.datas[0].close
+        # 初始化交易指令、买卖价格和手续费
+        self.order = None
+        self.buyprice = None
+        self.buycomm = None
 
-def calc_linear(x, y):
-    assert len(x) == len(y)
-    x_ = sum(x)/len(x)
-    y_ = sum(y)/len(y)
-    print(f"x_:{x_}\ty_:{y_}")
-    add_value = 0
-    for i in range(len(x)):
-        add_value += x[i] * y[i]
-    take_value = x_ * y_
-    print(f"add_value:{add_value}\ttake_value:{take_value}")
-    x_sum_square = 0
-    for i in range(len(x)):
-        x_sum_square += x[i]*x[i]
-    x_sqrt = sum(x)*sum(x)/len(x)*len(x)
-    print(f"x_sum_square:{x_sum_square}\tx_sqrt:{x_sqrt}")
-    b = (add_value-len(x)*take_value)/(x_sum_square-len(x)*x_sqrt)
-    a = y_ - b * x_
-    print(f"a:{a}\tb:{b}")
+        # 添加移动均线指标，内置了talib模块
+        self.sma = bt.indicators.SimpleMovingAverage(
+            self.datas[0], period=self.params.maperiod)
 
-
-
+    def next(self):
+        if self.order:  # 检查是否有指令等待执行,
+            return
+        # 检查是否持仓
+        if not self.position:  # 没有持仓
+            # 执行买入条件判断：收盘价格上涨突破20日均线
+            if self.dataclose[0] > self.sma[0]:
+                # 执行买入
+                self.order = self.buy(size=500)
+        else:
+            # 执行卖出条件判断：收盘价格跌破20日均线
+            if self.dataclose[0] < self.sma[0]:
+                # 执行卖出
+                self.order = self.sell(size=500)

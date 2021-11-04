@@ -210,8 +210,7 @@ def get_market_data(code, start_date=20210101):
     return pool[1:]
 
 
-def BooleanLine(kline: list):
-    N = 20
+def BooleanLine(kline: list, N=20):
     assert len(kline) > N
     for i in range(len(kline)):
         if i >= N:
@@ -333,7 +332,7 @@ def MA(kline, N):
     return kline
 
 
-def MA(kline: list, N, key="close"):
+def MA_V2(kline: list, N, key="close"):
     assert len(kline) > N
     for i in range(len(kline)):
         if i >= N:
@@ -1052,9 +1051,9 @@ class Channel:
         N, M = 13, 26
         self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
         up_channel_coefficients, down_channel_coefficients = self.find_channel_coefficients()
-        logging.warning(f"code: {self.code}\tname: {self.name}\t"
-                        f"up_channel_coefficients:{up_channel_coefficients}\t"
-                        f"down_channel_coefficients:{down_channel_coefficients}")
+        # logging.warning(f"code: {self.code}\tname: {self.name}\t"
+        #                 f"up_channel_coefficients:{up_channel_coefficients}\t"
+        #                 f"down_channel_coefficients:{down_channel_coefficients}")
         for i in range(len(self.kline)):
             self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
                                           up_channel_coefficients * self.kline[i][f'ema{M}']
@@ -1122,9 +1121,30 @@ def FIP(kline: list):
     logging.warning(f"profit:{profit}\tpositive:{positive}\tnegative:{negative}")
     return round(profit * (negative - positive), 2)
 
+
+def stock_filter_by_Shrank_back_to_trample():
+    # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
+    N, M = 10, 50
+    pool = institutions_holding_rps_stock()
+    result = []
+    for i in pool:
+        kline = get_stock_kline_with_indicators(i['code'])
+        kline = MA(MA(kline, N), M)
+        if kline[-1][f'MA{M}'] >= kline[-2][f'MA{M}'] and kline[-1]['close'] <= kline[-1][f'MA{N}']:
+            if kline[-1]['applies'] < 0 and kline[-1]['volume'] < kline[-1]['10th_minimum']:
+                i['applies'] = kline[-1]['applies']
+                i['volume_ratio'] = kline[-1]['volume_ratio']
+                result.append(i)
+                logging.warning(i)
+    return result
+
+
 # stock_filter_by_MACD_and_BBI()
 # stock_filter_by_BooleanLine()
 # stock_filter_by_WAD()
 # stock_filter_by_kama()
 # stock_filter_by_pocket_protection()
 # stock_filter_by_down_channel()
+# stock_filter_by_Shrank_back_to_trample()
+
+
