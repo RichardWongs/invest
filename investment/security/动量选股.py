@@ -180,11 +180,5 @@ def market_open():
         send_dingtalk_message(buying_message)
 
 
-# if __name__ == "__main__":
-    # market_open()
-p = get_security()
-for i in p:
-    del i['closes']
-    print(i)
-logging.warning(p)
+
 

@@ -78,8 +78,10 @@ def save_whole_market_data():
     s = STOCK_LIST
     with open("whole_market.bin", "wb") as f:
         result = {}
+        counter = 0
         for i in s:
-            print(i)
+            counter += 1
+            print(i, counter)
             code = i['code'].split('.')[0]
             data = get_stock_kline(code, period=103, limit=250)
             result[code] = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}

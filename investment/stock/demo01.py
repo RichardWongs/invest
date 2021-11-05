@@ -88,9 +88,9 @@ if __name__ == '__main__':
     cerebro = bt.Cerebro()
 
     data = bt.feeds.YahooFinanceData(
-        dataname='AAPL',
-        fromdate=datetime.datetime(2015, 1, 1),
-        todate=datetime.datetime(2020, 12, 14),
+        dataname='BILI',
+        fromdate=datetime.datetime(2019, 1, 1),
+        todate=datetime.datetime(2020, 12, 31),
         timeframe=bt.TimeFrame.Days
     )
 

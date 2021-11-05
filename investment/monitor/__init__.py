@@ -854,6 +854,27 @@ def MTM(kline: list):
     return kline[M:]
 
 
+def MFI(kline: list):
+    N = 14
+    for i in range(len(kline)):
+        kline[i]['TYP'] = round((kline[i]['high'] + kline[i]['low'] + kline[i]['close'])/3, 2)
+        if i > 0:
+            if kline[i]['TYP'] > kline[i-1]['TYP']:
+                kline[i]['in_amount'] = kline[i]['TYP'] * kline[i]['volume']
+                kline[i]['out_amount'] = 0
+            else:
+                kline[i]['in_amount'] = 0
+                kline[i]['out_amount'] = kline[i]['TYP'] * kline[i]['volume']
+        if i >= N:
+            tmp_in, tmp_out = [], []
+            for j in range(i, i-N, -1):
+                tmp_in.append(kline[i]['in_amount'])
+                tmp_out.append(kline[i]['out_amount'])
+            print(sum(tmp_in), sum(tmp_out))
+            # kline[i]['V1'] = sum(tmp_in)/sum(tmp_out)
+    return kline
+
+
 def stock_filter_by_pocket_protection():
     from RPS.quantitative_screening import institutions_holding_rps_stock
     logging.warning(f"stock filter by pocket protection !")
@@ -888,6 +909,27 @@ def stock_filter_by_MACD_and_BBI(period=101, limit=150):
     return result
 
 
+def stock_filter_by_MACD_and_BBI_V2(pool: list):
+    result = []
+    for i in pool:
+        data = i['kline']
+        data = ATR(data)
+        data = BBI(MACD(data))
+        biggest_decline = biggest_decline_calc(data)
+        target = {}
+        if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1][
+            'BBI']:
+            i['applies'] = data[-1]['applies']
+            i['volume'] = data[-1]['volume']
+            i['10th_largest'] = data[-1]['10th_largest']
+            target['code'] = i['code']
+            target['name'] = i['name']
+            target['industry'] = i['industry'] = get_industry_by_code(i['code'])
+            result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
+            logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
+    return result
+
+
 def stock_filter_by_BooleanLine(period=101, limit=150):
     logging.warning(f"stock filter by BooleanLine !")
     pool = institutions_holding_rps_stock()
@@ -907,7 +949,27 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
     return result
 
 
-def stock_filter_by_WAD(period=101, limit=150):
+def stock_filter_by_BooleanLine_V2(pool: list):
+    result = []
+    for i in pool:
+        data = i['kline']
+        data = ATR(data)
+        data = BooleanLine(data)
+        biggest_decline = biggest_decline_calc(data)
+        target = {}
+        if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
+            i['BBW'] = data[-1]['BBW']
+            i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close']) / data[-5]['last_close'] * 100, 2)
+            if i['week_applies'] > 0:
+                target['code'] = i['code']
+                target['name'] = i['name']
+                target['industry'] = i['industry'] = get_industry_by_code(i['code'])
+                result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
+                logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
+    return result
+
+
+def stock_filter_by_WAD(period=101, limit=180):
     logging.warning(f"stock filter by WAD !")
     pool = institutions_holding_rps_stock()
     result = []
@@ -922,6 +984,25 @@ def stock_filter_by_WAD(period=101, limit=150):
             i['industry'] = get_industry_by_code(i['code'])
             result.append(i)
             logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
+    return result
+
+
+def stock_filter_by_WAD_V2(pool: list):
+    result = []
+    for i in pool:
+        data = i['kline']
+        data = ATR(data)
+        data = WAD(data)
+        biggest_decline = biggest_decline_calc(data)
+        target = {}
+        if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
+            i['WAD'] = data[-1]['WAD']
+            i['MAWAD'] = data[-1]['MAWAD']
+            target['code'] = i['code']
+            target['name'] = i['name']
+            target['industry'] = i['industry'] = get_industry_by_code(i['code'])
+            result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
+            logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
     return result
 
 
@@ -971,6 +1052,24 @@ def stock_filter_by_kama():
             i['applies'] = data[-1]['applies']
             result.append(i)
             logging.warning(i)
+    return result
+
+
+def stock_filter_by_kama_V2(pool: list):
+    # 根据考夫曼自适应均线对股票池进行筛选
+    result = []
+    for i in pool:
+        data = i['kline']
+        data = KAMA(data)
+        target = {}
+        if data[-1]['close'] > data[-1]['KAMA'] and data[-2]['close'] < data[-2]['KAMA']:
+            i['close'] = data[-1]['close']
+            i['applies'] = data[-1]['applies']
+            target['code'] = i['code']
+            target['name'] = i['name']
+            target['industry'] = i['industry'] = get_industry_by_code(i['code'])
+            result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
+            logging.warning(target)
     return result
 
 
@@ -1136,12 +1235,47 @@ def stock_filter_by_Shrank_back_to_trample():
     return result
 
 
-# stock_filter_by_MACD_and_BBI()
-# stock_filter_by_BooleanLine()
-# stock_filter_by_WAD()
-# stock_filter_by_kama()
-# stock_filter_by_pocket_protection()
-# stock_filter_by_down_channel()
-# stock_filter_by_Shrank_back_to_trample()
+def stock_filter_by_Shrank_back_to_trample_V2(pool: list):
+    # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
+    N, M = 10, 50
+    result = []
+    for i in pool:
+        kline = i['kline']
+        kline = MA(MA(kline, N), M)
+        target = {}
+        if kline[-1][f'MA{M}'] >= kline[-2][f'MA{M}'] and kline[-1]['close'] <= kline[-1][f'MA{N}']:
+            if kline[-1]['volume'] < kline[-1]['10th_minimum']:
+                i['industry'] = get_industry_by_code(i['code'])
+                i['applies'] = kline[-1]['applies']
+                i['volume_ratio'] = kline[-1]['volume_ratio']
+                target['code'] = i['code']
+                target['name'] = i['name']
+                target['industry'] = get_industry_by_code(i['code'])
+                result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
+                logging.warning(target)
+    return result
+
+
+def stock_filter_aggregation():
+    pool = institutions_holding_rps_stock()
+    for i in pool:
+        i['kline'] = get_stock_kline_with_indicators(i['code'], period=101, limit=180)
+    logging.warning(f"MACD STOCK FILTER")
+    macd_pool = stock_filter_by_MACD_and_BBI_V2(pool)
+    logging.warning(f"WAD STOCK FILTER")
+    wad_pool = stock_filter_by_WAD_V2(pool)
+    logging.warning(f"BooleanLine STOCK FILTER")
+    boolean_pool = stock_filter_by_BooleanLine_V2(pool)
+    logging.warning(f"KAMA STOCK FILTER")
+    kama_pool = stock_filter_by_kama_V2(pool)
+    logging.warning(f"Shrank_back_to_trample STOCK FILTER")
+    Shrank_back_to_trample_pool = stock_filter_by_Shrank_back_to_trample_V2(pool)
+    total = macd_pool + wad_pool + boolean_pool + kama_pool + Shrank_back_to_trample_pool
+    for i in total:
+        if total.count(i) > 1:
+            print(i)
+
+
+# stock_filter_aggregation()
 
 
