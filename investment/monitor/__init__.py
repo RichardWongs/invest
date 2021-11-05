@@ -97,7 +97,6 @@ def Compact_Structure(kline: list):
 
 
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
-    # 添加技术指标布林线,布林线宽度
     time.sleep(0.5)
     assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
@@ -159,11 +158,6 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                         new_data[i]['10th_minimum'] = min(tenth_volume)
                         new_data[i]['avg_volume'] = sum(tenth_volume) / len(tenth_volume)
                         new_data[i]['volume_ratio'] = round(new_data[i]['volume'] / new_data[i]['avg_volume'], 2)
-                    # if i >= 50:
-                    #     tmp = []
-                    #     for j in range(i, i-50, -1):
-                    #         tmp.append(new_data[j]['close'])
-                    #     new_data[i]['ma50'] = round(sum(tmp)/len(tmp), 2)
                 return new_data[1:]
     except SecurityException() as e:
         print(e)
@@ -787,8 +781,8 @@ def pocket_protection_V2(kline: list):
     if L40 > high / 2 or close >= H250:
         if round((high - low) / high * 100, 2) < 46:
             # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
-            if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1][
-                'applies'] > 9.9:
+            if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) \
+                    or kline[-1]['applies'] > 9.9:
                 # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
                 return True
 
@@ -874,12 +868,12 @@ def stock_filter_by_pocket_protection():
     return result
 
 
-def stock_filter_by_MACD_and_BBI():
+def stock_filter_by_MACD_and_BBI(period=101, limit=150):
     logging.warning(f"stock filter by MACD and BBI !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'], limit=150)
+        data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = ATR(data)
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
@@ -894,12 +888,12 @@ def stock_filter_by_MACD_and_BBI():
     return result
 
 
-def stock_filter_by_BooleanLine():
+def stock_filter_by_BooleanLine(period=101, limit=150):
     logging.warning(f"stock filter by BooleanLine !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'], limit=150)
+        data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = ATR(data)
         data = BooleanLine(data)
         biggest_decline = biggest_decline_calc(data)
@@ -913,12 +907,12 @@ def stock_filter_by_BooleanLine():
     return result
 
 
-def stock_filter_by_WAD():
+def stock_filter_by_WAD(period=101, limit=150):
     logging.warning(f"stock filter by WAD !")
     pool = institutions_holding_rps_stock()
     result = []
     for i in pool:
-        data = get_stock_kline_with_indicators(i['code'], limit=180)
+        data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = ATR(data)
         data = WAD(data)
         biggest_decline = biggest_decline_calc(data)
@@ -1133,7 +1127,7 @@ def stock_filter_by_Shrank_back_to_trample():
         kline = get_stock_kline_with_indicators(i['code'])
         kline = MA(MA(kline, N), M)
         if kline[-1][f'MA{M}'] >= kline[-2][f'MA{M}'] and kline[-1]['close'] <= kline[-1][f'MA{N}']:
-            if kline[-1]['applies'] < 0 and kline[-1]['volume'] < kline[-1]['10th_minimum']:
+            if kline[-1]['volume'] < kline[-1]['10th_minimum']:
                 i['industry'] = get_industry_by_code(i['code'])
                 i['applies'] = kline[-1]['applies']
                 i['volume_ratio'] = kline[-1]['volume_ratio']
