@@ -294,5 +294,6 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
-
+for i in get_etf_list():
+    draw(i['code'], i['name'])
 

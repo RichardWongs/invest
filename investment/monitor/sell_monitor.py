@@ -16,7 +16,7 @@ def sell_signal():
     for i in SELL_LIST:
         kline = get_stock_kline_with_indicators(i['code'], period=60)
         kline = MACD(kline)
-        if kline[-1]['macd_direction'] == "DOWN" and kline[-1]['DIF'] < kline[-1]['DEA']:
+        if kline[-1]['MACD'] > 0 and kline[-1]['macd_direction'] == "DOWN" and kline[-2]['macd_direction'] == "UP":
             i['close'] = kline[-1]['close']
             message += f"{i['code']}\t{i['name']}\t{i['close']}\n"
             logging.warning(i)

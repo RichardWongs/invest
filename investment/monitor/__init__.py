@@ -763,13 +763,11 @@ def pocket_protection(kline: list):
     ma50 = kline[-1]['ma50']
     if biggest_decline_calc(kline) < 50 and close == max_5 and close > ma50:
         # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
-        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1][
-            'applies'] > 9.9:
+        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
             # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
             highest_250 = [i['high'] for i in kline[-250:]]
             lowest_15 = [i['low'] for i in kline[-15:]]
             lowest_50 = [i['low'] for i in kline[-50:]]
-
             return True
 
 
@@ -898,8 +896,8 @@ def stock_filter_by_MACD_and_BBI(period=101, limit=150):
         data = ATR(data)
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
-        if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1][
-            'BBI']:
+        # if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
+        if data[-1]['MACD'] < 0 and data[-1]['macd_direction'] == "UP" and data[-2]['macd_direction'] == "DOWN":
             i['industry'] = get_industry_by_code(i['code'])
             i['applies'] = data[-1]['applies']
             i['volume'] = data[-1]['volume']
@@ -917,8 +915,8 @@ def stock_filter_by_MACD_and_BBI_V2(pool: list):
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
         target = {}
-        if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1][
-            'BBI']:
+        # if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
+        if data[-1]['MACD'] < 0 and data[-1]['macd_direction'] == "UP" and data[-2]['macd_direction'] == "DOWN":
             i['applies'] = data[-1]['applies']
             i['volume'] = data[-1]['volume']
             i['10th_largest'] = data[-1]['10th_largest']
@@ -1004,26 +1002,6 @@ def stock_filter_by_WAD_V2(pool: list):
             result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
             logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
     return result
-
-
-def stock_filter_by_MACD_and_BBI_test(code):
-    data = get_market_data(code, start_date=20210101)
-    data = BBI(MACD(data))
-    for i in range(len(data)):
-        if 'BBI' in data[i].keys():
-            if data[i]['DIF'] > data[i]['DEA'] and data[i - 1]['DIF'] < data[i - 1]['DEA'] and data[i]['close'] > \
-                    data[i]['BBI']:
-                logging.warning(data[i])
-
-
-def stock_filter_by_WAD_test(code):
-    data = get_stock_kline_with_indicators(code, limit=250)
-    data = WAD(data)
-    for i in range(len(data)):
-        if i > 0 and i + 3 < len(data) and data[i]['WAD'] > data[i]['MAWAD'] and data[i - 1]['WAD'] < data[i - 1][
-            'MAWAD']:
-            logging.warning(
-                f"{data[i]['day']}\t{data[i]['applies']}\t第二天:{data[i + 1]['applies']}\t第三天:{data[i + 2]['applies']}\t第四天:{data[i + 3]['applies']}")
 
 
 def stock_filter_by_Compact_Structure():
@@ -1273,7 +1251,7 @@ def stock_filter_aggregation():
     total = macd_pool + wad_pool + boolean_pool + kama_pool + Shrank_back_to_trample_pool
     for i in total:
         if total.count(i) > 1:
-            print(i)
+            print(i, "买入信号出现超过一次")
 
 
 # stock_filter_aggregation()
