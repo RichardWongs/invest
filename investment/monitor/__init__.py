@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.stock_pool import NEW_STOCK_LIST
-from RPS.quantitative_screening import institutions_holding_rps_stock, biggest_decline_calc
+from RPS.quantitative_screening import institutions_holding_rps_stock, institutions_holding_rps_stock_short, biggest_decline_calc
 
 
 # 计算平均值
@@ -913,9 +913,7 @@ def stock_filter_by_MACD_and_BBI_V2(pool: list):
         data = i['kline']
         data = ATR(data)
         data = BBI(MACD(data))
-        biggest_decline = biggest_decline_calc(data)
         target = {}
-        # if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
         if data[-1]['MACD'] < 0 and data[-1]['macd_direction'] == "UP" and data[-2]['macd_direction'] == "DOWN":
             i['applies'] = data[-1]['applies']
             i['volume'] = data[-1]['volume']
@@ -924,7 +922,7 @@ def stock_filter_by_MACD_and_BBI_V2(pool: list):
             target['name'] = i['name']
             target['industry'] = i['industry'] = get_industry_by_code(i['code'])
             result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
-            logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
+            logging.warning(f"{target}")
     return result
 
 
@@ -953,7 +951,6 @@ def stock_filter_by_BooleanLine_V2(pool: list):
         data = i['kline']
         data = ATR(data)
         data = BooleanLine(data)
-        biggest_decline = biggest_decline_calc(data)
         target = {}
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
             i['BBW'] = data[-1]['BBW']
@@ -963,7 +960,7 @@ def stock_filter_by_BooleanLine_V2(pool: list):
                 target['name'] = i['name']
                 target['industry'] = i['industry'] = get_industry_by_code(i['code'])
                 result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
-                logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
+                logging.warning(f"{target}")
     return result
 
 
@@ -991,7 +988,6 @@ def stock_filter_by_WAD_V2(pool: list):
         data = i['kline']
         data = ATR(data)
         data = WAD(data)
-        biggest_decline = biggest_decline_calc(data)
         target = {}
         if data[-1]['WAD'] > data[-1]['MAWAD'] and data[-2]['WAD'] < data[-2]['MAWAD']:
             i['WAD'] = data[-1]['WAD']
@@ -1000,7 +996,7 @@ def stock_filter_by_WAD_V2(pool: list):
             target['name'] = i['name']
             target['industry'] = i['industry'] = get_industry_by_code(i['code'])
             result.append({'code': i['code'], 'name': i['name'], 'industry': i['industry']})
-            logging.warning(f"{target}\t半年内最大跌幅: {biggest_decline}")
+            logging.warning(f"{target}")
     return result
 
 
@@ -1198,16 +1194,17 @@ def FIP(kline: list):
 def stock_filter_by_Shrank_back_to_trample():
     # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
     N, M = 10, 50
-    pool = institutions_holding_rps_stock()
+    pool = institutions_holding_rps_stock_short()
     result = []
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
-        kline = MA(MA(kline, N), M)
+        kline = MACD(MA(MA(kline, N), M))
         if kline[-1][f'MA{M}'] >= kline[-2][f'MA{M}'] and kline[-1]['close'] <= kline[-1][f'MA{N}']:
             if kline[-1]['volume'] < kline[-1]['10th_minimum']:
                 i['industry'] = get_industry_by_code(i['code'])
                 i['applies'] = kline[-1]['applies']
                 i['volume_ratio'] = kline[-1]['volume_ratio']
+                i['macd_direction'] = kline[-1]['macd_direction']
                 result.append(i)
                 logging.warning(i)
     return result
@@ -1215,7 +1212,7 @@ def stock_filter_by_Shrank_back_to_trample():
 
 def stock_filter_by_Shrank_back_to_trample_V2(pool: list):
     # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
-    N, M = 10, 50
+    N, M = 5, 50
     result = []
     for i in pool:
         kline = i['kline']
@@ -1254,6 +1251,6 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
-# stock_filter_aggregation()
+stock_filter_aggregation()
 
 

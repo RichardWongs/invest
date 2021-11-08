@@ -17,7 +17,7 @@ rps_day = 20
 
 
 def get_stock_list():
-    # 获取沪深股市股票列表, 剔除上市不满一年的次新股
+    # 获取沪深股市股票列表, 剔除上市不满半年的次新股
     df = pro.stock_basic(exchange='', list_status='L',
                          fields='ts_code,symbol,name,industry,list_date')  # fields='ts_code,symbol,name,area,industry,'
     df = df[df['list_date'].apply(int).values < begin_date]

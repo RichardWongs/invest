@@ -100,6 +100,23 @@ def institutions_holding_rps_stock():
     return pool
 
 
+def institutions_holding_rps_stock_short():
+    os.chdir("../RPS")
+    file = "RPS_20_V2.csv"
+    rps_pool = set()
+    df = pd.read_csv(file, encoding='utf-8')
+    for i in df.values:
+        if i[-1] >= 87:
+            rps_pool.add((i[0].split('.')[0], i[1]))
+    fund_pool = get_fund_holdings(quarter=3)
+    foreign_capital_pool = foreignCapitalHoldingV2()
+    pool = fund_pool.union(foreign_capital_pool)
+    pool = [i for i in pool if i in rps_pool]
+    pool = [{'code': i[0], 'name': i[1]} for i in pool]
+    logging.warning(f"高RPS且机构持股:\t{len(pool)}\t{pool}")
+    return pool
+
+
 def biggest_decline_calc(kline: list):
     # 计算最近半年最大调整幅度
     assert len(kline) >= 120
@@ -144,7 +161,4 @@ def select_biggest_decline():
             logging.warning(f"code: {i['code']}\tname: {i['name']}\t最高: {high}\t最低: {low}\t当前: {close}\tbiggest_decline: {biggest_decline}")
     return target
 
-
-# stock_pool_filter_process()
-# select_biggest_decline()
 
