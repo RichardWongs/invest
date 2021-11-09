@@ -1253,7 +1253,8 @@ def stock_filter_aggregation():
         if total.count(i) > 1:
             print(i, "买入信号出现超过一次")
 
-
+from monitor.trade_system import draw
 # stock_filter_aggregation()
-# stock_filter_by_Shrank_back_to_trample()
-
+result = stock_filter_by_Shrank_back_to_trample()
+for i in result:
+    draw(i['code'], i['name'])
