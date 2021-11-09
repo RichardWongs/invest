@@ -603,8 +603,10 @@ def MACD(kline: list):
     for i in range(len(kline)):
         kline[i]['MACD'] = 2 * (kline[i]['DIF'] - kline[i]['DEA'])
         if i > 0:
-            if kline[i]['MACD'] > kline[i - 1]['MACD']:
+            if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] >= kline[i-1]['DIF']:
                 kline[i]['macd_direction'] = 'UP'
+            if kline[i]['MACD'] > kline[i-1]['MACD'] and kline[i]['DIF'] < kline[i-1]['DIF']:
+                kline[i]['macd_direction'] = 'UP-'
             else:
                 kline[i]['macd_direction'] = 'DOWN'
     return kline
@@ -1193,18 +1195,19 @@ def FIP(kline: list):
 
 def stock_filter_by_Shrank_back_to_trample():
     # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
-    N, M = 10, 50
+    N, M = 5, 50
+    last_one = -1
     pool = institutions_holding_rps_stock_short()
     result = []
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
         kline = MACD(MA(MA(kline, N), M))
-        if kline[-1][f'MA{M}'] >= kline[-2][f'MA{M}'] and kline[-1]['close'] <= kline[-1][f'MA{N}']:
-            if kline[-1]['volume'] < kline[-1]['10th_minimum']:
+        if kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
+            if kline[last_one]['volume'] < kline[last_one]['avg_volume'] and kline[last_one]['applies'] > -3:
                 i['industry'] = get_industry_by_code(i['code'])
-                i['applies'] = kline[-1]['applies']
-                i['volume_ratio'] = kline[-1]['volume_ratio']
-                i['macd_direction'] = kline[-1]['macd_direction']
+                i['applies'] = kline[last_one]['applies']
+                i['volume_ratio'] = kline[last_one]['volume_ratio']
+                i['macd_direction'] = kline[last_one]['macd_direction']
                 result.append(i)
                 logging.warning(i)
     return result
@@ -1251,6 +1254,6 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
-stock_filter_aggregation()
-
+# stock_filter_aggregation()
+# stock_filter_by_Shrank_back_to_trample()
 
