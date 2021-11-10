@@ -1203,11 +1203,11 @@ def stock_filter_by_Shrank_back_to_trample():
         kline = get_stock_kline_with_indicators(i['code'])
         kline = MACD(MA(MA(kline, N), M))
         if kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
-            if kline[last_one]['volume'] < kline[last_one]['avg_volume'] and kline[last_one]['applies'] > -3:
+            if kline[last_one]['volume'] < kline[last_one]['avg_volume']:
                 i['industry'] = get_industry_by_code(i['code'])
                 i['applies'] = kline[last_one]['applies']
                 i['volume_ratio'] = kline[last_one]['volume_ratio']
-                i['macd_direction'] = kline[last_one]['macd_direction']
+                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
                 result.append(i)
                 logging.warning(i)
     return result
@@ -1253,8 +1253,5 @@ def stock_filter_aggregation():
         if total.count(i) > 1:
             print(i, "买入信号出现超过一次")
 
-from monitor.trade_system import draw
-# stock_filter_aggregation()
-result = stock_filter_by_Shrank_back_to_trample()
-for i in result:
-    draw(i['code'], i['name'])
+
+stock_filter_by_Shrank_back_to_trample()
