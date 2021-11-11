@@ -5,6 +5,7 @@ import pandas as pd
 import tushare as ts
 from datetime import date, timedelta
 import logging
+from momentum import NEW_STOCK_LIST
 from RPS.foreign_capital_increase import foreign_capital_filter, foreignCapitalHoldingV2
 from security import get_interval_yield, get_stock_kline_with_volume
 
@@ -160,5 +161,23 @@ def select_biggest_decline():
             target.append({'code': i['code'], 'name': i['name'], 'highest': high, 'lowest': low, 'current_price': close, 'biggest_decline': biggest_decline})
             logging.warning(f"code: {i['code']}\tname: {i['name']}\t最高: {high}\t最低: {low}\t当前: {close}\tbiggest_decline: {biggest_decline}")
     return target
+
+
+def Daily_New_High():
+    filename = "../RPS/daily_data.csv"
+    df = pd.read_csv(filename, encoding="utf-8")
+    data = df.columns[1:]
+    target = []
+    for i in range(len(data)):
+        closes = df.iloc[:, i+1].values
+        result = {'code': data[i], 'name': "", 'industry': "", 'close': closes[-1], 'max': max(closes)}
+        result['name'] = NEW_STOCK_LIST[result['code']]['name']
+        result['industry'] = NEW_STOCK_LIST[result['code']]['industry']
+        if result['close'] == result['max']:
+            logging.warning(result)
+            target.append(result)
+    return target
+
+
 
 
