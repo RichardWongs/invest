@@ -5,7 +5,7 @@ import html2text
 import os
 import requests
 
-path = r"C:\Users\Administrator\Desktop\ETF\陶博士"
+path = r"."
 if not os.path.exists(path):
     os.makedirs(path)
 os.chdir(path)
@@ -42,12 +42,9 @@ def run(url, filename=None):
 
 if __name__ == "__main__":
     urls =[
-        "https://mp.weixin.qq.com/s/WoVl_byT47opLAcqxnheDw",
-        "https://mp.weixin.qq.com/s/kBFxwkl0-rKxYi8RNZroTw",
-        "https://mp.weixin.qq.com/s/cGciypZ4r06Ft0vKxyfFuQ",
-        "https://mp.weixin.qq.com/s/r7QfPQaeOCwbOoZWLykwJw",
-        "https://mp.weixin.qq.com/s/8cJiHst58ux5Ox2AUZVHYg",
-        "https://mp.weixin.qq.com/s/wvOLfwSGrVTg6CI5GzjDaQ"
+        "https://mp.weixin.qq.com/s/K1Nar3eNwB_8GQYUUYAXUg",
+        "https://mp.weixin.qq.com/s/EnRQPR3CoPdpMbseCslD6w",
+        "https://mp.weixin.qq.com/s/hvZBRyplJaUwxU3JLcf9DQ",
     ]
     for url in urls:
         run(url)
