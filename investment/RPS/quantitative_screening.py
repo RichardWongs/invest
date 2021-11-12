@@ -91,17 +91,19 @@ def stock_pool_filter_process():
 
 
 def institutions_holding_rps_stock():
+    # 中长期高RPS且机构持股
     rps_pool = get_RPS_stock_pool()
     fund_pool = get_fund_holdings(quarter=3)
     foreign_capital_pool = foreignCapitalHoldingV2()
     pool = fund_pool.union(foreign_capital_pool)
     pool = [i for i in pool if i in rps_pool]
     pool = [{'code': i[0], 'name': i[1]} for i in pool]
-    logging.warning(f"高RPS且机构持股:\t{len(pool)}\t{pool}")
+    logging.warning(f"中长期高RPS且机构持股:\t{len(pool)}\t{pool}")
     return pool
 
 
 def institutions_holding_rps_stock_short():
+    # 短期高RPS&机构外资持股
     os.chdir("../RPS")
     file = "RPS_20_V2.csv"
     rps_pool = set()
@@ -114,7 +116,7 @@ def institutions_holding_rps_stock_short():
     pool = fund_pool.union(foreign_capital_pool)
     pool = [i for i in pool if i in rps_pool]
     pool = [{'code': i[0], 'name': i[1]} for i in pool]
-    logging.warning(f"高RPS且机构持股:\t{len(pool)}\t{pool}")
+    logging.warning(f"短期高RPS且机构持股:\t{len(pool)}\t{pool}")
     return pool
 
 
@@ -177,6 +179,22 @@ def Daily_New_High():
             logging.warning(result)
             target.append(result)
     return target
+
+
+def institutions_holding_rps_stock_short_V2():
+    # 长中短期高RPS&机构持股股池
+    os.chdir("../RPS")
+    file = "RPS_20_V2.csv"
+    rps_pool = []
+    df = pd.read_csv(file, encoding='utf-8')
+    for i in df.values:
+        if i[-1] >= 87:
+            rps_pool.append({'code': i[0].split('.')[0], 'name': i[1]})
+    pool = institutions_holding_rps_stock()
+    target = [i for i in pool if i in rps_pool]
+    logging.warning(f"长中短期高RPS&机构持股股池:\t{len(target)}\t{target}")
+    return target
+
 
 
 
