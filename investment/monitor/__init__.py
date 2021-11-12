@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.stock_pool import NEW_STOCK_LIST
-from RPS.quantitative_screening import institutions_holding_rps_stock, institutions_holding_rps_stock_short, biggest_decline_calc
+from RPS.quantitative_screening import *
 
 
 # 计算平均值
@@ -1193,17 +1193,18 @@ def FIP(kline: list):
     return round(profit * (negative - positive), 2)
 
 
-def stock_filter_by_Shrank_back_to_trample():
+def stock_filter_by_Shrank_back_to_trample(volume_part=1):
     # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
+    # volume_part 盘中执行时, 根据已开盘时长推算全天成交量
     N, M = 5, 50
     last_one = -1
-    pool = institutions_holding_rps_stock_short()
+    pool = institutions_holding_rps_stock_short_V2()
     result = []
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
         kline = MACD(MA(MA(kline, N), M))
         if kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
-            if kline[last_one]['volume'] < kline[last_one]['avg_volume']:
+            if kline[last_one]['volume'] * volume_part < kline[last_one]['avg_volume']:
                 i['industry'] = get_industry_by_code(i['code'])
                 i['applies'] = kline[last_one]['applies']
                 i['volume_ratio'] = kline[last_one]['volume_ratio']
@@ -1254,4 +1255,5 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
-stock_filter_by_Shrank_back_to_trample()
+
+

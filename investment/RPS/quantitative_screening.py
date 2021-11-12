@@ -1,5 +1,6 @@
 # encoding: utf-8
 # 量化选股流程  思路来源: 陶博士
+import copy
 import os
 import pandas as pd
 import tushare as ts
@@ -169,16 +170,28 @@ def Daily_New_High():
     filename = "../RPS/daily_data.csv"
     df = pd.read_csv(filename, encoding="utf-8")
     data = df.columns[1:]
-    target = []
+    target, second_target = [], []
     for i in range(len(data)):
         closes = df.iloc[:, i+1].values
         result = {'code': data[i], 'name': "", 'industry': "", 'close': closes[-1], 'max': max(closes)}
         result['name'] = NEW_STOCK_LIST[result['code']]['name']
         result['industry'] = NEW_STOCK_LIST[result['code']]['industry']
         if result['close'] == result['max']:
-            logging.warning(result)
             target.append(result)
-    return target
+        if result['close'] >= result['max'] * 0.9:
+            second_target.append(result)
+    logging.warning(f"今日创新高个股数量&详情: {len(target)}\t{target}")
+    logging.warning(f"接近一年新高: {len(second_target)}\t{second_target}")
+    industries = [i['industry'] for i in target]
+    industrySet = set(industries)
+    industry_distribution = []
+    for i in industrySet:
+        industry_distribution.append({'industry': i, 'count': industries.count(i)})
+    industry_distribution = sorted(industry_distribution, key=lambda x: x['count'], reverse=True)
+    logging.warning(f"创新高行业分布&详情: {industry_distribution}")
+    for i in second_target:
+        i['code'] = i['code'].split('.')[0]
+    return second_target
 
 
 def institutions_holding_rps_stock_short_V2():

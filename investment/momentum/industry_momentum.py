@@ -110,9 +110,10 @@ def fill_in_data(df, filename="RPS.csv"):
 
 
 def create_RPS_file():
-    stocks = get_stock_list()  # 获取全市场股票列表
-    get_all_data(stocks)  # 获取行情数据并写入csv文件
-    data = pd.read_csv(f'daily_price.csv', encoding='utf-8', index_col='trade_date')
+    # stocks = get_stock_list()  # 获取全市场股票列表
+    # get_all_data(stocks)  # 获取行情数据并写入csv文件
+    market_data_filename = "../RPS/daily_data.csv"
+    data = pd.read_csv(market_data_filename, encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
     ret = cal_ret(data, w=rps_day)
     rps = all_RPS(ret)
@@ -203,5 +204,6 @@ def get_momentum_rank_top(filename="简放-动量模型.csv"):
 
 
 if __name__ == '__main__':
-    run()
+    # run()
+    get_momentum_rank_top()
 
