@@ -373,6 +373,20 @@ def WMS(kline, N=30):
     return WR30
 
 
+def William(kline: list, N=14):
+    for i in range(len(kline)):
+        if i >= N:
+            high_price, low_price = [], []
+            for j in range(i, i-N, -1):
+                high_price.append(kline[j]['high'])
+                low_price.append(kline[j]['low'])
+            highest = max(high_price)
+            lowest = min(low_price)
+            close = kline[i]['close']
+            kline[i]['%R'] = (highest - close)/(highest - lowest) * -100
+    return kline[N:]
+
+
 def TRIX(kline: list):
     N, M = 12, 20
     kline = EMA_V2(EMA_V2(EMA_V2(kline, N), N, key=f'ema{N}'), N, key=f'ema{N}')
