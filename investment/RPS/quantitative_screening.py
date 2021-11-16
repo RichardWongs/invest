@@ -105,8 +105,7 @@ def institutions_holding_rps_stock():
 
 def institutions_holding_rps_stock_short():
     # 短期高RPS&机构外资持股
-    os.chdir("../RPS")
-    file = "RPS_20_V2.csv"
+    file = "../RPS/RPS_20_V2.csv"
     rps_pool = set()
     df = pd.read_csv(file, encoding='utf-8')
     for i in df.values:

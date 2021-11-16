@@ -1215,12 +1215,13 @@ def FIP(kline: list):
 
 
 def stock_filter_by_Shrank_back_to_trample(volume_part=1):
-    # 价格位于10日线之下,50日线方向向上,抓取缩量回踩的标的
+    # 价格位于5日线之下,50日线方向向上,抓取缩量回踩的标的
     # volume_part 盘中执行时, 根据已开盘时长推算全天成交量
     N, M = 5, 50
     last_one = -1
-    pool = institutions_holding_rps_stock_short_V2()
+    pool = institutions_holding_rps_stock_short()
     result = []
+    counter = 1
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
         kline = MACD(MA(MA(kline, N), M))
@@ -1231,7 +1232,8 @@ def stock_filter_by_Shrank_back_to_trample(volume_part=1):
                 i['volume_ratio'] = kline[last_one]['volume_ratio']
                 i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
                 result.append(i)
-                logging.warning(i)
+                logging.warning(f" {counter}\t{i}")
+                counter += 1
     return result
 
 
@@ -1274,5 +1276,6 @@ def stock_filter_aggregation():
     for i in total:
         if total.count(i) > 1:
             print(i, "买入信号出现超过一次")
+
 
 
