@@ -1278,4 +1278,4 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
-
+stock_filter_by_Shrank_back_to_trample()
