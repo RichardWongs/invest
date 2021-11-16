@@ -920,7 +920,6 @@ def stock_filter_by_MACD_and_BBI(period=101, limit=150):
         data = ATR(data)
         data = BBI(MACD(data))
         biggest_decline = biggest_decline_calc(data)
-        # if data[-1]['DIF'] > data[-1]['DEA'] and data[-2]['DIF'] < data[-2]['DEA'] and data[-1]['close'] > data[-1]['BBI']:
         if data[-1]['MACD'] < 0 and data[-1]['macd_direction'] == "UP" and data[-2]['macd_direction'] == "DOWN":
             i['industry'] = get_industry_by_code(i['code'])
             i['applies'] = data[-1]['applies']
@@ -1276,6 +1275,4 @@ def stock_filter_aggregation():
         if total.count(i) > 1:
             print(i, "买入信号出现超过一次")
 
-
-stock_filter_by_Shrank_back_to_trample()
 

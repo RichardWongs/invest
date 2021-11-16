@@ -7,6 +7,7 @@ from datetime import date, timedelta, datetime
 import numpy as np
 import pandas as pd
 import tushare as ts
+from momentum import industry_momentum
 from RPS.stock_pool import STOCK_LIST, NEW_STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 day = 400   # 上市时间满一年
@@ -40,9 +41,10 @@ def get_stock_list_V2():
     codes = df.ts_code.values
     names = df.name.values
     industrys = df.industry.values
+    list_date = df.list_date.values
     stock_list = {}
-    for code, name, industry in zip(codes, names, industrys):
-        tmp = {'code': code, 'name': name, 'industry': industry}
+    for code, name, industry, list_date in zip(codes, names, industrys, list_date):
+        tmp = {'code': code, 'name': name, 'industry': industry, 'list_date': list_date}
         stock_list[code] = tmp
     return stock_list
 
@@ -66,9 +68,12 @@ def get_all_data(stock_list):
         os.remove(filename)
     for i in stock_list:
         code = i.get('code')
-        data[code] = get_data(code)
-        print(code, i.get('name'), count)
-        count += 1
+        if str(code)[0] in ('0', '3', '6'):
+            data[code] = get_data(code)
+            print(code, i.get('name'), count)
+            count += 1
+        else:
+            logging.warning(f"{code}\t{i.get('name')}\t非沪深交易所标的,暂不收录")
     data.to_csv(filename, encoding='utf-8')
 
 
@@ -159,6 +164,8 @@ def run_V2():
     stock_list = get_stock_list()
     assert len(NEW_STOCK_LIST) >= len(stock_list), "NEW_STOCK_LIST列表不完整, 请先更新"
     get_all_data(stock_list)
+    mid = int(time.time())
+    logging.warning(f"获取行情数据耗时: {int((mid - start) / 60)}分{(mid - start) % 60}秒")
     data = pd.read_csv(f'daily_data.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
     for rps_day in rps_days:
@@ -174,9 +181,11 @@ def run_V2():
     end = int(time.time())
     minutes = int((end - start) / 60)
     seconds = (end - start) % 60
-    logging.warning(f"总耗时: {minutes}分{seconds}秒")
+    logging.warning(f"RPS总耗时: {minutes}分{seconds}秒")
 
 
 if __name__ == "__main__":
     run_V2()
+    industry_momentum.run()
+
 
