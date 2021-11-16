@@ -387,6 +387,14 @@ def William(kline: list, N=14):
     return kline[N:]
 
 
+def DMI(kline: list):
+    for i in range(len(kline)):
+        if i > 0:
+            kline[i]['+DM'] = kline[i]['high'] - kline[i-1]['high'] if kline[i]['high'] - kline[i-1]['high'] > 0 else 0
+            kline[i]['-DM'] = kline[i-1]['low'] - kline[i]['low'] if kline[i-1]['low'] - kline[i]['low'] > 0 else 0
+            kline[i]['TR'] = TRI(kline[i]['high'], kline[i]['low'], kline[i-1]['close'])
+
+
 def TRIX(kline: list):
     N, M = 12, 20
     kline = EMA_V2(EMA_V2(EMA_V2(kline, N), N, key=f'ema{N}'), N, key=f'ema{N}')
@@ -1269,5 +1277,5 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
-
+stock_filter_by_Shrank_back_to_trample()
 

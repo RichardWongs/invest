@@ -1,6 +1,7 @@
 # encoding: utf-8
 import logging
 import os
+import sys
 import time
 from datetime import date, timedelta, datetime
 import numpy as np
@@ -27,6 +28,22 @@ def get_stock_list():
     for code, name, industry in zip(codes, names, industrys):
         tmp = {'code': code, 'name': name, 'industry': industry}
         stock_list.append(tmp)
+    return stock_list
+
+
+def get_stock_list_V2():
+    # 获取沪深股市股票列表, 剔除上市不满一年的次新股
+    df = pro.stock_basic(exchange='', list_status='L',
+                         fields='ts_code,symbol,name,industry,list_date')  # fields='ts_code,symbol,name,area,industry,'
+    df = df[df['list_date'].apply(int).values < begin_date]
+    # 获取当前所有非新股次新股代码和名称
+    codes = df.ts_code.values
+    names = df.name.values
+    industrys = df.industry.values
+    stock_list = {}
+    for code, name, industry in zip(codes, names, industrys):
+        tmp = {'code': code, 'name': name, 'industry': industry}
+        stock_list[code] = tmp
     return stock_list
 
 
@@ -135,8 +152,12 @@ def fill_in_data_V2(df, filename):
 
 
 def run_V2():
+    if str(get_data("600519.SH").index[-1]).split(" ")[0] != str(date.today()):
+        logging.error(f"行情数据未更新,请稍后执行!")
+        sys.exit()
     start = int(time.time())
     stock_list = get_stock_list()
+    assert len(NEW_STOCK_LIST) >= len(stock_list), "NEW_STOCK_LIST列表不完整, 请先更新"
     get_all_data(stock_list)
     data = pd.read_csv(f'daily_data.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
