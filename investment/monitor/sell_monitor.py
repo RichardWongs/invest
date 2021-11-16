@@ -1,7 +1,7 @@
 import logging
 from datetime import date
 from security import send_dingtalk_message
-from monitor import get_stock_kline_with_indicators, MACD, institutions_holding_rps_stock
+from monitor import *
 
 SELL_LIST = [
     {'code': '600110', 'name': '诺德股份'},
@@ -34,6 +34,29 @@ def buy_signal(period=30):
             i['applies'] = kline[-1]['applies']
             message += f"{i['code']}\t{i['name']}\t{i['close']}\t{i['applies']}\n"
             logging.warning(i)
+    if message.split('\n')[1]:
+        send_dingtalk_message(message)
+
+
+def stock_filter_by_Shrank_back_to_trample(volume_part=1):
+    # 价格位于5日线之下,50日线方向向上,抓取缩量回踩的标的
+    # volume_part 盘中执行时, 根据已开盘时长推算全天成交量
+    N, M = 5, 50
+    last_one = -1
+    pool = institutions_holding_rps_stock_short()
+    counter = 1
+    message = f"{date.today()}\t缩量回踩标的筛选\n"
+    for i in pool:
+        kline = get_stock_kline_with_indicators(i['code'])
+        kline = MACD(MA(MA(kline, N), M))
+        if kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
+            if kline[last_one]['volume'] * volume_part < kline[last_one]['avg_volume']:
+                i['industry'] = get_industry_by_code(i['code'])
+                i['applies'] = kline[last_one]['applies']
+                i['volume_ratio'] = kline[last_one]['volume_ratio']
+                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
+                message += f"{i['code']}\t{i['name']}\t{i['close']}\t{i['applies']}\n"
+                logging.warning(f" {counter}\t{i}")
     if message.split('\n')[1]:
         send_dingtalk_message(message)
 
