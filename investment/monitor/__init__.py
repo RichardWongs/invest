@@ -1219,7 +1219,7 @@ def stock_filter_by_Shrank_back_to_trample(volume_part=1):
     # volume_part 盘中执行时, 根据已开盘时长推算全天成交量
     N, M = 5, 50
     last_one = -1
-    pool = institutions_holding_rps_stock_short_V2()
+    pool = institutions_holding_rps_stock_short()
     result = []
     counter = 1
     for i in pool:
@@ -1232,6 +1232,7 @@ def stock_filter_by_Shrank_back_to_trample(volume_part=1):
                 i['volume_ratio'] = kline[last_one]['volume_ratio']
                 i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
                 result.append(i)
+                # if i['industry'] in ('半导体', '电气设备', '白酒', '医疗保健', '食品'):
                 logging.warning(f" {counter}\t{i}")
                 counter += 1
     return result
