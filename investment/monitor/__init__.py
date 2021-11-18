@@ -1219,7 +1219,7 @@ def stock_filter_by_Shrank_back_to_trample(volume_part=1):
     # volume_part 盘中执行时, 根据已开盘时长推算全天成交量
     N, M = 5, 50
     last_one = -1
-    pool = institutions_holding_rps_stock_short()
+    pool = institutions_holding_rps_stock_short_V2()
     result = []
     counter = 1
     for i in pool:
@@ -1278,4 +1278,4 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
-stock_filter_by_Shrank_back_to_trample()
+
