@@ -193,7 +193,7 @@ def Daily_New_High():
     return second_target
 
 
-def institutions_holding_rps_stock_short_V2():
+def institutions_holding_rps_stock_whole_cycle():
     # 长中短期高RPS&机构持股股池
     os.chdir("../RPS")
     file = "RPS_20_V2.csv"
