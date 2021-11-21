@@ -1281,9 +1281,5 @@ def stock_filter_aggregation():
 
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
-# for i in institutions_holding_rps_stock():
-#     i['industry'] = get_industry_by_code(i['code'])
-#     i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
-#     print(i)
 
 
