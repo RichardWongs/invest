@@ -185,7 +185,7 @@ def run_V2():
 
 
 if __name__ == "__main__":
+    # print(get_stock_list_V2())
     run_V2()
     industry_momentum.run()
-    # print(get_stock_list_V2())
 

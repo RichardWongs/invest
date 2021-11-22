@@ -1297,7 +1297,27 @@ def outputTrendStockSortByVolume():
     return result
 
 
+def Short_term_strength(code, limit=5):
+    # 短期强弱判定
+    data = get_stock_kline_with_indicators(code, limit=limit)
+    max_volume = {'v': 0, 'count': 0, 'high': 0, 'low': 0}
+    for i in range(len(data)):
+        if data[i]['VOL'] > max_volume['v']:
+            max_volume['v'] = data[i]['VOL']
+            max_volume['count'] = i
+            max_volume['high'] = data[i]['high']
+            max_volume['low'] = data[i]['low']
+    print(code, max_volume)
+    data = data[max_volume['count']+1:]
+    if max_volume['high'] < min([i['close'] for i in data]):
+        return True
+
+
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
 # outputTrendStockSortByVolume()
+
+
+
+
 
