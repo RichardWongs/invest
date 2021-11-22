@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import requests, json, time
 from RPS.stock_pool import NEW_STOCK_LIST
 from RPS.quantitative_screening import *
+from RPS import TrendStock
 
 
 # 计算平均值
@@ -1279,7 +1280,24 @@ def stock_filter_aggregation():
             print(i, "买入信号出现超过一次")
 
 
+def outputTrendStockSortByVolume():
+    result = []
+    for i in TrendStock:
+        code = i['code'].split('.')[0]
+        kline = get_stock_kline_with_indicators(code)
+        kline = MA(KAMA(kline), 5)
+        i['close'] = kline[-1]['close']
+        i['MA5'] = kline[-1]['MA5']
+        i['kama'] = kline[-1]['KAMA']
+        i['volume_ratio'] = kline[-1]['volume_ratio']
+        result.append(i)
+    result = sorted(result, key=lambda x:x['volume_ratio'], reverse=False)
+    for i in result:
+        print(i)
+    return result
+
+
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
-
+# outputTrendStockSortByVolume()
 
