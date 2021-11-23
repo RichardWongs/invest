@@ -1282,18 +1282,18 @@ def stock_filter_aggregation():
 
 def outputTrendStockSortByVolume():
     result = []
+    day = -1
+    counter = 1
     for i in TrendStock:
         code = i['code'].split('.')[0]
         kline = get_stock_kline_with_indicators(code)
-        kline = MA(KAMA(kline), 5)
-        i['close'] = kline[-1]['close']
-        i['MA5'] = kline[-1]['MA5']
-        i['kama'] = kline[-1]['KAMA']
-        i['volume_ratio'] = kline[-1]['volume_ratio']
-        result.append(i)
-    result = sorted(result, key=lambda x:x['volume_ratio'], reverse=False)
-    for i in result:
-        print(i)
+        if kline[day]['volume'] < kline[day]['10th_minimum']:
+            i['close'] = kline[day]['close']
+            i['applies'] = kline[day]['applies']
+            i['volume_ratio'] = kline[day]['volume_ratio']
+            result.append(i)
+            logging.warning(f"{counter}\t{i}")
+            counter += 1
     return result
 
 
@@ -1307,15 +1307,16 @@ def Short_term_strength(code, limit=5):
             max_volume['count'] = i
             max_volume['high'] = data[i]['high']
             max_volume['low'] = data[i]['low']
-    print(code, max_volume)
     data = data[max_volume['count']+1:]
-    if max_volume['high'] < min([i['close'] for i in data]):
-        return True
+    if len(data) > 0:
+        if max_volume['high'] < min([i['close'] for i in data]):
+            return True
 
 
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
-# outputTrendStockSortByVolume()
+outputTrendStockSortByVolume()
+
 
 
 

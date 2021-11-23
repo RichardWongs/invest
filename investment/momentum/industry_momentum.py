@@ -493,14 +493,17 @@ def get_momentum_rank_top(filename="../momentum/简放-动量模型.csv"):
         industry_pool = momentum_stock_filter(industry=i[0], fund_holding=fund_holding)
         industry_list.append({'industry': i[0], df.columns[-5]: i[-5], df.columns[-4]: i[-4], df.columns[-3]: i[-3],
                               df.columns[-2]: i[-2], df.columns[-1]: i[-1], 'industry_pool': industry_pool})
-    industry_list = sorted(industry_list, key=lambda x: x[df.columns[-1]], reverse=True)
     il = copy.copy(industry_list)
     for i in il:
         if not i[key] > 0:
             industry_list.remove(i)
+    industry_list = sorted(industry_list, key=lambda x: x[df.columns[-1]], reverse=True)
     for i in industry_list:
         print(i)
 
 
 if __name__ == '__main__':
     get_momentum_rank_top()
+
+
+
