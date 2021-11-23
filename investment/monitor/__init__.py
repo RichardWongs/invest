@@ -1315,7 +1315,7 @@ def Short_term_strength(code, limit=5):
 
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
-outputTrendStockSortByVolume()
+# outputTrendStockSortByVolume()
 
 
 

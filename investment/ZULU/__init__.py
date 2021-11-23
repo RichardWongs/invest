@@ -39,7 +39,7 @@ def get_annual_report_to_file():
 def get_quarter_report(_date=None):
     # 获取上市公司最新季度报告,持续跟踪
     quarter_report_list = {}
-    _date = "2021-06-30"
+    _date = "2021-09-30"
     pageSize = 50
     for pageNumber in range(1, 250):
         timestamp = int(time.time()*1000)
@@ -66,7 +66,7 @@ def get_quarter_report(_date=None):
 def get_earnings_forecast():
     # 获取业绩预告
     earnings_forecast = {}
-    _date = "2021-06-30"
+    _date = "2021-09-30"
     pageSize = 50
     for pageNumber in range(1, 250):
         timestamp = int(time.time()*1000)
