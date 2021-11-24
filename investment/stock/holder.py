@@ -30,6 +30,6 @@ def diff_holder_change():
 
 
 data = diff_holder_change()
-print(data)
+[print(i) for i in data]
 
 
