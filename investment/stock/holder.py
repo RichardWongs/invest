@@ -1,7 +1,9 @@
 import logging
 import tushare as ts
 from datetime import date, timedelta
-pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
+token = "b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487"
+token_bake_up = "ab577af952d337b8be80b3e6119f6765e4e6b07441fd35317701bc11"
+pro = ts.pro_api(token_bake_up)
 
 
 def get_stock_holder_num(trade_date=str(date.today()-timedelta(days=1)).replace('-', '')):
@@ -30,6 +32,7 @@ def diff_holder_change():
 
 
 data = diff_holder_change()
-[print(i) for i in data]
+print(data)
+# [print(i) for i in data]
 
 
