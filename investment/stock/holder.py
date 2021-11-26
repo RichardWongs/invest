@@ -23,7 +23,7 @@ def diff_holder_change():
     counter = 1
     for k, v in old.items():
         for k2, v2 in new.items():
-            if k == k2 and v['holder_num'] > v2['holder_num']:
+            if k == k2:  # and v['holder_num'] > v2['holder_num']
                 v2['ratio'] = round(v2['holder_num']/v['holder_num'], 2)
                 # logging.warning(f"{counter}\t{v2}")
                 result.append(v2)
@@ -31,8 +31,10 @@ def diff_holder_change():
     return sorted(result, key=lambda x: x['ratio'], reverse=False)
 
 
-data = diff_holder_change()
-print(data)
-# [print(i) for i in data]
+def holder_change_weeks():
+    now = get_stock_holder_num(trade_date=str(date.today()).replace('-', ''))
+    week1 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=7)).replace('-', ''))
+    week2 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=14)).replace('-', ''))
+    week3 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=21)).replace('-', ''))
 
 
