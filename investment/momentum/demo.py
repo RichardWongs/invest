@@ -10,7 +10,7 @@ import pandas as pd
 import tushare as ts
 from momentum import STOCK_LIST, NEW_STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
-begin_date = int(str(date.today() - timedelta(days=180)).replace('-', ''))
+begin_date = int(str(date.today() - timedelta(days=31)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
 day = 180   # 上市时间满半年
 rps_day = 20
@@ -204,9 +204,6 @@ def get_industry_momentum():
 
 
 def run():
-    filename = "简放-动量模型.csv"
-    if filename in os.listdir(os.curdir):
-        os.remove(filename)
     create_RPS_file()
     data = get_industry_momentum()
     df = pd.DataFrame()
@@ -214,7 +211,6 @@ def run():
         for i in v:
             df.loc[i['industry'], k] = i['momentum_score']
     df.to_csv(filename, encoding='utf-8')
-    get_momentum_rank_top()
 
 
 def momentum_stock_filter(industry, fund_holding):

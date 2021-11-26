@@ -189,7 +189,7 @@ def relative_intensity(obj: dict, indexApplies=None):
 
 
 def calculate_peg_V2(obj: dict):
-    thisYearWeight = 4  # 今年剩下的月数
+    thisYearWeight = 1  # 今年剩下的月数
     nextYearWeight = 12 - thisYearWeight  # 未来12个月中明年所占的月数
     code = obj.get('code')
     total_share = share_pool.get(str(code)).get('total_share')
@@ -232,18 +232,27 @@ def quarter_forecast_filter(pool):
     return pool
 
 
+def get_RPS_stock_pool_zulu():
+    # 根据RPS值进行第一步筛选
+    import pandas as pd
+    os.chdir("../RPS")
+    files = ['RPS_20_V2.csv', 'RPS_250_V2.csv']
+    long = [(i[0].split('.')[0], i[1]) for i in (pd.read_csv(files[1], encoding="utf-8")).values if i[-1] > 85]
+    short = [(i[0].split('.')[0], i[1]) for i in (pd.read_csv(files[0], encoding="utf-8")).values if i[-1] > 85]
+    pool = [i for i in long if i in short]
+    logging.warning(f"高RPS股票池:\t{len(pool)}\t{pool}")
+    return pool
+
+
 def run():
     pool = continuous_growth_four_year_filter_process()
     logging.warning(f"符合归母净利润四年连续增长标准的个股数量: {len(pool)}")
     pool = quarter_forecast_filter(pool)
     target = []
     low_peg_pool = []
-    rps_pool = get_RPS_stock_pool()
+    rps_pool = get_RPS_stock_pool_zulu()
     rps_pool = [i[0] for i in rps_pool]
-    # fc_add = foreign_capital_filter()
-    # fc_add = [i['code'] for i in fc_add]
-    # rps_pool = [i for i in rps_pool if i in fc_add]
-    logging.warning(f"外资增持高RPS股票池: {rps_pool}")
+    logging.warning(f"高RPS股票池: {rps_pool}")
     for i in pool:
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
         if 0 < i['peg'] < 1.0 and i['code'] in rps_pool:
@@ -254,7 +263,8 @@ def run():
             del i['eps_2021']
             del i['eps_2022']
             low_peg_pool.append(i)
-        target.append(i)
+        if i['peg'] > 0:
+            target.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
     low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
     logging.warning(f"低PEG且高相对强度: {low_peg_pool}\n全部PEG股票池: {target}")

@@ -32,9 +32,11 @@ def diff_holder_change():
 
 
 def holder_change_weeks():
-    now = get_stock_holder_num(trade_date=str(date.today()).replace('-', ''))
-    week1 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=7)).replace('-', ''))
-    week2 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=14)).replace('-', ''))
-    week3 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=21)).replace('-', ''))
+    # now = get_stock_holder_num()
+    week1 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=8)).replace('-', ''))
+    # week2 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=14)).replace('-', ''))
+    # week3 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=21)).replace('-', ''))
+    print(week1)
+
 
 
