@@ -1287,6 +1287,7 @@ def outputTrendStockSortByVolume():
     for i in TrendStock:
         code = i['code'].split('.')[0]
         kline = get_stock_kline_with_indicators(code)
+        kline = MA(kline)
         if kline[day]['volume'] < kline[day]['10th_minimum']:
             i['close'] = kline[day]['close']
             i['applies'] = kline[day]['applies']
