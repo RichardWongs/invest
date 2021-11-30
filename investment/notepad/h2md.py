@@ -42,7 +42,7 @@ def run(url, filename=None):
 
 if __name__ == "__main__":
     urls =[
-        "https://mp.weixin.qq.com/s/YE4yrIuQ5Nwsa5NaeNokpg",
+        "https://mp.weixin.qq.com/s/M1bwKnWJQ3LqcxQUVgZ_dw",
     ]
     for url in urls:
         run(url)

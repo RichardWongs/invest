@@ -248,8 +248,8 @@ def get_main_up():
     # for i in rps90:
     #     if rps90.count(i) >= 3:
     #         sets.add(i)
-    from RPS.quantitative_screening import institutions_holding_rps_stock
-    pool = institutions_holding_rps_stock()
+    from RPS.quantitative_screening import institutions_holding_rps_stock_short
+    pool = institutions_holding_rps_stock_short()
     result = []
     for i in rps90:
         plate_stock_pool = stock_pool_filter_by_plate(pool, i[0])
@@ -260,6 +260,8 @@ def get_main_up():
 
 
 if __name__ == "__main__":
+    # CONCEPT_LIST = get_concept_list() + get_industry_list()
+    # print(CONCEPT_LIST)
     run()
     # get_main_up()
 

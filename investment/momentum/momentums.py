@@ -21,8 +21,9 @@ def get_stock_list():
     # 获取沪深股市股票列表, 剔除上市不满半年的次新股
     df = pro.stock_basic(exchange='', list_status='L',
                          fields='ts_code,symbol,name,industry,list_date')  # fields='ts_code,symbol,name,area,industry,'
-    df = df[df['list_date'].apply(int).values < int(str(date.today() - timedelta(days=20)).replace('-', ''))]
-    # 获取当前所有非新股次新股代码和名称
+    # df = df[df['list_date'].apply(int).values < int(str(date.today() - timedelta(days=20)).replace('-', ''))]
+    df = df[int(str(date.today() - timedelta(days=400)).replace('-', '')) <= df['list_date'].apply(int).values]
+    # 获取当前所有新股次新股代码和名称
     codes = df.ts_code.values
     names = df.name.values
     industrys = df.industry.values
@@ -48,7 +49,7 @@ def get_all_data(stock_list):
     # 构建一个空的 dataframe 用来装数据, 获取列表中所有股票指定范围内的收盘价格
     data = pd.DataFrame()
     count = 0
-    filename = f'daily_price.csv'
+    filename = f'daily_price_NewStock.csv'
     if filename in os.listdir(os.curdir):
         os.remove(filename)
     for i in stock_list:
@@ -96,7 +97,7 @@ def all_data(rps, ret):
     return df
 
 
-def fill_in_data(df, filename="RPS.csv"):
+def fill_in_data(df, filename="RPS_NewStock.csv"):
     rps_df = pd.DataFrame()
     if filename in os.listdir(os.curdir):
         os.remove(filename)
@@ -113,16 +114,16 @@ def fill_in_data(df, filename="RPS.csv"):
 def create_RPS_file():
     # stocks = get_stock_list()  # 获取全市场股票列表
     # get_all_data(stocks)  # 获取行情数据并写入csv文件
-    data = pd.read_csv(f'daily_price.csv', encoding='utf-8', index_col='trade_date')
+    data = pd.read_csv(f'daily_price_NewStock.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
     ret = cal_ret(data, w=rps_day)
     rps = all_RPS(ret)
-    fill_in_data(rps, filename=f'RPS{rps_day}.csv')  # 计算个股20日RPS值并写入rps文件
+    fill_in_data(rps, filename=f'RPS_NewStock.csv')  # 计算个股20日RPS值并写入rps文件
 
 
 def eliminate_new_stock():
     # 剔除次新股
-    df = pd.read_csv(f"RPS{rps_day}.csv", encoding='utf-8')
+    df = pd.read_csv(f"RPS_NewStock.csv", encoding='utf-8')
     pool = []
     for i in df.values:
         if i[-1] > 87 and i[3] < begin_date:
@@ -175,7 +176,7 @@ def get_finally_pool():
 
 
 def get_industry_momentum():
-    df = pd.read_csv(f"RPS{rps_day}.csv", encoding='utf-8')
+    df = pd.read_csv(f"RPS_NewStock.csv", encoding='utf-8')
     fund_pool = get_fund_holdings(quarter=quarter)
     result = {}
     for i in range(4, len(df.columns)):

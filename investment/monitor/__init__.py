@@ -75,7 +75,13 @@ def TRI(high, low, close):
 def ATR(kline: list):
     for i in range(len(kline)):
         kline[i]['TRI'] = TRI(high=kline[i]['high'], low=kline[i]['low'], close=kline[i]['last_close'])
+        highest, tmp = 0, []
+        for j in range(i, i-40, -1):
+            tmp.append(kline[j]['high'])
+        kline[i]['highest'] = max(tmp)
     kline = EMA_V2(EMA_V2(kline, days=10, key='TRI', out_key='ATR_10'), days=20, key='TRI', out_key='ATR_20')
+    for i in range(len(kline)):
+        kline[i]['stopLossPrice'] = round(kline[i]['highest'] - 2 * kline[i]['ATR_20'], 2)
     return kline
 
 
@@ -1317,8 +1323,6 @@ def Short_term_strength(code, limit=5):
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
 # outputTrendStockSortByVolume()
-
-
 
 
 
