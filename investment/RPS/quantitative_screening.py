@@ -208,6 +208,6 @@ def institutions_holding_rps_stock_whole_cycle():
     return target
 
 
-
+Daily_New_High()
 
 
