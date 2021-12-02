@@ -11,7 +11,7 @@ from monitor import *
 def get_etf_list():
     etf_list = [{"name": "创成长", "code": 159967},
                 {"name": "质量ETF", "code": 515910},
-                {"name": "A50ETF", "code": 159601},
+                # {"name": "A50ETF", "code": 159601},
                 {"name": "上证50", "code": 510050},
                 {"name": "沪深300ETF", "code": 510300},
                 {"name": "中证500ETF", "code": 510500},
@@ -300,5 +300,6 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
-
+for i in get_etf_list():
+    draw(i['code'], i['name'])
 

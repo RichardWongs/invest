@@ -2,6 +2,7 @@
 # 动量模型核心教程  资料来源: 简放
 import json
 import os
+import sys
 import time
 import logging
 from datetime import date, timedelta
@@ -12,7 +13,7 @@ from RPS.stock_pool import NEW_STOCK_LIST
 pro = ts.pro_api("b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487")
 begin_date = int(str(date.today() - timedelta(days=31)).replace('-', ''))
 today = int(str(date.today()).replace('-', ''))
-day = 180   # 上市时间满半年
+day = 31   # 上市时间满一个月
 rps_day = 20
 quarter = 3
 
@@ -21,8 +22,7 @@ def get_stock_list():
     # 获取沪深股市股票列表, 剔除上市不满半年的次新股
     df = pro.stock_basic(exchange='', list_status='L',
                          fields='ts_code,symbol,name,industry,list_date')  # fields='ts_code,symbol,name,area,industry,'
-    # df = df[df['list_date'].apply(int).values < int(str(date.today() - timedelta(days=20)).replace('-', ''))]
-    df = df[int(str(date.today() - timedelta(days=400)).replace('-', '')) <= df['list_date'].apply(int).values]
+    df = df[df['list_date'].apply(int).values < int(str(date.today() - timedelta(days=day)).replace('-', ''))]
     # 获取当前所有新股次新股代码和名称
     codes = df.ts_code.values
     names = df.name.values
@@ -112,8 +112,8 @@ def fill_in_data(df, filename="RPS_NewStock.csv"):
 
 
 def create_RPS_file():
-    # stocks = get_stock_list()  # 获取全市场股票列表
-    # get_all_data(stocks)  # 获取行情数据并写入csv文件
+    stocks = get_stock_list()  # 获取全市场股票列表
+    get_all_data(stocks)  # 获取行情数据并写入csv文件
     data = pd.read_csv(f'daily_price_NewStock.csv', encoding='utf-8', index_col='trade_date')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
     ret = cal_ret(data, w=rps_day)
@@ -207,6 +207,11 @@ def get_industry_momentum():
 
 def run():
     filename = "行业动量模型.csv"
+    if str(get_data("600519.SH").index[-1]).split(" ")[0] != str(date.today()):
+        logging.error(f"行情数据未更新,请稍后执行!")
+        sys.exit()
+    stock_list = get_stock_list()
+    assert len(NEW_STOCK_LIST) >= len(stock_list), "NEW_STOCK_LIST列表不完整, 请先更新"
     create_RPS_file()
     data = get_industry_momentum()
     df = pd.DataFrame()
@@ -219,7 +224,7 @@ def run():
 def momentum_stock_filter(industry, fund_holding):
     pool = []
     fund_holding = [i['code'] for i in fund_holding]
-    df = pd.read_csv(f'RPS{rps_day}.csv', encoding='utf-8')
+    df = pd.read_csv(f'RPS_NewStock.csv', encoding='utf-8')
     for i in df.values:
         if i[2] == industry and i[-1] > 87 and i[0].split('.')[0] in fund_holding:
             pool.append({'code': i[0], 'name': i[1]})
