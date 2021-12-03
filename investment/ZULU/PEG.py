@@ -149,7 +149,7 @@ def continuous_growth_four_year_filter_process():
 
 
 def index_applies():
-    indexes = ['000300'] # , '000905', '399006', '000688'
+    indexes = ['000300']  # , '000905', '399006', '000688'
     applies_250, applies_60, applies_20 = 0, 0, 0
     for index in indexes:
         data250 = get_stock_kline_with_volume(index, is_index=True, limit=250)
@@ -173,18 +173,18 @@ def relative_intensity(obj: dict, indexApplies=None):
         indexApplies = index_applies()
     data250 = get_stock_kline_with_volume(obj['code'], limit=250)
     pre, current = data250[0]['close'], data250[-1]['close']
-    intensity_250 = round((current/pre/indexApplies['index_250'] - 1), 2)
+    obj['intensity_250'] = round((current/pre/indexApplies['index_250'] - 1), 2)
     data60 = data250[-60:]
     pre, current = data60[0]['close'], data60[-1]['close']
-    intensity_60 = round((current/pre/indexApplies['index_60'] - 1), 2)
+    obj['intensity_60'] = round((current/pre/indexApplies['index_60'] - 1), 2)
     data20 = data250[-22:]
     pre, current = data20[0]['close'], data20[-1]['close']
-    intensity_20 = round((current/pre/indexApplies['index_20'] - 1), 2)
-    # intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
-    obj['intensity_20'] = intensity_20
-    obj['intensity_60'] = intensity_60
-    obj['intensity_250'] = intensity_250
-    obj['total_intensity'] = round(intensity_20 + intensity_60 + intensity_250, 2)
+    obj['intensity_20'] = round((current/pre/indexApplies['index_20'] - 1), 2)
+    obj['total_intensity'] = round(obj['intensity_20'] + obj['intensity_60'] + obj['intensity_250'], 2)
+    if obj['intensity_250'] > 0 and obj['intensity_20'] > 0:
+        obj['strong'] = True
+    else:
+        obj['strong'] = False
     return obj
 
 
@@ -210,7 +210,7 @@ def calculate_peg_V2(obj: dict):
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
     # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
-    logging.warning(f"\n{obj.get('name')}\t{obj.get('code')}\n未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿\n预测未来一年的市盈率: {predict_pe}\n过去12个月的预测利润: {round(past_year/100000000, 2)}亿\npeg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    # logging.warning(f"\n{obj.get('name')}\t{obj.get('code')}\n未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿\n预测未来一年的市盈率: {predict_pe}\n过去12个月的预测利润: {round(past_year/100000000, 2)}亿\npeg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
     return predict_pe, peg, growth_rate_earnings_per_share
 
 
@@ -248,11 +248,14 @@ def run():
     pool = continuous_growth_four_year_filter_process()
     logging.warning(f"符合归母净利润四年连续增长标准的个股数量: {len(pool)}")
     pool = quarter_forecast_filter(pool)
+    rps_pool = []
+    indexs = index_applies()
+    for i in pool:
+        i = relative_intensity(i, indexApplies=indexs)
+        if i['strong']:
+            rps_pool.append(i)
     target = []
     low_peg_pool = []
-    rps_pool = get_RPS_stock_pool_zulu()
-    rps_pool = [i[0] for i in rps_pool]
-    logging.warning(f"高RPS股票池: {rps_pool}")
     for i in pool:
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
         del i['eps_2017']
@@ -289,7 +292,12 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
-# from ZULU import get_quarter_report, get_earnings_forecast
-# save_research_report2local()
-# get_quarter_report()
-# get_earnings_forecast()
+def update_dataPackage():
+    # 更新数据包
+    from ZULU import get_quarter_report, get_earnings_forecast
+    save_research_report2local()
+    get_quarter_report()
+    get_earnings_forecast()
+
+
+

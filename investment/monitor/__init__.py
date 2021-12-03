@@ -1348,4 +1348,4 @@ def TrendStopLoss():
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
 # outputTrendStockSortByVolume()
-TrendStopLoss()
+# TrendStopLoss()
