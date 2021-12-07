@@ -2,7 +2,7 @@ import json
 import logging
 import time
 import requests
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 
 def billboard(_date=date.today()):
@@ -16,7 +16,7 @@ def billboard(_date=date.today()):
         "pageSize": 100,
         "pageNumber": 1,
         "reportName": "RPT_DAILYBILLBOARD_DETAILS",
-        "columns": "SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,TRADE_DATE,EXPLAIN,CLOSE_PRICE,CHANGE_RATE,BILLBOARD_NET_AMT,BILLBOARD_BUY_AMT,BILLBOARD_SELL_AMT,BILLBOARD_DEAL_AMT,ACCUM_AMOUNT,DEAL_NET_RATIO,DEAL_AMOUNT_RATIO,TURNOVERRATE,FREE_MARKET_CAP,EXPLANATION",
+        "columns": "SECURITY_CODE,SECURITY_NAME_ABBR,TRADE_DATE,EXPLAIN,CLOSE_PRICE,CHANGE_RATE,BILLBOARD_NET_AMT,BILLBOARD_BUY_AMT,BILLBOARD_SELL_AMT,BILLBOARD_DEAL_AMT,ACCUM_AMOUNT,DEAL_NET_RATIO,DEAL_AMOUNT_RATIO,TURNOVERRATE,FREE_MARKET_CAP,EXPLANATION",
         "source": "WEB",
         "client": "WEB",
         "filter": f"(TRADE_DATE<='{_date}')(TRADE_DATE>='{_date}')"
@@ -87,5 +87,5 @@ def getBillboardDetail(code, _date=date.today()):
     logging.warning(f"机构净买入:{NET}")
 
 
-
+billboard(_date=date.today()-timedelta(days=1))
 

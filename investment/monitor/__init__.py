@@ -1269,6 +1269,17 @@ def stock_filter_by_Shrank_back_to_trample_V2(pool: list):
     return result
 
 
+def stock_filter_by_ema50():
+    pool = institutions_holding_rps_stock()
+    for i in pool:
+        kline = get_stock_kline_with_indicators(i['code'])
+        kline = EMA_V2(EMA_V2(kline, 50), 150)
+        if kline[-1]['close'] > kline[-1]['ema50'] and kline[-2]['close'] < kline[-2]['ema50']:
+            i['close'] = kline[-1]['close']
+            i['applies'] = kline[-1]['applies']
+            logging.warning(i)
+
+
 def stock_filter_aggregation():
     pool = institutions_holding_rps_stock()
     for i in pool:
@@ -1325,6 +1336,13 @@ def Short_term_strength(code, limit=5):
             return True
 
 
+def Mansfield(kline, index_kline):
+    assert len(kline) == len(index_kline)
+    for i in range(len(kline)):
+        kline[i]['relative_intensity'] = round(kline[i]['applies']/index_kline[i]['applies'], 3)
+    return kline
+
+
 def TrendBuyPoint():
     for i in TrendStock:
         data = get_stock_kline_with_indicators(i['code'].split('.')[0], period=30)
@@ -1349,3 +1367,12 @@ def TrendStopLoss():
 # stock_filter_by_Shrank_back_to_trample()
 # outputTrendStockSortByVolume()
 # TrendStopLoss()
+
+# k = get_stock_kline_with_indicators(300171, period=102)
+# k = EMA_V2(EMA_V2(k, 10), 30)
+# index = get_stock_kline_with_indicators("000300", is_index=True, period=102)
+# kline = Mansfield(k, index)
+# for i in kline:
+#     if i['close'] > i['ema30']:
+#         print(i)
+stock_filter_by_ema50()
