@@ -984,6 +984,8 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
 
 def stock_filter_by_BooleanV1(period=101):
     pool = institutions_holding_rps_stock()
+    count = 1
+    result = []
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'], period=period)
         kline = BooleanLine(kline)
@@ -993,7 +995,10 @@ def stock_filter_by_BooleanV1(period=101):
                 i['industry'] = get_industry_by_code(i['code'])
                 i['BBW'] = [kline[-3]['BBW'], kline[-2]['BBW'], kline[-1]['BBW']]
                 i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
-                logging.warning(f"价格上穿/回落至布林线中轨带: {i}")
+                logging.warning(f"价格上穿/回落至布林线中轨带: {count}\t{i}")
+                count += 1
+                result.append(i)
+    return result
 
 
 def stock_filter_by_BooleanLine_V2(pool: list):
