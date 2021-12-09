@@ -45,6 +45,23 @@ def get_RPS_stock_pool():
     return pool
 
 
+def get_all_RPS_stock_pool():
+    # 根据RPS值进行第一步筛选
+    os.chdir("../RPS")
+    pool = set()
+    files = ['RPS_20_V2.csv', 'RPS_50_V2.csv', 'RPS_120_V2.csv', 'RPS_250_V2.csv']
+    for file in files:
+        df = pd.read_csv(file, encoding='utf-8')
+        for i in df.values:
+            if i[-1] >= 85:
+                pool.add((i[0].split('.')[0], i[1]))
+    pool2 = []
+    for i in pool:
+        pool2.append({'code': i[0], 'name': i[1]})
+    logging.warning(f"高RPS股票池:\t{len(pool)}\t{pool}")
+    return pool2
+
+
 def get_close(code):
     # 按照日期范围获取股票交易日期,收盘价
     start = int(str(date.today() - timedelta(days=365)).replace('-', ''))
@@ -208,4 +225,4 @@ def institutions_holding_rps_stock_whole_cycle():
     return target
 
 
-
+# institutions_holding_rps_stock()

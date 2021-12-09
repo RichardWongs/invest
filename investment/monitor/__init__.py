@@ -7,7 +7,8 @@ from RPS.stock_pool import NEW_STOCK_LIST
 from RPS.quantitative_screening import *
 from RPS import TrendStock
 import colorama
-from colorama import Fore,Back,Style
+from colorama import Fore, Back, Style
+
 colorama.init()
 
 
@@ -79,7 +80,7 @@ def ATR(kline: list):
     for i in range(len(kline)):
         kline[i]['TRI'] = TRI(high=kline[i]['high'], low=kline[i]['low'], close=kline[i]['last_close'])
         highest, tmp = 0, []
-        for j in range(i, i-40, -1):
+        for j in range(i, i - 40, -1):
             tmp.append(kline[j]['high'])
         kline[i]['highest'] = max(tmp)
     kline = EMA_V2(EMA_V2(kline, days=10, key='TRI', out_key='ATR_10'), days=20, key='TRI', out_key='ATR_20')
@@ -106,7 +107,7 @@ def Compact_Structure(kline: list):
     return kline
 
 
-def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
+def get_stock_kline_with_indicators(code, is_index=False, period=102, limit=120):
     time.sleep(0.5)
     assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
@@ -222,10 +223,11 @@ def BooleanLine(kline: list, N=20):
             for j in range(i, i - N, -1):
                 closes.append(kline[j]['close'])
             ma20 = round(sum(closes) / N, 2)
+            kline[i]['MID'] = ma20
             BBU = ma20 + 2 * standard_deviation(closes)  # 布林线上轨
             BBL = ma20 - 2 * standard_deviation(closes)  # 布林线下轨
-            kline[i]['BBU_minus'] = ma20 + 1 * standard_deviation(closes)
-            kline[i]['BBL_minus'] = ma20 - 1 * standard_deviation(closes)
+            # kline[i]['BBU_minus'] = ma20 + 1 * standard_deviation(closes)
+            # kline[i]['BBL_minus'] = ma20 - 1 * standard_deviation(closes)
             BBW = (BBU - BBL) / ma20
             kline[i]['BBU'] = round(BBU, 2)
             kline[i]['BBL'] = round(BBL, 2)
@@ -370,7 +372,7 @@ def EMA_V2(cps, days, key='close', out_key=None):
         if i == 0:
             emas[i][out_key] = cps[i][key]
         if i > 0:
-            emas[i][out_key] = ((days - 1) * emas[i - 1][out_key] + 2 * cps[i][key]) / (days + 1)
+            emas[i][out_key] = round(((days - 1) * emas[i - 1][out_key] + 2 * cps[i][key]) / (days + 1), 2)
     return emas
 
 
@@ -387,22 +389,23 @@ def William(kline: list, N=14):
     for i in range(len(kline)):
         if i >= N:
             high_price, low_price = [], []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 high_price.append(kline[j]['high'])
                 low_price.append(kline[j]['low'])
             highest = max(high_price)
             lowest = min(low_price)
             close = kline[i]['close']
-            kline[i]['%R'] = (highest - close)/(highest - lowest) * -100
+            kline[i]['%R'] = (highest - close) / (highest - lowest) * -100
     return kline[N:]
 
 
 def DMI(kline: list):
     for i in range(len(kline)):
         if i > 0:
-            kline[i]['+DM'] = kline[i]['high'] - kline[i-1]['high'] if kline[i]['high'] - kline[i-1]['high'] > 0 else 0
-            kline[i]['-DM'] = kline[i-1]['low'] - kline[i]['low'] if kline[i-1]['low'] - kline[i]['low'] > 0 else 0
-            kline[i]['TR'] = TRI(kline[i]['high'], kline[i]['low'], kline[i-1]['close'])
+            kline[i]['+DM'] = kline[i]['high'] - kline[i - 1]['high'] if kline[i]['high'] - kline[i - 1][
+                'high'] > 0 else 0
+            kline[i]['-DM'] = kline[i - 1]['low'] - kline[i]['low'] if kline[i - 1]['low'] - kline[i]['low'] > 0 else 0
+            kline[i]['TR'] = TRI(kline[i]['high'], kline[i]['low'], kline[i - 1]['close'])
 
 
 def TRIX(kline: list):
@@ -635,9 +638,9 @@ def MACD(kline: list):
     for i in range(len(kline)):
         kline[i]['MACD'] = 2 * (kline[i]['DIF'] - kline[i]['DEA'])
         if i > 0:
-            if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] >= kline[i-1]['DIF']:
+            if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] >= kline[i - 1]['DIF']:
                 kline[i]['macd_direction'] = 'UP'
-            if kline[i]['MACD'] > kline[i-1]['MACD'] and kline[i]['DIF'] < kline[i-1]['DIF']:
+            if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] < kline[i - 1]['DIF']:
                 kline[i]['macd_direction'] = 'UP-'
             else:
                 kline[i]['macd_direction'] = 'DOWN'
@@ -797,7 +800,8 @@ def pocket_protection(kline: list):
     ma50 = kline[-1]['ma50']
     if biggest_decline_calc(kline) < 50 and close == max_5 and close > ma50:
         # 半年内最大跌幅小于50% 收盘价创5日新高 收盘价大于50日均价
-        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1]['applies'] > 9.9:
+        if (kline[-1]['applies'] >= 5 and kline[-1]['volume'] > kline[-1]['10th_largest']) or kline[-1][
+            'applies'] > 9.9:
             # 当日涨幅大于5%,成交量超过最近10日最大成交量 股价当日涨停则成交量不做要求
             highest_250 = [i['high'] for i in kline[-250:]]
             lowest_15 = [i['low'] for i in kline[-15:]]
@@ -889,9 +893,9 @@ def MTM(kline: list):
 def MFI(kline: list):
     N = 14
     for i in range(len(kline)):
-        kline[i]['TYP'] = round((kline[i]['high'] + kline[i]['low'] + kline[i]['close'])/3, 2)
+        kline[i]['TYP'] = round((kline[i]['high'] + kline[i]['low'] + kline[i]['close']) / 3, 2)
         if i > 0:
-            if kline[i]['TYP'] > kline[i-1]['TYP']:
+            if kline[i]['TYP'] > kline[i - 1]['TYP']:
                 kline[i]['in_amount'] = kline[i]['TYP'] * kline[i]['volume']
                 kline[i]['out_amount'] = 0
             else:
@@ -899,7 +903,7 @@ def MFI(kline: list):
                 kline[i]['out_amount'] = kline[i]['TYP'] * kline[i]['volume']
         if i >= N:
             tmp_in, tmp_out = [], []
-            for j in range(i, i-N, -1):
+            for j in range(i, i - N, -1):
                 tmp_in.append(kline[i]['in_amount'])
                 tmp_out.append(kline[i]['out_amount'])
             print(sum(tmp_in), sum(tmp_out))
@@ -975,7 +979,21 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
                 i['industry'] = get_industry_by_code(i['code'])
                 result.append(i)
                 logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
-    return result
+    return
+
+
+def stock_filter_by_BooleanV1(period=101):
+    pool = institutions_holding_rps_stock()
+    for i in pool:
+        kline = get_stock_kline_with_indicators(i['code'], period=period)
+        kline = BooleanLine(kline)
+        if kline[-1]['MID'] > kline[-2]['MID'] or kline[-1]['BBW'] < 0.2:
+            if (kline[-1]['close'] > kline[-1]['MID'] and kline[-2]['close'] < kline[-2]['MID']) \
+                    or (kline[-1]['MID'] < kline[-1]['close'] <= kline[-1]['MID'] * 1.02):
+                i['industry'] = get_industry_by_code(i['code'])
+                i['BBW'] = [kline[-3]['BBW'], kline[-2]['BBW'], kline[-1]['BBW']]
+                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
+                logging.warning(f"价格上穿/回落至布林线中轨带: {i}")
 
 
 def stock_filter_by_BooleanLine_V2(pool: list):
@@ -1269,15 +1287,20 @@ def stock_filter_by_Shrank_back_to_trample_V2(pool: list):
     return result
 
 
-def stock_filter_by_ema50():
-    pool = institutions_holding_rps_stock()
-    for i in pool:
+def stock_filter_by_ema_week():
+    pool = get_all_RPS_stock_pool()
+    for i in pool[:100]:
         kline = get_stock_kline_with_indicators(i['code'])
-        kline = EMA_V2(EMA_V2(kline, 50), 150)
-        if kline[-1]['close'] > kline[-1]['ema50'] and kline[-2]['close'] < kline[-2]['ema50']:
+        kline = EMA_V2(EMA_V2(kline, 10), 30)
+        if kline[-1]['ema30'] >= kline[-2]['ema30']:
             i['close'] = kline[-1]['close']
+            i['ema10'] = kline[-1]['ema10']
+            i['ema30'] = kline[-1]['ema30']
             i['applies'] = kline[-1]['applies']
-            logging.warning(i)
+            if kline[-1]['ema30'] < kline[-1]['close'] < kline[-1]['ema10']:
+                logging.warning(f"price between ema10 and ema30: {i}")
+            if kline[-1]['close'] > kline[-1]['ema30'] and kline[-2]['close'] < kline[-2]['ema30']:
+                logging.warning(f"price breakthrough from ema30: {i}")
 
 
 def stock_filter_aggregation():
@@ -1292,9 +1315,7 @@ def stock_filter_aggregation():
     boolean_pool = stock_filter_by_BooleanLine_V2(pool)
     logging.warning(f"KAMA STOCK FILTER")
     kama_pool = stock_filter_by_kama_V2(pool)
-    logging.warning(f"Shrank_back_to_trample STOCK FILTER")
-    Shrank_back_to_trample_pool = stock_filter_by_Shrank_back_to_trample_V2(pool)
-    total = macd_pool + wad_pool + boolean_pool + kama_pool + Shrank_back_to_trample_pool
+    total = macd_pool + wad_pool + boolean_pool + kama_pool
     for i in total:
         if total.count(i) > 1:
             print(i, "买入信号出现超过一次")
@@ -1330,7 +1351,7 @@ def Short_term_strength(code, limit=5):
             max_volume['count'] = i
             max_volume['high'] = data[i]['high']
             max_volume['low'] = data[i]['low']
-    data = data[max_volume['count']+1:]
+    data = data[max_volume['count'] + 1:]
     if len(data) > 0:
         if max_volume['high'] < min([i['close'] for i in data]):
             return True
@@ -1339,7 +1360,7 @@ def Short_term_strength(code, limit=5):
 def Mansfield(kline, index_kline):
     assert len(kline) == len(index_kline)
     for i in range(len(kline)):
-        kline[i]['relative_intensity'] = round(kline[i]['applies']/index_kline[i]['applies'], 3)
+        kline[i]['relative_intensity'] = round(kline[i]['applies'] / index_kline[i]['applies'], 3)
     return kline
 
 
@@ -1359,20 +1380,14 @@ def TrendStopLoss():
         data = get_stock_kline_with_indicators(code)
         data = ATR(data)
         i['close'] = data[-1]['close']
-        i['stopLoss'] = round(data[-1]['highest']-2*data[-1]['ATR_20'], 2)
-        print(Fore.LIGHTRED_EX + f"{i}" + Style.RESET_ALL if i['close'] > i['stopLoss'] else Fore.LIGHTGREEN_EX + f"{i}" + Style.RESET_ALL)
+        i['stopLoss'] = round(data[-1]['highest'] - 2 * data[-1]['ATR_20'], 2)
+        print(Fore.LIGHTRED_EX + f"{i}" + Style.RESET_ALL if i['close'] > i[
+            'stopLoss'] else Fore.LIGHTGREEN_EX + f"{i}" + Style.RESET_ALL)
 
 
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
 # outputTrendStockSortByVolume()
 # TrendStopLoss()
-
-# k = get_stock_kline_with_indicators(300171, period=102)
-# k = EMA_V2(EMA_V2(k, 10), 30)
-# index = get_stock_kline_with_indicators("000300", is_index=True, period=102)
-# kline = Mansfield(k, index)
-# for i in kline:
-#     if i['close'] > i['ema30']:
-#         print(i)
-stock_filter_by_ema50()
+# stock_filter_by_ema_week()
+stock_filter_by_BooleanV1(period=101)
