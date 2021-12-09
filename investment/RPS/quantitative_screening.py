@@ -225,4 +225,15 @@ def institutions_holding_rps_stock_whole_cycle():
     return target
 
 
-# institutions_holding_rps_stock()
+def institutions_holding():
+    fund_pool = get_fund_holdings(quarter=3)
+    foreign_pool = foreignCapitalHoldingV2()
+    pool = []
+    for i in fund_pool.union(foreign_pool):
+        pool.append({'code': i[0], 'name': i[1]})
+    logging.warning(f"机构&外资持股: {len(pool)}\t{pool}")
+    return pool
+
+
+
+

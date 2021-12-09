@@ -1395,4 +1395,5 @@ def TrendStopLoss():
 # outputTrendStockSortByVolume()
 # TrendStopLoss()
 # stock_filter_by_ema_week()
-stock_filter_by_BooleanV1(period=101)
+# stock_filter_by_BooleanV1(period=101)
+
