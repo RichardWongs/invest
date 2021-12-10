@@ -241,7 +241,7 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
 
     data = get_stock_kline_with_indicators(code, period=period, limit=limit)
     data = EMA_V2(EMA_V2(EMA_V2(EMA_V2(data, 10), 20), 50), 26)
-    # data = ATR_Channel_System(data)
+    data = ATR_Channel_System(data)
     data = KAMA(data)
     c = Channel(code=code, name=name, period=period, limit=limit)
     ucc, dcc = c.find_channel_coefficients()
@@ -265,34 +265,34 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.plot(x, down_channel, color="green", linestyle='dashed')
     plt.title("Channel")
 
-    # ATR_plus_1 = [i['+1ATR'] for i in data]
-    # ATR_plus_2 = [i['+2ATR'] for i in data]
-    # ATR_plus_3 = [i['+3ATR'] for i in data]
-    # ATR_minus_1 = [i['-1ATR'] for i in data]
-    # ATR_minus_2 = [i['-2ATR'] for i in data]
-    # ATR_minus_3 = [i['-3ATR'] for i in data]
-
-    # plt.subplot(rows, columns, 2)
-    # plt.plot(x, close)
-    # plt.plot(x, ma10)
-    # plt.plot(x, ma50)
-    # plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_plus_2, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_plus_3, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_minus_1, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
-    # plt.title("ATR Channel")
+    ATR_plus_1 = [i['+1ATR'] for i in data]
+    ATR_plus_2 = [i['+2ATR'] for i in data]
+    ATR_plus_3 = [i['+3ATR'] for i in data]
+    ATR_minus_1 = [i['-1ATR'] for i in data]
+    ATR_minus_2 = [i['-2ATR'] for i in data]
+    ATR_minus_3 = [i['-3ATR'] for i in data]
 
     plt.subplot(rows, columns, 2)
-    bool_data = BooleanLine(data)
-    x = x[:-20]
-    kama = kama[-len(x):]
-    plt.plot(x, [i['close'] for i in bool_data])
-    plt.plot(x, [i['BBL'] for i in bool_data], color="gray", linestyle='dashed')
-    plt.plot(x, [i['BBU'] for i in bool_data], color="gray", linestyle='dashed')
-    plt.plot(x, kama)
-    plt.title("Boolean Channel")
+    plt.plot(x, close)
+    plt.plot(x, ma10)
+    plt.plot(x, ma50)
+    plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_3, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
+    plt.title("ATR Channel")
+
+    # plt.subplot(rows, columns, 2)
+    # bool_data = BooleanLine(data)
+    # x = x[:-20]
+    # kama = kama[-len(x):]
+    # plt.plot(x, [i['close'] for i in bool_data])
+    # plt.plot(x, [i['BBL'] for i in bool_data], color="gray", linestyle='dashed')
+    # plt.plot(x, [i['BBU'] for i in bool_data], color="gray", linestyle='dashed')
+    # plt.plot(x, kama)
+    # plt.title("Boolean Channel")
 
     plt.suptitle(name)
     plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
@@ -300,6 +300,6 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
-for i in get_etf_list():
+for i in TrendStock:
     draw(i['code'], i['name'])
 

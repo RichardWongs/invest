@@ -107,8 +107,8 @@ def Compact_Structure(kline: list):
     return kline
 
 
-def get_stock_kline_with_indicators(code, is_index=False, period=102, limit=120):
-    time.sleep(0.5)
+def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
+    time.sleep(1)
     assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
@@ -192,7 +192,6 @@ def get_market_data(code, start_date=20210101):
     df = pro.daily(ts_code=code, start_date=start, end_date=end,
                    fields='trade_date,open,close,high,low,vol,pct_chg,pre_close')
     for i in df.values:
-        print(i)
         pool.append({'day': i[0], 'open': i[1], 'close': i[4], 'high': i[2], 'low': i[3],
                      'last_close': i[5], 'applies': i[6], 'volume': i[7]})
     pool = pool[::-1]
@@ -971,6 +970,7 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = BooleanLine(ATR(data))
+        print(f"{i}\t{data}")
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
             i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close']) / data[-5]['last_close'] * 100, 2)
             if i['week_applies'] > 0:
@@ -1295,7 +1295,7 @@ def stock_filter_by_Shrank_back_to_trample_V2(pool: list):
 
 def stock_filter_by_ema_week():
     pool = get_all_RPS_stock_pool()
-    for i in pool[:100]:
+    for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
         kline = EMA_V2(EMA_V2(kline, 10), 30)
         if kline[-1]['ema30'] >= kline[-2]['ema30']:
@@ -1391,11 +1391,26 @@ def TrendStopLoss():
             'stopLoss'] else Fore.LIGHTGREEN_EX + f"{i}" + Style.RESET_ALL)
 
 
+def StanWeinstein():
+    pool = institutions_holding()
+    for i in pool:
+        data = get_stock_kline_with_indicators(i['code'])
+        data = EMA_V2(EMA_V2(data, 10), 30)
+        if data[-1]['close'] > data[-1]['ema30'] >= data[-2]['ema30']:
+            i['industry'] = get_industry_by_code(i['code'])
+            i['close'] = data[-1]['close']
+            i['ema10'] = data[-1]['ema10']
+            i['ema30'] = data[-1]['ema30']
+            i['premium'] = round((i['close']-i['ema30'])/i['ema30']*100, 2)
+            logging.warning(i)
+
+
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
-# outputTrendStockSortByVolume()
-# TrendStopLoss()
 # stock_filter_by_ema_week()
-stock_filter_by_BooleanLine(period=101)
-stock_filter_by_BooleanV1(period=101)
+# stock_filter_by_BooleanLine(period=102)
+# stock_filter_by_BooleanV1(period=102)
+
+
+
 
