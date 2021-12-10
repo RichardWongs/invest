@@ -967,19 +967,20 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
     logging.warning(f"stock filter by BooleanLine !")
     pool = institutions_holding_rps_stock()
     result = []
+    count = 1
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
-        data = ATR(data)
-        data = BooleanLine(data)
-        biggest_decline = biggest_decline_calc(data)
+        data = BooleanLine(ATR(data))
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
-            i['BBW'] = data[-1]['BBW']
             i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close']) / data[-5]['last_close'] * 100, 2)
             if i['week_applies'] > 0:
                 i['industry'] = get_industry_by_code(i['code'])
+                i['BBW'] = [data[-3]['BBW'], data[-2]['BBW'], data[-1]['BBW']]
+                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
                 result.append(i)
-                logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
-    return
+                logging.warning(f"价格从盘整带向上启动: {count}\t{i}")
+                count += 1
+    return result
 
 
 def stock_filter_by_BooleanV1(period=101):
@@ -1395,5 +1396,6 @@ def TrendStopLoss():
 # outputTrendStockSortByVolume()
 # TrendStopLoss()
 # stock_filter_by_ema_week()
-# stock_filter_by_BooleanV1(period=101)
+stock_filter_by_BooleanLine(period=101)
+stock_filter_by_BooleanV1(period=101)
 
