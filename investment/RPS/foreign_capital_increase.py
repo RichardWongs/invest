@@ -246,11 +246,21 @@ def foreign_capital_continuous_increase():
     print(f"{day5}-->{day4}\t{data3}")
     data4 = foreign_capital_add_weight(start_date=day6, end_date=day5)
     print(f"{day6}-->{day5}\t{data4}")
-    add_list = [i['name'] for i in data] + [i['name'] for i in data1] + [i['name'] for i in data2] + [i['name'] for i in data3] + [i['name'] for i in data4]
+    add_dict = {}
+    for i in data + data1 + data2 + data3 + data4:
+        if i['code'] not in add_dict.keys():
+            add_dict[i['code']] = {'code': i['code'], 'name': i['name'], 'addCount': i['addCount'], 'addTimes': 0}
+        else:
+            add_dict[i['code']]['addCount'] += i['addCount']
+    add_list = [i['code'] for i in data] + [i['code'] for i in data1] + [i['code'] for i in data2] + [i['code'] for i in data3] + [i['code'] for i in data4]
     add_set = set(add_list)
     for i in add_set:
-        print(f"{i}--> {add_list.count(i)}")
+        # print(f"{i}--> {add_list.count(i)}")
+        add_dict[i]['addTimes'] = add_list.count(i)
+        # if add_dict[i]['addTimes'] >= 3:
+        #     print(add_dict[i])
+    print(add_dict)
 
 
-
+# foreign_capital_continuous_increase()
 
