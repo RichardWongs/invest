@@ -970,7 +970,6 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
     for i in pool:
         data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = BooleanLine(ATR(data))
-        print(f"{i}\t{data}")
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
             i['week_applies'] = round((data[-1]['close'] - data[-5]['last_close']) / data[-5]['last_close'] * 100, 2)
             if i['week_applies'] > 0:
@@ -1408,8 +1407,8 @@ def StanWeinstein():
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
 # stock_filter_by_ema_week()
-# stock_filter_by_BooleanLine(period=102)
-# stock_filter_by_BooleanV1(period=102)
+# stock_filter_by_BooleanLine(period=101)
+# stock_filter_by_BooleanV1(period=101)
 
 
 

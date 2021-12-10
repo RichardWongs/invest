@@ -183,6 +183,7 @@ def select_biggest_decline():
 
 
 def Daily_New_High():
+    # 创新高及接近新高个股查询
     filename = "../RPS/daily_data.csv"
     df = pd.read_csv(filename, encoding="utf-8")
     data = df.columns[1:]
