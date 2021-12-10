@@ -237,15 +237,15 @@ def foreign_capital_continuous_increase():
     day5 = get_recent_trade_date(day4-timedelta(days=1))
     day6 = get_recent_trade_date(day5-timedelta(days=1))
     data = foreign_capital_add_weight(start_date=day2, end_date=day1)
-    print(f"{day2}-->{day1}\t{data}")
+    logging.warning(f"{day2}-->{day1}\t{data}")
     data1 = foreign_capital_add_weight(start_date=day3, end_date=day2)
-    print(f"{day3}-->{day2}\t{data1}")
+    logging.warning(f"{day3}-->{day2}\t{data1}")
     data2 = foreign_capital_add_weight(start_date=day4, end_date=day3)
-    print(f"{day4}-->{day3}\t{data2}")
+    logging.warning(f"{day4}-->{day3}\t{data2}")
     data3 = foreign_capital_add_weight(start_date=day5, end_date=day4)
-    print(f"{day5}-->{day4}\t{data3}")
+    logging.warning(f"{day5}-->{day4}\t{data3}")
     data4 = foreign_capital_add_weight(start_date=day6, end_date=day5)
-    print(f"{day6}-->{day5}\t{data4}")
+    logging.warning(f"{day6}-->{day5}\t{data4}")
     add_dict = {}
     for i in data + data1 + data2 + data3 + data4:
         if i['code'] not in add_dict.keys():
@@ -255,10 +255,7 @@ def foreign_capital_continuous_increase():
     add_list = [i['code'] for i in data] + [i['code'] for i in data1] + [i['code'] for i in data2] + [i['code'] for i in data3] + [i['code'] for i in data4]
     add_set = set(add_list)
     for i in add_set:
-        # print(f"{i}--> {add_list.count(i)}")
         add_dict[i]['addTimes'] = add_list.count(i)
-        # if add_dict[i]['addTimes'] >= 3:
-        #     print(add_dict[i])
     print(add_dict)
 
 
