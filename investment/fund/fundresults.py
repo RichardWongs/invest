@@ -5,6 +5,7 @@ import re
 import numpy as np
 from datetime import datetime, date, timedelta
 from bs4 import BeautifulSoup
+from monitor import EMA_V2
 
 
 def get_html(code, start_date, end_date, page=1, per=20):
@@ -67,6 +68,8 @@ def get_fund(code, start_date=str(date.today() - timedelta(180)), end_date=str(d
         record_data.append(tmp)
     if len(record_data) > 0:
         del record_data[0]
+    record_data = EMA_V2(EMA_V2(record_data, days=50, key="unit_close", out_key=f"ema50_unit_close"), days=150, key="unit_close", out_key="ema150_unit_close")
+    record_data = EMA_V2(EMA_V2(record_data, days=50, key="cumulative_close", out_key=f"ema50_cumulative_close"), days=150, key="cumulative_close", out_key="ema150_cumulative_close")
     return record_data
 
 

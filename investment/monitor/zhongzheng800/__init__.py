@@ -654,8 +654,8 @@ def stock_filter_by_yield():
                         i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
                         target.append(i)
                         logging.warning(f"价格上穿/回落至布林线中轨带: {i}")
-    logging.warning(f"total: {total}\ntarget: {target}")
+    logging.warning(f"total: {len(total)}\t{total}\ntarget: {len(target)}\t{target}")
     return target
 
 
-# stock_filter_by_yield()
+stock_filter_by_yield()

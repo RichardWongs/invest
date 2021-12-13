@@ -2,18 +2,25 @@
 import pickle
 import time
 import json
+
+import redis
 import requests
 from RPS.RPS_DATA import pro
 from RPS.stock_pool import STOCK_LIST
+
+
+def RedisConn():
+    client = redis.Redis(host="172.16.1.162", port=6379, db=0)
+    return client
 
 
 class SecurityException(BaseException):
     pass
 
 
-def get_stock_kline(code, is_index=False, period=101, limit=120):
+def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     time.sleep(0.5)
-    assert period in (5, 15, 30, 60, 101, 102, 103)
+    assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
             secid = f'0.{code}'
@@ -52,10 +59,12 @@ def get_stock_kline(code, is_index=False, period=101, limit=120):
             if isinstance(r['data'], dict) and 'klines' in r['data'].keys():
                 r = r['data']['klines']
                 r = [i.split(',') for i in r]
-                new_data = {}
+                new_data = []
                 for i in r:
-                    tmp = {'day': i[0], 'volume': float(i[6]), 'applies': float(i[8])}
-                    new_data[i[0]] = tmp
+                    i = {'day': i[0], 'open': float(i[1]), 'close': float(i[2]),
+                         'high': float(i[3]), 'low': float(i[4]), 'VOL': int(i[5]),
+                         'volume': float(i[6]), 'applies': float(i[8])}
+                    new_data.append(i)
                 return new_data
     except SecurityException() as e:
         print(e)
@@ -75,25 +84,39 @@ def select_whole_market_stock():
 
 
 def save_whole_market_data():
-    s = STOCK_LIST
-    with open("whole_market.bin", "wb") as f:
-        result = {}
-        counter = 0
-        for i in s:
-            counter += 1
-            print(i, counter)
-            code = i['code'].split('.')[0]
-            data = get_stock_kline(code, period=103, limit=250)
-            result[code] = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}
-        f.write(pickle.dumps(result))
+    result = {}
+    counter = 0
+    client = RedisConn()
+    for i in STOCK_LIST:
+        counter += 1
+        print(i, counter)
+        code = i['code'].split('.')[0]
+        data = get_stock_kline_with_indicators(code, period=103, limit=120)
+        tmp = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}
+        result[code] = tmp
+        client.set(f"stock:weekly:{code}", json.dumps(tmp))
 
 
-# with open("whole_market.bin", "rb") as f:
-#     content = f.read()
-#     content = pickle.loads(content)
-#     for _, v in content.items():
-#         print(v['kline'])
+def save_market_data_from_redis():
+    from monitor import EMA_V2
+    filename = "weekly_kline_ema.bin"
+    with open(filename, 'wb') as f:
+        klines = []
+        client = RedisConn()
+        keys = client.keys("stock:weekly:*")
+        for k in keys:
+            data = client.get(k).decode()
+            data = json.loads(data)
+            if not data['kline']:
+                print(data['code'])
+                continue
+            data = EMA_V2(EMA_V2(data['kline'], days=10), days=30)
+            klines.append(data)
+        f.write(pickle.dumps(klines))
 
+
+save_whole_market_data()
+# save_market_data_from_redis()
 
 
 
