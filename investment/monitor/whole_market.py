@@ -60,11 +60,13 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
                 r = r['data']['klines']
                 r = [i.split(',') for i in r]
                 new_data = []
+                # new_data = {}
                 for i in r:
                     i = {'day': i[0], 'open': float(i[1]), 'close': float(i[2]),
                          'high': float(i[3]), 'low': float(i[4]), 'VOL': int(i[5]),
                          'volume': float(i[6]), 'applies': float(i[8])}
                     new_data.append(i)
+                    # new_data[i['day'].replace('-', '')] = i
                 return new_data
     except SecurityException() as e:
         print(e)
@@ -83,7 +85,7 @@ def select_whole_market_stock():
     return stock_list
 
 
-def save_whole_market_data():
+def save_whole_market_data_to_redis():
     result = {}
     counter = 0
     client = RedisConn()
@@ -94,28 +96,28 @@ def save_whole_market_data():
         data = get_stock_kline_with_indicators(code, period=103, limit=120)
         tmp = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}
         result[code] = tmp
-        client.set(f"stock:weekly:{code}", json.dumps(tmp))
+        client.set(f"stock:monthly:{code}", json.dumps(tmp))
 
 
 def save_market_data_from_redis():
     from monitor import EMA_V2
-    filename = "weekly_kline_ema.bin"
+    filename = "monthly_kline.bin"
     with open(filename, 'wb') as f:
         klines = []
         client = RedisConn()
-        keys = client.keys("stock:weekly:*")
+        keys = client.keys("stock:monthly:*")
         for k in keys:
             data = client.get(k).decode()
             data = json.loads(data)
             if not data['kline']:
                 print(data['code'])
                 continue
-            data = EMA_V2(EMA_V2(data['kline'], days=10), days=30)
+            # data = EMA_V2(EMA_V2(data['kline'], days=10), days=30)
             klines.append(data)
         f.write(pickle.dumps(klines))
 
 
-save_whole_market_data()
+# save_whole_market_data_to_redis()
 # save_market_data_from_redis()
 
 
