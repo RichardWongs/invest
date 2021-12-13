@@ -250,13 +250,15 @@ def run():
     pool = quarter_forecast_filter(pool)
     rps_pool = []
     indexs = index_applies()
-    for i in pool:
-        i = relative_intensity(i, indexApplies=indexs)
-        if i['strong']:
-            rps_pool.append(i)
+    # for i in pool:
+    #     i = relative_intensity(i, indexApplies=indexs)
+    #     if i['strong']:
+    #         rps_pool.append(i)
+    # logging.warning(f"高相对强度股池: {len(rps_pool)}\t{rps_pool}")
     target = []
     low_peg_pool = []
     for i in pool:
+        i = relative_intensity(i, indexApplies=indexs)
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
         del i['eps_2017']
         del i['eps_2018']
@@ -264,7 +266,7 @@ def run():
         del i['eps_2020']
         del i['eps_2021']
         del i['eps_2022']
-        if 0 < i['peg'] < 1.0 and i['code'] in rps_pool:
+        if 0 < i['peg'] < 1.0 and i['strong']:
             low_peg_pool.append(i)
         if i['peg'] > 0:
             target.append(i)
