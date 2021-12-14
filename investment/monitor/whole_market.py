@@ -3,7 +3,6 @@ import logging
 import pickle
 import time
 import json
-
 import redis
 import requests
 from RPS.RPS_DATA import pro
@@ -75,6 +74,24 @@ def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120)
         return None
 
 
+def get_benchmark():
+    # 获取业绩基准 年&月
+    weeks = 53
+    logging.warning("查询指数基准...")
+    benchmark, benchmark_month = 0, 0
+    for index_code in ['399006', '399300', '399905', '000016']:
+        index_data = get_stock_kline_with_indicators(index_code, is_index=True, period=102, limit=120)
+        index_yield = round((index_data[-1]['close'] - index_data[-weeks]['close']) / index_data[-weeks]['close'] * 100, 2)
+        index_month_yield = round((index_data[-1]['close'] - index_data[-5]['close']) / index_data[-5]['close'] * 100,
+                                  2)
+        if index_yield > benchmark:
+            benchmark = index_yield
+        if index_month_yield > benchmark_month:
+            benchmark_month = index_month_yield
+    logging.warning(f"52周涨幅: {benchmark}\t月涨幅: {benchmark_month}")
+    return benchmark, benchmark_month
+
+
 def select_whole_market_stock():
     df = pro.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,industry,list_date')
     codes = df.ts_code.values
@@ -95,10 +112,10 @@ def save_whole_market_data_to_redis():
         counter += 1
         print(i, counter)
         code = i['code'].split('.')[0]
-        data = get_stock_kline_with_indicators(code, period=103, limit=120)
+        data = get_stock_kline_with_indicators(code, period=102, limit=120)
         tmp = {'code': code, 'name': i['name'], 'industry': i['industry'], 'kline': data}
         result[code] = tmp
-        client.set(f"stock:monthly:{code}", json.dumps(tmp))
+        client.set(f"stock:weekly:{code}", json.dumps(tmp))
 
 
 def save_market_data_from_redis():
@@ -118,27 +135,28 @@ def save_market_data_from_redis():
         f.write(pickle.dumps(klines))
 
 
-# save_whole_market_data_to_redis()
-# save_market_data_from_redis()
-# (28.3, 4.13)
 def read_weekly_kline():
+    weeks = 53
     with open("weekly_kline.bin", 'rb') as f:
         content = f.read()
         content = pickle.loads(content)
         counter = 1
+        benchmark, month_benchmark = get_benchmark()
         for i in content:
             kline = i['kline']
-            if len(kline) >= 53 and round((kline[-1]["close"] - kline[-53]['close']) / kline[-53]['close'] * 100,
-                                          2) >= 28.3:
-                if kline[-1]['close'] > kline[-1]['ema30'] > kline[-2]['ema30']:
-                    kline = BooleanLine(kline)
-                    if 0.3 >= kline[-1]["BBW"] > kline[-2]['BBW'] >= kline[-3]['BBW']:
-                        i['kline'] = kline[-1]
+            if len(kline) >= weeks:
+                stock_year_applies = round((kline[-1]["close"] - kline[-weeks]['close']) / kline[-weeks]['close'] * 100, 2)
+                # stock_month_applies = round((kline[-1]["close"] - kline[-5]['close']) / kline[-5]['close'] * 100, 2)
+                if stock_year_applies >= benchmark:  # and stock_month_applies >= month_benchmark:
+                    if kline[-1]['close'] > kline[-1]['ema30'] > kline[-2]['ema30']:
+                        kline = BooleanLine(kline)
+                        if kline[-1]["BBW"] > kline[-2]['BBW'] >= kline[-3]['BBW']:
+                            i['kline'] = kline[-1]
                         print(counter, i)
                         counter += 1
 
 
-def read_monthly_kline(month="20211130"):
+def read_monthly_kline(month):
     with open("monthly_kline.bin", 'rb') as f:
         content = f.read()
     content = pickle.loads(content)
@@ -161,17 +179,5 @@ def VolumeStatistical(month):
     logging.warning(f"日期: {month}\t全市场总成交量: {totalVolume}\t成交量前5%个股总成交量: {topCountVolume}\t成交量占比: {round(topCountVolume/totalVolume, 2)}\t{len(topCountStock)}\t{topCountStock}")
 
 
-m = ['20110930', '20111031', '20111130', '20111230', '20120131', '20120229', '20120330', '20120427', '20120531', '20120629',
-         '20120731', '20120831', '20120928', '20121031', '20121130', '20121231', '20130131', '20130228', '20130329', '20130426',
-         '20130531', '20130628', '20130731', '20130830', '20130930', '20131031', '20131129', '20131231', '20140130', '20140228',
-         '20140331', '20140430', '20140530', '20140630', '20140731', '20140829', '20140930', '20141031', '20141128', '20141231',
-         '20150130', '20150227', '20150331', '20150430', '20150529', '20150630', '20150731', '20150807', '20160129', '20160229',
-         '20160331', '20160429', '20160531', '20160617', '20160729', '20160831', '20160930', '20161031', '20161130', '20161230',
-         '20170126', '20170228', '20170331', '20170428', '20170531', '20170630', '20170731', '20170831', '20170929', '20171031',
-         '20171130', '20171229', '20180131', '20180228', '20180330', '20180427', '20180531', '20180629', '20180731', '20180831',
-         '20180928', '20181031', '20181130', '20181228', '20190131', '20190228', '20190329', '20190430', '20190531', '20190628',
-         '20190731', '20190830', '20190930', '20191031', '20191129', '20191231', '20200123', '20200228', '20200331', '20200430',
-         '20200529', '20200630', '20200731', '20200831', '20200930', '20201030', '20201130', '20201231', '20210129', '20210226',
-         '20210331', '20210430', '20210531', '20210630', '20210730', '20210831', '20210930', '20211029', '20211130', '20211213']
-
+# read_weekly_kline()
 
