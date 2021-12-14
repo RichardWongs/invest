@@ -359,7 +359,7 @@ def EMA(cps, days):
         if i == 0:
             emas[i] = cps[i]
         if i > 0:
-            emas[i] = ((days - 1) * emas[i - 1] + 2 * cps[i]) / (days + 1)
+            emas[i] = round(((days - 1) * emas[i - 1] + 2 * cps[i]) / (days + 1), 2)
     return emas
 
 
@@ -447,15 +447,15 @@ def DMA(kline: list):
     return kline[M + N:]
 
 
-def Linear_Regression(kline: list):
+def Linear_Regression(kline: list, key="close"):
     # 线性回归 y = mx + b  y:因变量, m:斜率, b:截距
     points = []
     x = []
     y = []
     for i in range(1, len(kline) + 1):
-        x.append(kline[i - 1]['close'])
+        x.append(kline[i - 1][key])
         y.append(i)
-        points.append({'x': kline[i - 1]['close'], 'y': i})
+        points.append({'x': kline[i - 1][key], 'y': i})
     x_mean = sum(x) / len(x)
     y_mean = sum(y) / len(y)
     tmp = [k * v for k, v in zip(x, y)]

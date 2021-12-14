@@ -6,7 +6,7 @@ import json
 import redis
 import requests
 from RPS.RPS_DATA import pro
-from monitor import EMA_V2, BooleanLine
+from monitor import EMA_V2, BooleanLine, Linear_Regression
 from RPS.stock_pool import STOCK_LIST
 
 
@@ -143,16 +143,16 @@ def read_weekly_kline():
         counter = 1
         benchmark, month_benchmark = get_benchmark()
         for i in content:
-            kline = i['kline']
+            kline = WeekVolumeCalc(i['kline'])
             if len(kline) >= weeks:
                 stock_year_applies = round((kline[-1]["close"] - kline[-weeks]['close']) / kline[-weeks]['close'] * 100, 2)
                 # stock_month_applies = round((kline[-1]["close"] - kline[-5]['close']) / kline[-5]['close'] * 100, 2)
                 if stock_year_applies >= benchmark:  # and stock_month_applies >= month_benchmark:
                     if kline[-1]['close'] > kline[-1]['ema30'] > kline[-2]['ema30']:
-                        kline = BooleanLine(kline)
-                        if kline[-1]["BBW"] > kline[-2]['BBW'] >= kline[-3]['BBW']:
-                            i['kline'] = kline[-1]
-                        print(counter, i)
+                        # kline = BooleanLine(kline)
+                        # if kline[-1]["BBW"] > kline[-2]['BBW'] >= kline[-3]['BBW']:
+                        # i['kline'] = kline[-1]
+                        print(f"{counter}\t年涨幅:{stock_year_applies}\t{i}")
                         counter += 1
 
 
@@ -179,5 +179,38 @@ def VolumeStatistical(month):
     logging.warning(f"日期: {month}\t全市场总成交量: {totalVolume}\t成交量前5%个股总成交量: {topCountVolume}\t成交量占比: {round(topCountVolume/totalVolume, 2)}\t{len(topCountStock)}\t{topCountStock}")
 
 
-# read_weekly_kline()
+def WeekVolumeCalc(kline: list, N=10):
+    for i in range(len(kline)):
+        if i > N:
+            tenth_volume = []
+            for j in range(i-1, i-(N+1), -1):
+                tenth_volume.append(kline[j]['volume'])
+            kline[i]['10th_largest'] = max(tenth_volume)
+            kline[i]['10th_minimum'] = min(tenth_volume)
+            kline[i]['avg_volume'] = sum(tenth_volume) / len(tenth_volume)
+            kline[i]['volume_ratio'] = round(kline[i]['volume'] / kline[i]['avg_volume'], 2)
+    return kline
 
+
+# read_weekly_kline()
+def weekly_liner_regression():
+    weeks = 53
+    target = []
+    with open("weekly_kline.bin", 'rb') as f:
+        content = f.read()
+        content = pickle.loads(content)
+        benchmark, month_benchmark = get_benchmark()
+        for i in content:
+            if len(i['kline']) >= weeks:
+                kline = EMA_V2(EMA_V2(i['kline'], 5), 10)
+                stock_year_applies = round((kline[-1]["close"] - kline[-weeks]['close']) / kline[-weeks]['close'] * 100, 2)
+                if stock_year_applies >= benchmark:
+                    lr = Linear_Regression(kline[-10:], key="ema5")
+                    del i['kline']
+                    i['R_Square'], i['slope'], i['intercept'] = lr['R_Square'], lr['slope'], lr['intercept']
+                    target.append(i)
+    return sorted(target, key=lambda x: x['R_Square'], reverse=True)
+
+
+data = weekly_liner_regression()
+print(data)
