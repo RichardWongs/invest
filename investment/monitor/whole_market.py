@@ -137,6 +137,7 @@ def save_market_data_from_redis():
 
 def read_weekly_kline():
     weeks = 53
+    target = []
     with open("weekly_kline.bin", 'rb') as f:
         content = f.read()
         content = pickle.loads(content)
@@ -152,8 +153,10 @@ def read_weekly_kline():
                         # kline = BooleanLine(kline)
                         # if kline[-1]["BBW"] > kline[-2]['BBW'] >= kline[-3]['BBW']:
                         # i['kline'] = kline[-1]
-                        print(f"{counter}\t年涨幅:{stock_year_applies}\t{i}")
+                        # print(f"{counter}\t年涨幅:{stock_year_applies}\t{i}")
                         counter += 1
+                        target.append(i)
+    return target
 
 
 def read_monthly_kline(month):
@@ -192,8 +195,8 @@ def WeekVolumeCalc(kline: list, N=10):
     return kline
 
 
-# read_weekly_kline()
 def weekly_liner_regression():
+    # 使用线性回归函数查询个股周K数据
     weeks = 53
     target = []
     with open("weekly_kline.bin", 'rb') as f:
@@ -205,12 +208,13 @@ def weekly_liner_regression():
                 kline = EMA_V2(EMA_V2(i['kline'], 5), 10)
                 stock_year_applies = round((kline[-1]["close"] - kline[-weeks]['close']) / kline[-weeks]['close'] * 100, 2)
                 if stock_year_applies >= benchmark:
-                    lr = Linear_Regression(kline[-10:], key="ema5")
+                    lr = Linear_Regression(kline[-8:], key="ema5")
                     del i['kline']
                     i['R_Square'], i['slope'], i['intercept'] = lr['R_Square'], lr['slope'], lr['intercept']
-                    target.append(i)
+                    i['src'] = [i['ema5'] for i in kline[-8:]]
+                    if i['slope'] > 0 and i['R_Square'] > 0.8:
+                        target.append(i)
     return sorted(target, key=lambda x: x['R_Square'], reverse=True)
 
 
-data = weekly_liner_regression()
-print(data)
+
