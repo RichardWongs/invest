@@ -3,9 +3,10 @@
 import logging
 from datetime import date, timedelta
 import requests, json, time
-from RPS.stock_pool import NEW_STOCK_LIST
 from RPS.quantitative_screening import *
 from RPS import TrendStock
+from momentum.concept import select_composition_stock
+from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
 from colorama import Fore, Back, Style
 
@@ -1410,6 +1411,10 @@ def StanWeinstein():
 # stock_filter_by_BooleanLine(period=101)
 # stock_filter_by_BooleanV1(period=101)
 
-
+pool = select_composition_stock("BK0501")
+for i in pool:
+    i['industry'] = get_industry_by_code(i['code'])
+    i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
+    print(i)
 
 

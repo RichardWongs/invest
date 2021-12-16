@@ -36,7 +36,7 @@ def get_stock_list_V2():
     # 获取沪深股市股票列表, 剔除上市不满一年的次新股
     df = pro.stock_basic(exchange='', list_status='L',
                          fields='ts_code,symbol,name,industry,list_date')  # fields='ts_code,symbol,name,area,industry,'
-    df = df[df['list_date'].apply(int).values < begin_date]
+    df = df[df['list_date'].apply(int).values < int(str(date.today()).replace('-', ''))]
     # 获取当前所有非新股次新股代码和名称
     codes = df.ts_code.values
     names = df.name.values
