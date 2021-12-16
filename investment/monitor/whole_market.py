@@ -208,13 +208,12 @@ def weekly_liner_regression():
                 kline = EMA_V2(EMA_V2(i['kline'], 5), 10)
                 stock_year_applies = round((kline[-1]["close"] - kline[-weeks]['close']) / kline[-weeks]['close'] * 100, 2)
                 if stock_year_applies >= benchmark:
-                    lr = Linear_Regression(kline[-8:], key="ema5")
+                    lr = Linear_Regression(kline[-8:], key="ema10")
                     i['R_Square'], i['slope'], i['intercept'] = lr['R_Square'], lr['slope'], lr['intercept']
                     i['src'] = [i['ema5'] for i in kline[-8:]]
                     i['kline'] = i['kline'][-1]
                     if i['slope'] > 0 and i['R_Square'] > 0.8:
                         target.append(i)
     return sorted(target, key=lambda x: x['R_Square'], reverse=True)
-
 
 
