@@ -70,6 +70,9 @@ def get_industry_by_code(code):
     assert '.SZ' not in str(code) or '.SH' not in str(code)
     assert str(code)[0] in ('0', '3', '6')
     code = f"{code}.SH" if str(code).startswith('6') else f"{code}.SZ"
+    if code not in NEW_STOCK_LIST.keys():
+        logging.warning(f"{code} not in NEW_STOCK_LIST.")
+        return None
     return NEW_STOCK_LIST[code]['industry']
 
 
@@ -1405,16 +1408,27 @@ def StanWeinstein():
             logging.warning(i)
 
 
+def NewStockDetail():
+    pool = select_composition_stock("BK0501")
+    for i in pool:
+        code = f"{i['code']}.SH" if str(i['code']).startswith('6') else f"{i['code']}.SZ"
+        i['industry'] = get_industry_by_code(i['code'])
+        i['list_date'] = int(NEW_STOCK_LIST[code]['list_date'])
+        i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
+        if i['list_date'] >= int(str(date.today()-timedelta(90)).replace('-', '')) and not i['code'].startswith('68'):
+            kline = get_stock_kline_with_indicators(i['code'], limit=250)
+            avg_close = sum([i['close'] for i in kline])/len(kline)
+            if kline[0]['close'] < avg_close:
+                logging.warning(f"{i}\t{len(kline)}")
+            else:
+                print(f"{i}\t{len(kline)}")
+
+
 # stock_filter_aggregation()
 # stock_filter_by_Shrank_back_to_trample()
 # stock_filter_by_ema_week()
 # stock_filter_by_BooleanLine(period=101)
 # stock_filter_by_BooleanV1(period=101)
 
-pool = select_composition_stock("BK0501")
-for i in pool:
-    i['industry'] = get_industry_by_code(i['code'])
-    i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
-    print(i)
 
 
