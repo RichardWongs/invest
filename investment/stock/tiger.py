@@ -87,5 +87,5 @@ def getBillboardDetail(code, _date=date.today()):
     logging.warning(f"机构净买入:{NET}")
 
 
-billboard(_date=date.today()-timedelta(days=1))
+billboard(_date=date.today())
 
