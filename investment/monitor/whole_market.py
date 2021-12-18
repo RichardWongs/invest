@@ -11,7 +11,7 @@ from RPS.stock_pool import STOCK_LIST
 
 
 def RedisConn():
-    client = redis.Redis(host="172.16.1.162", port=6379, db=0)
+    client = redis.Redis(host="192.168.124.20", port=6379, db=0)
     return client
 
 
@@ -108,7 +108,7 @@ def save_whole_market_data_to_redis():
     result = {}
     counter = 0
     client = RedisConn()
-    for i in STOCK_LIST[3500:]:
+    for i in STOCK_LIST[4000:]:
         counter += 1
         print(i, counter)
         code = i['code'].split('.')[0]
@@ -217,3 +217,6 @@ def weekly_liner_regression():
     return sorted(target, key=lambda x: x['R_Square'], reverse=True)
 
 
+if __name__ == "__main__":
+    # save_whole_market_data_to_redis()
+    save_market_data_from_redis()
