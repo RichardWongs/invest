@@ -17,7 +17,6 @@ def get_research_report(code):
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
     response = requests.get(url)
-    # print(response.text)
     response = response.text.replace('datatable4737182', '')
     response = response[1:-1]
     response = json.loads(response)
@@ -27,7 +26,7 @@ def get_research_report(code):
     return None
 
 
-def save_research_report2local():
+def save_research_report_to_redis():
     # 从东方财富网下载个股机构研报,并以二进制文件保存到本地,建议每周更新一次即可
     target = {}
     count = 1
@@ -39,9 +38,6 @@ def save_research_report2local():
             print(count, data)
             client.set(f"stock:research:{i['code']}", json.dumps(data))
             count += 1
-            # target[i['code']] = data
-    # with open("research_report.bin", 'wb') as f:
-    #     f.write(pickle.dumps(target))
 
 
 def read_research_report_from_redis():
@@ -53,6 +49,16 @@ def read_research_report_from_redis():
         target[code] = json.loads(client.get(i))
     with open("All_research_report.bin", "wb") as f:
         f.write(pickle.dumps(target))
+
+
+def read_research_report():
+    result = []
+    with open("All_research_report.bin", "rb") as f:
+        content = f.read()
+        content = pickle.loads(content)
+        for k, v in content.items():
+            result.append({'code': k, 'name': v[0]['stockName']})
+    return result
 
 
 def get_quarter_report(_date=None):
@@ -83,6 +89,7 @@ def get_quarter_report(_date=None):
 
 
 def read_quarter_report():
+    result = []
     with open("All_quarter_report.bin", 'rb') as f:
         content = f.read()
         content = pickle.loads(content)
@@ -95,9 +102,15 @@ def read_quarter_report():
             JLRHBZZ = v['SJLHZ']
             if YSTBZZ and JLRTBZZ:
                 if YSTBZZ > 0 and JLRTBZZ > 0:
-                    logging.warning(f"{count}\tCODE:{code}\t名称:{name}\t营收同比增长:{YSTBZZ}\t营收环比增长:{YSHBZZ}\t净利润同比增长:{JLRTBZZ}\t净利润环比增长:{JLRHBZZ}")
+                    # logging.warning(f"{count}\tCODE:{code}\t名称:{name}\t营收同比增长:{YSTBZZ}\t营收环比增长:{YSHBZZ}\t净利润同比增长:{JLRTBZZ}\t净利润环比增长:{JLRHBZZ}")
+                    result.append({'code': code, 'name': name})
                     count += 1
+    return result
 
 
-# save_research_report2local()
-# read_research_report_from_redis()
+res = read_research_report()
+req = read_quarter_report()
+target = [i for i in req if i in res]
+print(len(target), target)
+
+
