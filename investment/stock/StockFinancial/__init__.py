@@ -1,8 +1,11 @@
+import copy
 import logging
 import os
 import time
 import json
 import pickle
+
+import pandas as pd
 import requests
 from datetime import date, timedelta
 from RPS.stock_pool import STOCK_LIST
@@ -108,6 +111,31 @@ def read_quarter_report():
     return result
 
 
+def get_rps_stock_list():
+    from RPS.stock_pool import NEW_STOCK_LIST
+    files = ['../../RPS/RPS_50_V2.csv', '../../RPS/RPS_120_V2.csv', '../../RPS/RPS_250_V2.csv']
+    pool = copy.copy(NEW_STOCK_LIST)
+    df = pd.read_csv(files[0], encoding="utf-8")
+    for i in df.values:
+        pool[i[0]]['rps50'] = i[-1]
+    df = pd.read_csv(files[1], encoding="utf-8")
+    for i in df.values:
+        pool[i[0]]['rps120'] = i[-1]
+    df = pd.read_csv(files[2], encoding="utf-8")
+    for i in df.values:
+        pool[i[0]]['rps250'] = i[-1]
+        del pool[i[0]]['list_date']
+    return pool
+
+
+def get_rps_by_code(code, pool=None):
+    if not pool:
+        pool = get_rps_stock_list()
+    if '.SZ' not in str(code) or '.SH' not in str(code) and str(code)[0] in ('0', '3', '6'):
+        code = f"{code}.SH" if str(code).startswith('6') else f"{code}.SZ"
+    return pool[code]
+
+
 def Trend_Template():
     # 趋势模板(股票魔法师第一部)
     res = read_research_report()
@@ -115,6 +143,7 @@ def Trend_Template():
     pool = [i for i in req if i in res]
     client = RedisConn()
     counter = 1
+    rps = get_rps_stock_list()
     for i in pool:
         # kline = get_stock_kline_with_indicators(i['code'], limit=250)
         # i['kline'] = EMA_V2(EMA_V2(EMA_V2(kline, 50), 150), 200)
@@ -126,10 +155,11 @@ def Trend_Template():
         close = kline[-1]['close']
         if close > kline[-1]['ema50'] > kline[-1]['ema150'] > kline[-1]['ema200'] > kline[-20]['ema200']:
             if close > lowest * 1.3 and close > highest * 0.75:
+                i = get_rps_by_code(code=i['code'], pool=rps)
                 logging.warning(f"{counter}\t{i}")
                 counter += 1
 
 
-
-
-
+Trend_Template()
+# print(get_rps_stock_list())
+# print(get_rps_by_code('002585'))
