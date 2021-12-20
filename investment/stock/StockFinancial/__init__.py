@@ -108,9 +108,28 @@ def read_quarter_report():
     return result
 
 
-res = read_research_report()
-req = read_quarter_report()
-target = [i for i in req if i in res]
-print(len(target), target)
+def Trend_Template():
+    # 趋势模板(股票魔法师第一部)
+    res = read_research_report()
+    req = read_quarter_report()
+    pool = [i for i in req if i in res]
+    client = RedisConn()
+    counter = 1
+    for i in pool:
+        # kline = get_stock_kline_with_indicators(i['code'], limit=250)
+        # i['kline'] = EMA_V2(EMA_V2(EMA_V2(kline, 50), 150), 200)
+        # client.set(f"stock:daily:{i['code']}", json.dumps(i))
+        # 查询行情数据存储至redis中
+        kline = json.loads(client.get(f"stock:daily:{i['code']}"))['kline']
+        highest = max([i['high'] for i in kline])
+        lowest = min([i['low'] for i in kline])
+        close = kline[-1]['close']
+        if close > kline[-1]['ema50'] > kline[-1]['ema150'] > kline[-1]['ema200'] > kline[-20]['ema200']:
+            if close > lowest * 1.3 and close > highest * 0.75:
+                logging.warning(f"{counter}\t{i}")
+                counter += 1
+
+
+
 
 
