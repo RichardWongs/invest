@@ -161,5 +161,4 @@ def Trend_Template():
 
 
 Trend_Template()
-# print(get_rps_stock_list())
-# print(get_rps_by_code('002585'))
+
