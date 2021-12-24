@@ -1,15 +1,16 @@
+# 美图模式量化过程 信息来源: 老杜
 import copy
 import logging
 import os
 import time
 import json
 import pickle
-
 import pandas as pd
 import requests
 from datetime import date, timedelta
 from RPS.stock_pool import STOCK_LIST
 from monitor.whole_market import RedisConn
+from monitor import get_stock_kline_with_indicators, MA_V2, BooleanLine
 
 
 def get_research_report(code):
@@ -136,29 +137,55 @@ def get_rps_by_code(code, pool=None):
     return pool[code]
 
 
+def is_below_longer(kline: list):
+    for i in kline:
+        if i['low'] < i['ma150'] or i['low'] < i['ma200']:
+            return True
+    return False
+
+
 def Trend_Template():
     # 趋势模板(股票魔法师第一部)
-    res = read_research_report()
+    # res = read_research_report()
     req = read_quarter_report()
-    pool = [i for i in req if i in res]
+    pool = [i for i in req]
     client = RedisConn()
     counter = 1
     rps = get_rps_stock_list()
     for i in pool:
         # kline = get_stock_kline_with_indicators(i['code'], limit=250)
-        # i['kline'] = EMA_V2(EMA_V2(EMA_V2(kline, 50), 150), 200)
-        # client.set(f"stock:daily:{i['code']}", json.dumps(i))
+        # if kline and len(kline) > 200:
+        #     i['kline'] = MA_V2(MA_V2(MA_V2(kline, 50), 150), 200)
+        #     client.set(f"stock:daily:{i['code']}", json.dumps(i))
+        #     print(counter, i['name'])
+        #     counter += 1
+        # continue
         # 查询行情数据存储至redis中
-        kline = json.loads(client.get(f"stock:daily:{i['code']}"))['kline']
-        highest = max([i['high'] for i in kline])
-        lowest = min([i['low'] for i in kline])
-        close = kline[-1]['close']
-        if close > kline[-1]['ema50'] > kline[-1]['ema150'] > kline[-1]['ema200'] > kline[-20]['ema200']:
-            if close > lowest * 1.3 and close > highest * 0.75:
-                i = get_rps_by_code(code=i['code'], pool=rps)
+        redis_data = client.get(f"stock:daily:{i['code']}")
+        if redis_data:
+            kline = json.loads(redis_data)['kline']
+            highest = max([i['high'] for i in kline])
+            lowest = min([i['low'] for i in kline])
+            close = kline[-1]['close']
+            if close > kline[-1]['ma50'] > kline[-1]['ma150'] > kline[-1]['ma200'] > kline[-20]['ma200']:
+                if close > lowest * 1.3 and close > highest * 0.75:
+                    i = get_rps_by_code(code=i['code'], pool=rps)
+                    logging.warning(f"{counter}\t{i}")
+                    counter += 1
+
+
+def BeautyFigure():
+    req = read_quarter_report()
+    client = RedisConn()
+    counter = 1
+    for i in req:
+        redis_data = client.get(f"stock:daily:{i['code']}")
+        if redis_data:
+            kline = json.loads(redis_data)['kline']
+            kline = BooleanLine(kline)
+            if kline[-1]['BBW'] < 0.2 and is_below_longer(kline[-66:]) and kline[-1]['close'] > kline[-1]['ma150'] > kline[-1]['ma200']:
                 logging.warning(f"{counter}\t{i}")
                 counter += 1
 
 
-Trend_Template()
-
+BeautyFigure()
