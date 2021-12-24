@@ -2,6 +2,7 @@
 import copy
 import logging
 import os
+import sys
 import time
 import json
 import pickle
@@ -93,6 +94,7 @@ def get_quarter_report(_date=None):
 
 
 def read_quarter_report():
+    os.chdir("D:/GIT/invest/investment/stock/StockFinancial/")
     result = []
     with open("All_quarter_report.bin", 'rb') as f:
         content = f.read()
@@ -188,4 +190,5 @@ def BeautyFigure():
                 counter += 1
 
 
-BeautyFigure()
+# BeautyFigure()
+# read_quarter_report()
