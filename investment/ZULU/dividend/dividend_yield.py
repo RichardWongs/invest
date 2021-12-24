@@ -95,6 +95,18 @@ def get_dividend_by_code(code):
         with open(file, 'rb') as f:
             content = pickle.loads(f.read())
             if code in content.keys():
+                del content[code]['TRADE_MARKET_CODE']
+                del content[code]['TRADE_MARKET']
+                del content[code]['SECURITY_TYPE_CODE']
+                del content[code]['SECURITY_TYPE']
+                del content[code]['REPORTDATE']
+                del content[code]['SECUCODE']
+                del content[code]['DATEMMDD']
+                del content[code]['EITIME']
+                del content[code]['TRADE_MARKET_ZJG']
+                del content[code]['NOTICE_DATE']
+                del content[code]['ORG_CODE']
+                del content[code]['ISNEW']
                 target.append(content[code])
     return target
 
