@@ -308,7 +308,7 @@ def market_chart(code, name="UNKNOWN"):
         # save_path += "/STOCK"
         save_path += "/beautiful"
     code = str(code).split('.')[0]
-    data = get_stock_kline_with_indicators(code, period=101, limit=250)
+    data = get_stock_kline_with_indicators(code, period=101, limit=400)
     for i in data:
         i['day'] = datetime.strptime(i['day'], "%Y-%m-%d").date()
         del i['applies']
@@ -338,7 +338,8 @@ def market_chart(code, name="UNKNOWN"):
         # gridaxis="both",
         # gridstyle="-.",
         y_on_right=False,
-        marketcolors=mc
+        marketcolors=mc,
+        # rc={"font.family": "SimHei"}
     )
     mpf.plot(df,
              type="candle",
@@ -350,10 +351,10 @@ def market_chart(code, name="UNKNOWN"):
              figratio=(12, 6),
              figscale=8,
              mav=(50, 150, 200),
-             # show_nontrading=False,
-             # savefig=f"{save_path}/{name}.png"
+             show_nontrading=False,
+             savefig=f"{save_path}/{name}.png"
              )
 
 
-
-
+for i in Beautiful:
+    market_chart(i['code'], i['name'])
