@@ -338,7 +338,8 @@ def market_chart(code, name="UNKNOWN"):
         # gridaxis="both",
         # gridstyle="-.",
         y_on_right=False,
-        marketcolors=mc
+        marketcolors=mc,
+        # rc={"font.family": "SimHei"}
     )
     mpf.plot(df,
              type="candle",
@@ -348,12 +349,12 @@ def market_chart(code, name="UNKNOWN"):
              volume=True,
              ylabel_lower="volume(shares)",
              figratio=(12, 6),
-             figscale=6,
-             mav=(150, 200),
-             # show_nontrading=False,
-             # savefig=f"{save_path}/{name}.png"
+             figscale=8,
+             mav=(50, 150, 200),
+             show_nontrading=False,
+             savefig=f"{save_path}/{name}.png"
              )
 
 
-market_chart("300760")
-
+for i in Beautiful:
+    market_chart(i['code'], i['name'])
