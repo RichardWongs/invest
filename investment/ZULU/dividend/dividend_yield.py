@@ -7,6 +7,7 @@ import json
 import pickle
 from parse import *
 from ZULU import share_pool
+from monitor import get_stock_kline_with_indicators
 
 
 def get_quarter_report(_date):
@@ -69,7 +70,8 @@ def get_stock_share_out_bonus():
     return target
 
 
-def extract_dividend_detail(s: str):
+def extract_dividend_detail(s: str, code=None, name=None):
+    global dividendYieldNumber
     sendCount = 0
     turnCount = 0
     cash = 0
@@ -82,14 +84,18 @@ def extract_dividend_detail(s: str):
     if "派" in s:
         profile = search("派{dividend:f}", s)
         cash = profile["dividend"]
-    logging.warning(f"送股:{sendCount}\t转股:{turnCount}\t派息:{cash}")
+        if code and cash:
+            price = get_stock_kline_with_indicators(code, limit=10)[-1]['close']
+            dividendYieldNumber = round(cash/10/price*100, 2)
+    if dividendYieldNumber >= 3:
+        logging.warning(f"{code}\t{name}\t送股:{sendCount}\t转股:{turnCount}\t派息:{cash}\t股息率:{dividendYieldNumber}")
     return {'sendCount': sendCount, 'turnCount': turnCount, 'cash': cash}
 
 
-def get_dividend_by_code(code):
+def get_dividend_by_code(code, year=2020):
     os.chdir("D:/GIT/invest/investment/ZULU/dividend/")
     code = str(code).split('.')[0]
-    files = ['2020-03-31.bin', '2020-06-30.bin', '2020-09-30.bin', '2020-12-31.bin']
+    files = [f'{year}-03-31.bin', f'{year}-06-30.bin', f'{year}-09-30.bin', f'{year}-12-31.bin']
     target = []
     for file in files:
         with open(file, 'rb') as f:
@@ -112,6 +118,14 @@ def get_dividend_by_code(code):
 
 
 stocks = get_stock_share_out_bonus()
-for i in stocks[:10]:
-    print(get_dividend_by_code(i['code']))
+count = 1
+for i in stocks:
+    dividend_info = get_dividend_by_code(i['code'])
+    # print(count, len(dividend_info), dividend_info)
+    if len(dividend_info) == 1:
+        extract_dividend_detail(dividend_info[0]['ASSIGNDSCRPT'], code=dividend_info[0]['SECURITY_CODE'], name=dividend_info[0]['SECURITY_NAME_ABBR'])
+    else:
+        for j in dividend_info:
+            extract_dividend_detail(j['ASSIGNDSCRPT'], code=j['SECURITY_CODE'], name=j['SECURITY_NAME_ABBR'])
+    count += 1
 

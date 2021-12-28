@@ -108,7 +108,7 @@ def read_quarter_report():
             JLRHBZZ = v['SJLHZ']
             if YSTBZZ and JLRTBZZ:
                 if YSTBZZ > 0 and JLRTBZZ > 0:
-                    # logging.warning(f"{count}\tCODE:{code}\t名称:{name}\t营收同比增长:{YSTBZZ}\t营收环比增长:{YSHBZZ}\t净利润同比增长:{JLRTBZZ}\t净利润环比增长:{JLRHBZZ}")
+                    logging.warning(f"{count}\tCODE:{code}\t名称:{name}\t营收同比增长:{YSTBZZ}\t营收环比增长:{YSHBZZ}\t净利润同比增长:{JLRTBZZ}\t净利润环比增长:{JLRHBZZ}")
                     result.append({'code': code, 'name': name})
                     count += 1
     return result
@@ -155,13 +155,13 @@ def Trend_Template():
     counter = 1
     rps = get_rps_stock_list()
     for i in pool:
-        # kline = get_stock_kline_with_indicators(i['code'], limit=250)
-        # if kline and len(kline) > 200:
-        #     i['kline'] = MA_V2(MA_V2(MA_V2(kline, 50), 150), 200)
-        #     client.set(f"stock:daily:{i['code']}", json.dumps(i))
-        #     print(counter, i['name'])
-        #     counter += 1
-        # continue
+        kline = get_stock_kline_with_indicators(i['code'], limit=250)
+        if kline and len(kline) > 200:
+            i['kline'] = MA_V2(MA_V2(MA_V2(kline, 50), 150), 200)
+            client.set(f"stock:daily:{i['code']}", json.dumps(i))
+            print(counter, i['name'])
+            counter += 1
+        continue
         # 查询行情数据存储至redis中
         redis_data = client.get(f"stock:daily:{i['code']}")
         if redis_data:
@@ -191,4 +191,4 @@ def BeautyFigure():
 
 
 # BeautyFigure()
-# read_quarter_report()
+# Trend_Template()

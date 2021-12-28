@@ -308,7 +308,7 @@ def market_chart(code, name="UNKNOWN"):
         # save_path += "/STOCK"
         save_path += "/beautiful"
     code = str(code).split('.')[0]
-    data = get_stock_kline_with_indicators(code, period=101, limit=250)
+    data = get_stock_kline_with_indicators(code, period=101, limit=400)
     for i in data:
         i['day'] = datetime.strptime(i['day'], "%Y-%m-%d").date()
         del i['applies']
@@ -348,12 +348,12 @@ def market_chart(code, name="UNKNOWN"):
              volume=True,
              ylabel_lower="volume(shares)",
              figratio=(12, 6),
-             figscale=8,
-             mav=(50, 150, 200),
+             figscale=6,
+             mav=(150, 200),
              # show_nontrading=False,
              # savefig=f"{save_path}/{name}.png"
              )
 
 
-
+market_chart("300760")
 
