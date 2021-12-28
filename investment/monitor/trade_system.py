@@ -305,8 +305,8 @@ def market_chart(code, name="UNKNOWN"):
     if str(code).startswith('1') or str(code).startswith('5'):
         save_path += "/ETF"
     else:
-        # save_path += "/STOCK"
-        save_path += "/beautiful"
+        save_path += "/STOCK"
+        # save_path += "/beautiful"
     code = str(code).split('.')[0]
     data = get_stock_kline_with_indicators(code, period=101, limit=400)
     for i in data:
@@ -339,11 +339,11 @@ def market_chart(code, name="UNKNOWN"):
         # gridstyle="-.",
         y_on_right=False,
         marketcolors=mc,
-        # rc={"font.family": "SimHei"}
+        rc={"font.family": "SimHei"}
     )
     mpf.plot(df,
              type="candle",
-             title=str(code),
+             title=f"{code}  {name}",
              ylabel="price($)",
              style=s,
              volume=True,
@@ -351,10 +351,9 @@ def market_chart(code, name="UNKNOWN"):
              figratio=(12, 6),
              figscale=8,
              mav=(50, 150, 200),
-             show_nontrading=False,
-             savefig=f"{save_path}/{name}.png"
+             # show_nontrading=False,
+             # savefig=f"{save_path}/{name}.png"
              )
 
 
-for i in Beautiful:
-    market_chart(i['code'], i['name'])
+

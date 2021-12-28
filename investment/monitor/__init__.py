@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful
+from RPS import TrendStock, Beautiful, YeChengStock
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -112,6 +112,8 @@ def Compact_Structure(kline: list):
 
 
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
+    if '.' in str(code):
+        code = str(code).split('.')[0]
     time.sleep(1)
     assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:

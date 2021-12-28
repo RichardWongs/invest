@@ -134,9 +134,12 @@ def get_rps_stock_list():
 def get_rps_by_code(code, pool=None):
     if not pool:
         pool = get_rps_stock_list()
-    if '.SZ' not in str(code) or '.SH' not in str(code) and str(code)[0] in ('0', '3', '6'):
-        code = f"{code}.SH" if str(code).startswith('6') else f"{code}.SZ"
-    return pool[code]
+    if 'SZ' not in str(code) and str(code)[0] in ('0', '3'):
+        return pool[f"{code}.SZ"]
+    elif 'SH' not in str(code) and str(code)[0] == '6':
+        return pool[f"{code}.SH"]
+    else:
+        return pool[code]
 
 
 def is_below_longer(kline: list):
@@ -192,3 +195,5 @@ def BeautyFigure():
 
 # BeautyFigure()
 # Trend_Template()
+
+
