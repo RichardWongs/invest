@@ -16,7 +16,7 @@ from ZULU import share_pool
 def get_research_report(code):
     # 获取个股研报数据
     time.sleep(0.5)
-    beginTime = date.today() - timedelta(days=180)
+    beginTime = date.today() - timedelta(days=90)
     endTime = date.today()
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
@@ -303,4 +303,4 @@ def update_dataPackage():
     get_earnings_forecast()
 
 
-save_research_report2local()
+
