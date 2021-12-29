@@ -158,7 +158,7 @@ def Trend_Template():
     counter = 1
     rps = get_rps_stock_list()
     for i in pool:
-        kline = get_stock_kline_with_indicators(i['code'], limit=250)
+        kline = get_stock_kline_with_indicators(i['code'], limit=350)
         if kline and len(kline) > 200:
             i['kline'] = MA_V2(MA_V2(MA_V2(kline, 50), 150), 200)
             client.set(f"stock:daily:{i['code']}", json.dumps(i))
@@ -193,7 +193,8 @@ def BeautyFigure():
                 counter += 1
 
 
-# BeautyFigure()
-# Trend_Template()
+if __name__ == "__main__":
+    # BeautyFigure()
+    Trend_Template()
 
 

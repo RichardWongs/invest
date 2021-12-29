@@ -67,7 +67,7 @@ class SecurityException(BaseException):
 
 
 def get_industry_by_code(code):
-    assert '.SZ' not in str(code) or '.SH' not in str(code)
+    code = str(code).split('.')[0]
     assert str(code)[0] in ('0', '3', '6')
     code = f"{code}.SH" if str(code).startswith('6') else f"{code}.SZ"
     if code not in NEW_STOCK_LIST.keys():
@@ -938,14 +938,12 @@ def stock_filter_by_MACD_and_BBI(period=101, limit=150):
         data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = ATR(data)
         data = BBI(MACD(data))
-        biggest_decline = biggest_decline_calc(data)
         if data[-1]['MACD'] < 0 and data[-1]['macd_direction'] == "UP" and data[-2]['macd_direction'] == "DOWN":
             i['industry'] = get_industry_by_code(i['code'])
             i['applies'] = data[-1]['applies']
             i['volume'] = data[-1]['volume']
             i['10th_largest'] = data[-1]['10th_largest']
             result.append(i)
-            logging.warning(f"{i}\t半年内最大跌幅: {biggest_decline}")
     return result
 
 
@@ -1314,8 +1312,9 @@ def stock_filter_by_ema_week():
                 logging.warning(f"price breakthrough from ema30: {i}")
 
 
-def stock_filter_aggregation():
-    pool = institutions_holding_rps_stock()
+def stock_filter_aggregation(pool=Beautiful):
+    if not pool:
+        pool = institutions_holding_rps_stock()
     for i in pool:
         i['kline'] = get_stock_kline_with_indicators(i['code'], period=101, limit=180)
     logging.warning(f"MACD STOCK FILTER")
@@ -1426,11 +1425,11 @@ def NewStockDetail():
                 print(f"{i}\t{len(kline)}")
 
 
-# stock_filter_aggregation()
-# stock_filter_by_Shrank_back_to_trample()
-# stock_filter_by_ema_week()
-# stock_filter_by_BooleanLine(period=101)
-# stock_filter_by_BooleanV1(period=101)
+if __name__ == "__main__":
+    stock_filter_aggregation(pool=Beautiful)
+    # stock_filter_by_Shrank_back_to_trample()
+    # stock_filter_by_BooleanLine(period=101)
+    # stock_filter_by_BooleanV1(period=101)
 
 
 

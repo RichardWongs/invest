@@ -7,6 +7,7 @@ import requests
 import json
 from datetime import date, timedelta
 from RPS.foreign_capital_increase import foreign_capital_filter
+from monitor import get_industry_by_code
 from security import get_stock_kline_with_volume
 from RPS.quantitative_screening import get_RPS_stock_pool
 from ZULU import share_pool
@@ -15,7 +16,7 @@ from ZULU import share_pool
 def get_research_report(code):
     # 获取个股研报数据
     time.sleep(0.5)
-    beginTime = date.today() - timedelta(days=60)
+    beginTime = date.today() - timedelta(days=180)
     endTime = date.today()
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
@@ -67,7 +68,7 @@ def get_predict_eps(code, research_report: dict):
         logging.error(f"{code}不在股票池中,请确认参数是否正确")
         return 0, 0
     if str(code) not in research_report.keys():
-        logging.warning(f"未查询到 {code} 机构研报,请更新研报数据!")
+        # logging.warning(f"未查询到 {code} 机构研报,请更新研报数据!")
         return 0, 0
     else:
         data = research_report[str(code)]
@@ -128,8 +129,8 @@ def continuous_growth_filter(code=None):
                                  'eps_2018': pool_2018[k]['PARENT_NETPROFIT'],
                                  'eps_2019': pool_2019[k]['PARENT_NETPROFIT'],
                                  'eps_2020': pool_2020[k]['PARENT_NETPROFIT']})
-            else:
-                logging.warning(f"{k} 不符合年报净利润连续三年增长的标准")
+            # else:
+            #     logging.warning(f"{k} 不符合年报净利润连续三年增长的标准")
     return eps_pool
 
 
@@ -137,7 +138,9 @@ def continuous_growth_four_year_filter_process():
     # 收益连续四年增长股票池
     target_pool = []
     pool = continuous_growth_filter()
+    logging.warning(f"过去三年归母净利润每年都在增长的个股数量:{len(pool)}\t{pool}")
     research_report = read_research_report_from_local()
+    logging.warning(f"公开研报覆盖个股:{len(research_report)}")
     for i in pool:
         eps2021, eps2022 = get_predict_eps(i['code'], research_report)
         i['eps_2021'] = eps2021
@@ -145,6 +148,7 @@ def continuous_growth_four_year_filter_process():
     for i in pool:
         if i['eps_2021'] > i['eps_2020']:
             target_pool.append(i)
+    logging.warning(f"机构研报预测业绩增长的个股数量:{len(target_pool)}\t{target_pool}")
     return target_pool
 
 
@@ -228,6 +232,8 @@ def quarter_forecast_filter(pool):
             ADD_AMP_LOWER = earnings_forecast[i['code']]['ADD_AMP_LOWER']
             if ADD_AMP_LOWER and ADD_AMP_LOWER < 0:
                 pool.remove(i)
+        else:
+            i['industry'] = get_industry_by_code(i['code'])
     logging.warning(f"业绩预告净利润增速为正的个股数量(包含未公布业绩预告个股): {len(pool)}")
     return pool
 
@@ -250,11 +256,6 @@ def run():
     pool = quarter_forecast_filter(pool)
     rps_pool = []
     indexs = index_applies()
-    # for i in pool:
-    #     i = relative_intensity(i, indexApplies=indexs)
-    #     if i['strong']:
-    #         rps_pool.append(i)
-    # logging.warning(f"高相对强度股池: {len(rps_pool)}\t{rps_pool}")
     target = []
     low_peg_pool = []
     for i in pool:
@@ -302,4 +303,4 @@ def update_dataPackage():
     get_earnings_forecast()
 
 
-run()
+save_research_report2local()

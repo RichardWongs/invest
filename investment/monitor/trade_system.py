@@ -305,8 +305,8 @@ def market_chart(code, name="UNKNOWN"):
     if str(code).startswith('1') or str(code).startswith('5'):
         save_path += "/ETF"
     else:
-        save_path += "/STOCK"
-        # save_path += "/beautiful"
+        # save_path += "/STOCK"
+        save_path += "/beautiful"
     code = str(code).split('.')[0]
     data = get_stock_kline_with_indicators(code, period=101, limit=400)
     for i in data:
@@ -354,6 +354,7 @@ def market_chart(code, name="UNKNOWN"):
              # show_nontrading=False,
              # savefig=f"{save_path}/{name}.png"
              )
+    logging.warning(f"{code}\t{name}")
 
 
 
