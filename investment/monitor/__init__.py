@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock
+from RPS import TrendStock, Beautiful, YeChengStock, Zulu
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -114,7 +114,7 @@ def Compact_Structure(kline: list):
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     if '.' in str(code):
         code = str(code).split('.')[0]
-    time.sleep(1)
+    time.sleep(0.5)
     assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
@@ -966,12 +966,14 @@ def stock_filter_by_MACD_and_BBI_V2(pool: list):
     return result
 
 
-def stock_filter_by_BooleanLine(period=101, limit=150):
+def stock_filter_by_BooleanLine(pool=None, period=101, limit=150):
     logging.warning(f"stock filter by BooleanLine !")
-    pool = institutions_holding_rps_stock()
+    if not pool:
+        pool = institutions_holding_rps_stock()
     result = []
     count = 1
     for i in pool:
+        i['code'] = i['code'].split('.')[0]
         data = get_stock_kline_with_indicators(i['code'], period=period, limit=limit)
         data = BooleanLine(ATR(data))
         if 0.2 >= data[-1]['BBW'] > data[-2]['BBW'] >= data[-3]['BBW']:
@@ -986,11 +988,13 @@ def stock_filter_by_BooleanLine(period=101, limit=150):
     return result
 
 
-def stock_filter_by_BooleanV1(period=101):
-    pool = institutions_holding_rps_stock()
+def stock_filter_by_BooleanV1(pool=None, period=101):
+    if not pool:
+        pool = institutions_holding_rps_stock()
     count = 1
     result = []
     for i in pool:
+        i['code'] = i['code'].split('.')[0]
         kline = get_stock_kline_with_indicators(i['code'], period=period)
         kline = BooleanLine(kline)
         if kline[-1]['MID'] > kline[-2]['MID'] or kline[-1]['BBW'] < 0.2:
@@ -1426,10 +1430,10 @@ def NewStockDetail():
 
 
 if __name__ == "__main__":
-    stock_filter_aggregation(pool=Beautiful)
+    # stock_filter_aggregation(pool=Beautiful)
     # stock_filter_by_Shrank_back_to_trample()
-    # stock_filter_by_BooleanLine(period=101)
-    # stock_filter_by_BooleanV1(period=101)
+    stock_filter_by_BooleanLine(pool=Beautiful, period=101)
+    stock_filter_by_BooleanV1(pool=Beautiful, period=101)
 
 
 

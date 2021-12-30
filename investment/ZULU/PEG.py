@@ -138,7 +138,7 @@ def continuous_growth_four_year_filter_process():
     # 收益连续四年增长股票池
     target_pool = []
     pool = continuous_growth_filter()
-    logging.warning(f"过去三年归母净利润每年都在增长的个股数量:{len(pool)}\t{pool}")
+    logging.warning(f"过去三年归母净利润每年都在增长的个股数量:{len(pool)}")
     research_report = read_research_report_from_local()
     logging.warning(f"公开研报覆盖个股:{len(research_report)}")
     for i in pool:
@@ -148,7 +148,7 @@ def continuous_growth_four_year_filter_process():
     for i in pool:
         if i['eps_2021'] > i['eps_2020']:
             target_pool.append(i)
-    logging.warning(f"机构研报预测业绩增长的个股数量:{len(target_pool)}\t{target_pool}")
+    logging.warning(f"机构研报预测业绩增长的个股数量:{len(target_pool)}")
     return target_pool
 
 
@@ -273,6 +273,7 @@ def run():
             target.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
     low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
+    [print(i) for i in low_peg_pool]
     logging.warning(f"低PEG且高相对强度:{len(low_peg_pool)}\t{low_peg_pool}\n全部PEG股票池:{len(target)}\t{target}")
     return low_peg_pool, target
 
@@ -303,4 +304,5 @@ def update_dataPackage():
     get_earnings_forecast()
 
 
-
+if __name__ == "__main__":
+    run()

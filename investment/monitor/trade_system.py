@@ -299,7 +299,7 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
-def market_chart(code, name="UNKNOWN"):
+def market_chart(code, name="UNKNOWN", show=False):
     import mplfinance as mpf
     save_path = "../STOCK_CHANNEL"
     if str(code).startswith('1') or str(code).startswith('5'):
@@ -351,10 +351,13 @@ def market_chart(code, name="UNKNOWN"):
              figratio=(12, 6),
              figscale=8,
              mav=(50, 150, 200),
-             # show_nontrading=False,
-             # savefig=f"{save_path}/{name}.png"
+             show_nontrading=show,
+             savefig=None if show else f"{save_path}/{name}.png"
              )
     logging.warning(f"{code}\t{name}")
 
 
-
+if __name__ == "__main__":
+    for i in YeChengStock:
+        del i['list_date']
+    print(YeChengStock)

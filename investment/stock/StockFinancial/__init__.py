@@ -157,13 +157,16 @@ def Trend_Template():
     client = RedisConn()
     counter = 1
     rps = get_rps_stock_list()
+    keys = client.keys("stock:daily:*")
+    keys = [i.decode() for i in keys]
     for i in pool:
-        kline = get_stock_kline_with_indicators(i['code'], limit=350)
-        if kline and len(kline) > 200:
-            i['kline'] = MA_V2(MA_V2(MA_V2(kline, 50), 150), 200)
-            client.set(f"stock:daily:{i['code']}", json.dumps(i))
-            print(counter, i['name'])
-            counter += 1
+        if f"stock:daily:{i['code']}" not in keys:
+            kline = get_stock_kline_with_indicators(i['code'], limit=350)
+            if kline and len(kline) > 200:
+                i['kline'] = MA_V2(MA_V2(MA_V2(kline, 50), 150), 200)
+                client.set(f"stock:daily:{i['code']}", json.dumps(i))
+                print(counter, i['code'], i['name'])
+                counter += 1
         continue
         # 查询行情数据存储至redis中
         redis_data = client.get(f"stock:daily:{i['code']}")
@@ -196,5 +199,5 @@ def BeautyFigure():
 if __name__ == "__main__":
     # BeautyFigure()
     Trend_Template()
-
+    # read_quarter_report()
 
