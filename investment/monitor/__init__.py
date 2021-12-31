@@ -66,6 +66,20 @@ class SecurityException(BaseException):
     pass
 
 
+def get_code_by_name(name: str):
+    for _, i in NEW_STOCK_LIST.items():
+        if name == i['name']:
+            return i['code']
+
+
+def get_name_by_code(code):
+    if '.S' in str(code):
+        return NEW_STOCK_LIST[code]['name']
+    else:
+        code = f"{code}.SH" if str(code).startswith('6') else f"{code}.SZ"
+        return NEW_STOCK_LIST[code]['name']
+
+
 def get_industry_by_code(code):
     code = str(code).split('.')[0]
     assert str(code)[0] in ('0', '3', '6')

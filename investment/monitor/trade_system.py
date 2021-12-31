@@ -1,4 +1,5 @@
 # encoding: gbk
+import sys
 from datetime import datetime, date
 import logging
 import os
@@ -299,8 +300,15 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
-def market_chart(code, name="UNKNOWN", show=False):
+def market_chart(code=None, name=None):
     import mplfinance as mpf
+    if code:
+        name = get_name_by_code(code)
+    elif name:
+        code = get_code_by_name(name)
+    else:
+        logging.error("code 和 name 必须传一个")
+        sys.exit()
     save_path = "../STOCK_CHANNEL"
     if str(code).startswith('1') or str(code).startswith('5'):
         save_path += "/ETF"
@@ -351,13 +359,11 @@ def market_chart(code, name="UNKNOWN", show=False):
              figratio=(12, 6),
              figscale=8,
              mav=(50, 150, 200),
-             show_nontrading=show,
-             savefig=None if show else f"{save_path}/{name}.png"
+             show_nontrading=True,
+             savefig=f"{save_path}/{name}.png"
              )
     logging.warning(f"{code}\t{name}")
 
 
 if __name__ == "__main__":
-    for i in YeChengStock:
-        del i['list_date']
-    print(YeChengStock)
+    market_chart(name="合锻智能")
