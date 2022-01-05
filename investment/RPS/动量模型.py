@@ -36,17 +36,6 @@ def saveMarketData2Redis():
 
 
 def saveMarketData2Local():
-    # 存储文件过大,暂不使用,改用V2版本
-    client = RedisConn()
-    keys = [i.decode() for i in client.keys(f"stock:momentum:*")]
-    target = []
-    for i in keys:
-        target.append(json.loads(client.get(i)))
-    with open("MomentumMarketData.bin", 'wb') as f:
-        f.write(pickle.dumps(target))
-
-
-def saveMarketData2LocalV2():
     client = RedisConn()
     keys = [i.decode() for i in client.keys(f"stock:momentum:*")]
     target = []
@@ -88,15 +77,14 @@ def find_institutions_holding():
 
 def find_high_rps_stock():
     # 剔除20日RPS强度小于85的个股
-    with open("MomentumMarketData.bin", 'rb') as f:
-        content = pickle.loads(f.read())
-        stockCount = int(len(content)*0.15)
-        result = []
-        for i in content:
-            del i['kline']
-            result.append(i)
-        result = sorted(result, key=lambda x: x['applies_20'], reverse=True)
-        return result[:stockCount]
+    content = readMarketDataFromLocal()
+    stockCount = int(len(content)*0.15)
+    result = []
+    for i in content:
+        del i['kline']
+        result.append(i)
+    result = sorted(result, key=lambda x: x['applies_20'], reverse=True)
+    return result[:stockCount]
 
 
 def find_new_stock(pool):
@@ -111,18 +99,17 @@ def find_new_stock(pool):
 def week52_new_high():
     # 统计当日创下一年新高的数量
     target = []
-    with open("MomentumMarketData.bin", 'rb') as f:
-        content = pickle.loads(f.read())
-        for i in content:
-            if len(i['kline']) > 250:
-                kline = i['kline'][-250:]
-            else:
-                kline = i['kline']
-            highest = max([i['high'] for i in kline])
-            if highest == kline[-1]['high']:
-                del i['kline']
-                target.append(i)
-        return target
+    content = readMarketDataFromLocal()
+    for i in content:
+        if len(i['kline']) > 250:
+            kline = i['kline'][-250:]
+        else:
+            kline = i['kline']
+        highest = max([i['high'] for i in kline])
+        if highest == kline[-1]['high']:
+            del i['kline']
+            target.append(i)
+    return target
 
 
 def industry_distribution():
@@ -138,7 +125,7 @@ def industry_distribution():
     return t
 
 
-def plate_statistical():
+def run():
     # 主线板块统计
     rps_pool = find_high_rps_stock()
     rps_pool = find_new_stock(rps_pool)
@@ -157,11 +144,13 @@ def plate_statistical():
         tmp = {'industry': i, 'score': round(count*count/total_count, 2),
                'pool': [f"{j['code']}-{j['name']}" for j in result if j['industry'] == i]}
         target.append(tmp)
-    return sorted(target, key=lambda x: x['score'], reverse=True)
+    target = sorted(target, key=lambda x: x['score'], reverse=True)
+    for i in target:
+        logging.warning(i)
+    return target
 
 
-
-
-
-
-
+if __name__ == "__main__":
+    # saveMarketData2Redis()
+    # saveMarketData2Local()
+    run()
