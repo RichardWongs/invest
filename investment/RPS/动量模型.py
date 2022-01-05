@@ -1,6 +1,7 @@
 # encoding: utf-8
 import json
 import logging
+import os
 import pickle
 import tushare as ts
 from datetime import date, timedelta
@@ -35,6 +36,7 @@ def saveMarketData2Redis():
 
 
 def saveMarketData2Local():
+    # 存储文件过大,暂不使用,改用V2版本
     client = RedisConn()
     keys = [i.decode() for i in client.keys(f"stock:momentum:*")]
     target = []
@@ -42,6 +44,37 @@ def saveMarketData2Local():
         target.append(json.loads(client.get(i)))
     with open("MomentumMarketData.bin", 'wb') as f:
         f.write(pickle.dumps(target))
+
+
+def saveMarketData2LocalV2():
+    client = RedisConn()
+    keys = [i.decode() for i in client.keys(f"stock:momentum:*")]
+    target = []
+    limit = 1600
+    count = 0
+    fileNO = 1
+    lastOne = json.loads(client.get(keys[-1]))
+    for i in keys:
+        target.append(json.loads(client.get(i)))
+        count += 1
+        if count >= limit or json.loads(client.get(i)) == lastOne:
+            with open(f"MomentumMarketData-{fileNO}.bin", 'wb') as f:
+                f.write(pickle.dumps(target))
+            fileNO += 1
+            count = 0
+            target = []
+
+
+def readMarketDataFromLocal():
+    # 从本地文件中读取行情数据
+    files = os.listdir(os.curdir)
+    target = []
+    for i in files:
+        if i.startswith('MomentumMarketData'):
+            with open(i, 'rb') as f:
+                content = pickle.loads(f.read())
+                target += content
+    return target
 
 
 def find_institutions_holding():
@@ -125,6 +158,9 @@ def plate_statistical():
                'pool': [f"{j['code']}-{j['name']}" for j in result if j['industry'] == i]}
         target.append(tmp)
     return sorted(target, key=lambda x: x['score'], reverse=True)
+
+
+
 
 
 
