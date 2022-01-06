@@ -360,10 +360,10 @@ def market_chart(code=None, name=None):
              figscale=8,
              mav=(50, 150, 200),
              show_nontrading=True,
-             savefig=f"{save_path}/{name}.png"
+             # savefig=f"{save_path}/{name}.png"
              )
     logging.warning(f"{code}\t{name}")
 
 
 if __name__ == "__main__":
-    market_chart(name="合锻智能")
+    market_chart(name="比亚迪")
