@@ -134,6 +134,9 @@ def run():
     for i in rps_pool:
         if i['code'] in institution_pool.keys():
             result.append(i)
+    all_new_high = week52_new_high()
+    institution_new_high = [i for i in result if i in all_new_high]
+    print(f"全市场创新高个股数量:{len(all_new_high)}\t机构动量榜创新高个股数量:{len(institution_new_high)}")
     industrys = [i['industry'] for i in result]
     industrySet = set(industrys)
     target = []
