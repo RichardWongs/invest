@@ -260,8 +260,9 @@ def get_main_up():
 
 
 if __name__ == "__main__":
-    CONCEPT_LIST = get_concept_list() + get_industry_list()
-    print(CONCEPT_LIST)
+    # CONCEPT_LIST = get_concept_list() + get_industry_list()
+    # print(CONCEPT_LIST)
     # run()
+    get_concept_kline("BK0979")
 
 
