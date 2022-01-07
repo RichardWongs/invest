@@ -193,7 +193,7 @@ def relative_intensity(obj: dict, indexApplies=None):
 
 
 def calculate_peg_V2(obj: dict):
-    thisYearWeight = 1  # 今年剩下的月数
+    thisYearWeight = 12  # 今年剩下的月数
     nextYearWeight = 12 - thisYearWeight  # 未来12个月中明年所占的月数
     code = obj.get('code')
     total_share = share_pool.get(str(code)).get('total_share')
@@ -305,4 +305,5 @@ def update_dataPackage():
 
 
 if __name__ == "__main__":
+    # update_dataPackage()
     run()

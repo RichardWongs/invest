@@ -169,7 +169,7 @@ def run_v2():
         i['momentumPool'] = []
         i['pool'] = select_composition_stock(i['code'])
         tmp_name = [i['name'] for i in i['pool']]
-        i['momentumPool'] = [i for i in result if i['name'] in tmp_name]
+        i['momentumPool'] = [f"{i['code']}-{i['name']}" for i in result if i['name'] in tmp_name]
         i['score'] = round(len(i['momentumPool'])*len(i['momentumPool'])/len(i['pool']), 2)
     CONCEPT_LIST = sorted(CONCEPT_LIST, key=lambda x: x['score'], reverse=True)
     for i in CONCEPT_LIST:
@@ -182,5 +182,5 @@ def run_v2():
 if __name__ == "__main__":
     # saveMarketData2Redis()
     # saveMarketData2Local()
-    # run()
-    run_v2()
+    run()
+    # run_v2()
