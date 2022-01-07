@@ -3,12 +3,13 @@ import json
 import logging
 import os
 import pickle
-import tushare as ts
 from datetime import date, timedelta
-from RPS.stock_pool import NEW_STOCK_LIST
+
 from RPS.holding import fund_holding, fc_holding
-from monitor import get_stock_kline_with_indicators, get_market_data
+from RPS.stock_pool import NEW_STOCK_LIST
+from monitor import get_market_data
 from monitor.whole_market import RedisConn
+
 start_date = int(str(date.today()-timedelta(days=400)).replace('-', ''))
 
 
@@ -136,7 +137,7 @@ def run():
             result.append(i)
     all_new_high = week52_new_high()
     institution_new_high = [i for i in result if i in all_new_high]
-    print(f"全市场创新高个股数量:{len(all_new_high)}\t机构动量榜创新高个股数量:{len(institution_new_high)}")
+    print(f"全市场创新高个股数量:{len(all_new_high)}\t机构动量榜个股数量:{len(result)}\t创新高个股数量:{len(institution_new_high)}")
     industrys = [i['industry'] for i in result]
     industrySet = set(industrys)
     target = []
@@ -153,7 +154,33 @@ def run():
     return target
 
 
+def run_v2():
+    from momentum.concept import get_concept_list, get_industry_list, select_composition_stock
+    CONCEPT_LIST = get_concept_list() + get_industry_list()
+    rps_pool = find_high_rps_stock()
+    rps_pool = find_new_stock(rps_pool)
+    institution_pool = find_institutions_holding()
+    result = []
+    for i in rps_pool:
+        if i['code'] in institution_pool.keys():
+            result.append(i)
+    for i in CONCEPT_LIST:
+        i['score'] = 0
+        i['momentumPool'] = []
+        i['pool'] = select_composition_stock(i['code'])
+        tmp_name = [i['name'] for i in i['pool']]
+        i['momentumPool'] = [i for i in result if i['name'] in tmp_name]
+        i['score'] = round(len(i['momentumPool'])*len(i['momentumPool'])/len(i['pool']), 2)
+    CONCEPT_LIST = sorted(CONCEPT_LIST, key=lambda x: x['score'], reverse=True)
+    for i in CONCEPT_LIST:
+        del i['pool']
+        if i['score'] >= 1:
+            logging.warning(i)
+    return CONCEPT_LIST
+
+
 if __name__ == "__main__":
     # saveMarketData2Redis()
     # saveMarketData2Local()
-    run()
+    # run()
+    run_v2()
