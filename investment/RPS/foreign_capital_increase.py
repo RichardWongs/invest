@@ -229,33 +229,35 @@ def latest_week_foreign_capital_add_weight():
 
 
 def foreign_capital_continuous_increase():
-    day1 = get_recent_trade_date()
-    day2 = get_recent_trade_date()-timedelta(days=1)
-    day3 = get_recent_trade_date()-timedelta(days=2)
-    day4 = get_recent_trade_date()-timedelta(days=3)
-    day5 = get_recent_trade_date()-timedelta(days=4)
-    data1 = foreign_capital_add_weight(start_date=day1-timedelta(days=1), end_date=day1)
-    data1_1 = {}
-    for i in data1:
-        data1_1[i['code']] = {'code': i['code'], 'name': i['name']}
-    data2 = foreign_capital_add_weight(start_date=day2-timedelta(days=1), end_date=day2)
-    data2_2 = {}
-    for i in data2:
-        data2_2[i['code']] = {'code': i['code'], 'name': i['name']}
-    data3 = foreign_capital_add_weight(start_date=day3-timedelta(days=1), end_date=day3)
-    data3_3 = {}
-    for i in data3:
-        data3_3[i['code']] = {'code': i['code'], 'name': i['name']}
-    data4 = foreign_capital_add_weight(start_date=day4-timedelta(days=1), end_date=day4)
-    data4_4 = {}
-    for i in data4:
-        data4_4[i['code']] = {'code': i['code'], 'name': i['name']}
-    data5 = foreign_capital_add_weight(start_date=day5-timedelta(days=1), end_date=day5)
-    data5_5 = {}
-    for i in data5:
-        data5_5[i['code']] = {'code': i['code'], 'name': i['name']}
-    for k, v in data1_1.items():
-        if k in data2_2.keys() and k in data3_3.keys() and k in data4_4.keys() and k in data5_5.keys():
-            logging.warning(v)
+    # 近五个交易日外资持续增持
+    day1 = get_recent_trade_date()-timedelta(days=1)
+    day2 = get_recent_trade_date(day1-timedelta(days=1))
+    day3 = get_recent_trade_date(day2-timedelta(days=1))
+    day4 = get_recent_trade_date(day3-timedelta(days=1))
+    day5 = get_recent_trade_date(day4-timedelta(days=1))
+    day6 = get_recent_trade_date(day5-timedelta(days=1))
+    data = foreign_capital_add_weight(start_date=day2, end_date=day1)
+    logging.warning(f"{day2}-->{day1}\t{data}")
+    data1 = foreign_capital_add_weight(start_date=day3, end_date=day2)
+    logging.warning(f"{day3}-->{day2}\t{data1}")
+    data2 = foreign_capital_add_weight(start_date=day4, end_date=day3)
+    logging.warning(f"{day4}-->{day3}\t{data2}")
+    data3 = foreign_capital_add_weight(start_date=day5, end_date=day4)
+    logging.warning(f"{day5}-->{day4}\t{data3}")
+    data4 = foreign_capital_add_weight(start_date=day6, end_date=day5)
+    logging.warning(f"{day6}-->{day5}\t{data4}")
+    add_dict = {}
+    for i in data + data1 + data2 + data3 + data4:
+        if i['code'] not in add_dict.keys():
+            add_dict[i['code']] = {'code': i['code'], 'name': i['name'], 'addCount': i['addCount'], 'addTimes': 0}
+        else:
+            add_dict[i['code']]['addCount'] += i['addCount']
+    add_list = [i['code'] for i in data] + [i['code'] for i in data1] + [i['code'] for i in data2] + [i['code'] for i in data3] + [i['code'] for i in data4]
+    add_set = set(add_list)
+    for i in add_set:
+        add_dict[i]['addTimes'] = add_list.count(i)
+    print(add_dict)
 
+
+# foreign_capital_continuous_increase()
 

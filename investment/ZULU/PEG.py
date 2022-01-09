@@ -7,6 +7,7 @@ import requests
 import json
 from datetime import date, timedelta
 from RPS.foreign_capital_increase import foreign_capital_filter
+from monitor import get_industry_by_code
 from security import get_stock_kline_with_volume
 from RPS.quantitative_screening import get_RPS_stock_pool
 from ZULU import share_pool
@@ -15,7 +16,7 @@ from ZULU import share_pool
 def get_research_report(code):
     # 获取个股研报数据
     time.sleep(0.5)
-    beginTime = date.today() - timedelta(days=60)
+    beginTime = date.today() - timedelta(days=90)
     endTime = date.today()
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
@@ -67,7 +68,7 @@ def get_predict_eps(code, research_report: dict):
         logging.error(f"{code}不在股票池中,请确认参数是否正确")
         return 0, 0
     if str(code) not in research_report.keys():
-        logging.warning(f"未查询到 {code} 机构研报,请更新研报数据!")
+        # logging.warning(f"未查询到 {code} 机构研报,请更新研报数据!")
         return 0, 0
     else:
         data = research_report[str(code)]
@@ -128,8 +129,8 @@ def continuous_growth_filter(code=None):
                                  'eps_2018': pool_2018[k]['PARENT_NETPROFIT'],
                                  'eps_2019': pool_2019[k]['PARENT_NETPROFIT'],
                                  'eps_2020': pool_2020[k]['PARENT_NETPROFIT']})
-            else:
-                logging.warning(f"{k} 不符合年报净利润连续三年增长的标准")
+            # else:
+            #     logging.warning(f"{k} 不符合年报净利润连续三年增长的标准")
     return eps_pool
 
 
@@ -137,7 +138,9 @@ def continuous_growth_four_year_filter_process():
     # 收益连续四年增长股票池
     target_pool = []
     pool = continuous_growth_filter()
+    logging.warning(f"过去三年归母净利润每年都在增长的个股数量:{len(pool)}")
     research_report = read_research_report_from_local()
+    logging.warning(f"公开研报覆盖个股:{len(research_report)}")
     for i in pool:
         eps2021, eps2022 = get_predict_eps(i['code'], research_report)
         i['eps_2021'] = eps2021
@@ -145,11 +148,12 @@ def continuous_growth_four_year_filter_process():
     for i in pool:
         if i['eps_2021'] > i['eps_2020']:
             target_pool.append(i)
+    logging.warning(f"机构研报预测业绩增长的个股数量:{len(target_pool)}")
     return target_pool
 
 
 def index_applies():
-    indexes = ['000300', '000905', '399006', '000688']
+    indexes = ['000300']  # , '000905', '399006', '000688'
     applies_250, applies_60, applies_20 = 0, 0, 0
     for index in indexes:
         data250 = get_stock_kline_with_volume(index, is_index=True, limit=250)
@@ -173,23 +177,23 @@ def relative_intensity(obj: dict, indexApplies=None):
         indexApplies = index_applies()
     data250 = get_stock_kline_with_volume(obj['code'], limit=250)
     pre, current = data250[0]['close'], data250[-1]['close']
-    intensity_250 = round((current/pre/indexApplies['index_250'] - 1), 2)
+    obj['intensity_250'] = round((current/pre/indexApplies['index_250'] - 1), 2)
     data60 = data250[-60:]
     pre, current = data60[0]['close'], data60[-1]['close']
-    intensity_60 = round((current/pre/indexApplies['index_60'] - 1), 2)
+    obj['intensity_60'] = round((current/pre/indexApplies['index_60'] - 1), 2)
     data20 = data250[-22:]
     pre, current = data20[0]['close'], data20[-1]['close']
-    intensity_20 = round((current/pre/indexApplies['index_20'] - 1), 2)
-    # intensity = {'intensity_250': intensity_250, 'intensity_60': intensity_60, 'intensity_20': intensity_20}
-    obj['intensity_20'] = intensity_20
-    obj['intensity_60'] = intensity_60
-    obj['intensity_250'] = intensity_250
-    obj['total_intensity'] = round(intensity_20 + intensity_60 + intensity_250, 2)
+    obj['intensity_20'] = round((current/pre/indexApplies['index_20'] - 1), 2)
+    obj['total_intensity'] = round(obj['intensity_20'] + obj['intensity_60'] + obj['intensity_250'], 2)
+    if obj['intensity_250'] > 0 and obj['intensity_20'] > 0:
+        obj['strong'] = True
+    else:
+        obj['strong'] = False
     return obj
 
 
 def calculate_peg_V2(obj: dict):
-    thisYearWeight = 1  # 今年剩下的月数
+    thisYearWeight = 12  # 今年剩下的月数
     nextYearWeight = 12 - thisYearWeight  # 未来12个月中明年所占的月数
     code = obj.get('code')
     total_share = share_pool.get(str(code)).get('total_share')
@@ -210,7 +214,7 @@ def calculate_peg_V2(obj: dict):
     growth_rate_earnings_per_share = round((predict_the_coming_year_eps - past_year)/past_year * 100, 2)
     peg = round(predict_pe/growth_rate_earnings_per_share, 2)
     # print(f"peg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
-    logging.warning(f"\n{obj.get('name')}\t{obj.get('code')}\n未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿\n预测未来一年的市盈率: {predict_pe}\n过去12个月的预测利润: {round(past_year/100000000, 2)}亿\npeg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
+    # logging.warning(f"\n{obj.get('name')}\t{obj.get('code')}\n未来12个月的预测利润: {round(predict_the_coming_year_eps/100000000, 2)}亿\n预测未来一年的市盈率: {predict_pe}\n过去12个月的预测利润: {round(past_year/100000000, 2)}亿\npeg: {peg}\t净利润增速: {growth_rate_earnings_per_share}%")
     return predict_pe, peg, growth_rate_earnings_per_share
 
 
@@ -228,6 +232,8 @@ def quarter_forecast_filter(pool):
             ADD_AMP_LOWER = earnings_forecast[i['code']]['ADD_AMP_LOWER']
             if ADD_AMP_LOWER and ADD_AMP_LOWER < 0:
                 pool.remove(i)
+        else:
+            i['industry'] = get_industry_by_code(i['code'])
     logging.warning(f"业绩预告净利润增速为正的个股数量(包含未公布业绩预告个股): {len(pool)}")
     return pool
 
@@ -237,8 +243,8 @@ def get_RPS_stock_pool_zulu():
     import pandas as pd
     os.chdir("../RPS")
     files = ['RPS_20_V2.csv', 'RPS_250_V2.csv']
-    long = [(i[0].split('.')[0], i[1]) for i in (pd.read_csv(files[1], encoding="utf-8")).values if i[-1] > 85]
-    short = [(i[0].split('.')[0], i[1]) for i in (pd.read_csv(files[0], encoding="utf-8")).values if i[-1] > 85]
+    long = [(i[0].split('.')[0], i[1]) for i in (pd.read_csv(files[1], encoding="utf-8")).values if i[-1] > 80]
+    short = [(i[0].split('.')[0], i[1]) for i in (pd.read_csv(files[0], encoding="utf-8")).values if i[-1] > 80]
     pool = [i for i in long if i in short]
     logging.warning(f"高RPS股票池:\t{len(pool)}\t{pool}")
     return pool
@@ -248,26 +254,27 @@ def run():
     pool = continuous_growth_four_year_filter_process()
     logging.warning(f"符合归母净利润四年连续增长标准的个股数量: {len(pool)}")
     pool = quarter_forecast_filter(pool)
+    rps_pool = []
+    indexs = index_applies()
     target = []
     low_peg_pool = []
-    rps_pool = get_RPS_stock_pool_zulu()
-    rps_pool = [i[0] for i in rps_pool]
-    logging.warning(f"高RPS股票池: {rps_pool}")
     for i in pool:
+        i = relative_intensity(i, indexApplies=indexs)
         i['pe'], i['peg'], i['growth'] = calculate_peg_V2(i)
-        if 0 < i['peg'] < 1.0 and i['code'] in rps_pool:
-            del i['eps_2017']
-            del i['eps_2018']
-            del i['eps_2019']
-            del i['eps_2020']
-            del i['eps_2021']
-            del i['eps_2022']
+        del i['eps_2017']
+        del i['eps_2018']
+        del i['eps_2019']
+        del i['eps_2020']
+        del i['eps_2021']
+        del i['eps_2022']
+        if 0 < i['peg'] < 1.0 and i['strong']:
             low_peg_pool.append(i)
         if i['peg'] > 0:
             target.append(i)
     target = sorted(target, key=lambda x: x['peg'], reverse=False)
     low_peg_pool = sorted(low_peg_pool, key=lambda x: x['peg'], reverse=False)
-    logging.warning(f"低PEG且高相对强度: {low_peg_pool}\n全部PEG股票池: {target}")
+    [print(i) for i in low_peg_pool]
+    logging.warning(f"低PEG且高相对强度:{len(low_peg_pool)}\t{low_peg_pool}\n全部PEG股票池:{len(target)}\t{target}")
     return low_peg_pool, target
 
 
@@ -289,3 +296,14 @@ def run_simple(code, eps2021=None, eps2022=None):
         logging.warning(f"{code} 不符合归母净利润四年连续增长的标准或未收录到个股年报数据,请核实.")
 
 
+def update_dataPackage():
+    # 更新数据包
+    from ZULU import get_quarter_report, get_earnings_forecast
+    save_research_report2local()
+    get_quarter_report()
+    get_earnings_forecast()
+
+
+if __name__ == "__main__":
+    # update_dataPackage()
+    run()

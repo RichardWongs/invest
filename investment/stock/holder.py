@@ -3,7 +3,7 @@ import tushare as ts
 from datetime import date, timedelta
 token = "b625f0b90069039346d199aa3c0d5bc53fd47212437337b45ba87487"
 token_bake_up = "ab577af952d337b8be80b3e6119f6765e4e6b07441fd35317701bc11"
-pro = ts.pro_api(token_bake_up)
+pro = ts.pro_api(token)
 
 
 def get_stock_holder_num(trade_date=str(date.today()-timedelta(days=1)).replace('-', '')):
@@ -33,10 +33,10 @@ def diff_holder_change():
 
 def holder_change_weeks():
     # now = get_stock_holder_num()
-    week1 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=8)).replace('-', ''))
-    # week2 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=14)).replace('-', ''))
+    # week1 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=8)).replace('-', ''))
+    week2 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=14)).replace('-', ''))
     # week3 = get_stock_holder_num(trade_date=str(date.today()-timedelta(days=21)).replace('-', ''))
-    print(week1)
+    print(week2)
 
 
 

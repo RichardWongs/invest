@@ -1,9 +1,9 @@
 # encoding: gbk
-import datetime
+import sys
+from datetime import datetime, date
 import logging
 import os
 import time
-
 import requests
 from monitor import *
 
@@ -11,7 +11,7 @@ from monitor import *
 def get_etf_list():
     etf_list = [{"name": "创成长", "code": 159967},
                 {"name": "质量ETF", "code": 515910},
-                {"name": "A50ETF", "code": 159601},
+                # {"name": "A50ETF", "code": 159601},
                 {"name": "上证50", "code": 510050},
                 {"name": "沪深300ETF", "code": 510300},
                 {"name": "中证500ETF", "code": 510500},
@@ -241,7 +241,7 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
 
     data = get_stock_kline_with_indicators(code, period=period, limit=limit)
     data = EMA_V2(EMA_V2(EMA_V2(EMA_V2(data, 10), 20), 50), 26)
-    # data = ATR_Channel_System(data)
+    data = ATR_Channel_System(data)
     data = KAMA(data)
     c = Channel(code=code, name=name, period=period, limit=limit)
     ucc, dcc = c.find_channel_coefficients()
@@ -265,34 +265,34 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.plot(x, down_channel, color="green", linestyle='dashed')
     plt.title("Channel")
 
-    # ATR_plus_1 = [i['+1ATR'] for i in data]
-    # ATR_plus_2 = [i['+2ATR'] for i in data]
-    # ATR_plus_3 = [i['+3ATR'] for i in data]
-    # ATR_minus_1 = [i['-1ATR'] for i in data]
-    # ATR_minus_2 = [i['-2ATR'] for i in data]
-    # ATR_minus_3 = [i['-3ATR'] for i in data]
-
-    # plt.subplot(rows, columns, 2)
-    # plt.plot(x, close)
-    # plt.plot(x, ma10)
-    # plt.plot(x, ma50)
-    # plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_plus_2, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_plus_3, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_minus_1, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
-    # plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
-    # plt.title("ATR Channel")
+    ATR_plus_1 = [i['+1ATR'] for i in data]
+    ATR_plus_2 = [i['+2ATR'] for i in data]
+    ATR_plus_3 = [i['+3ATR'] for i in data]
+    ATR_minus_1 = [i['-1ATR'] for i in data]
+    ATR_minus_2 = [i['-2ATR'] for i in data]
+    ATR_minus_3 = [i['-3ATR'] for i in data]
 
     plt.subplot(rows, columns, 2)
-    bool_data = BooleanLine(data)
-    x = x[:-20]
-    kama = kama[-len(x):]
-    plt.plot(x, [i['close'] for i in bool_data])
-    plt.plot(x, [i['BBL'] for i in bool_data], color="gray", linestyle='dashed')
-    plt.plot(x, [i['BBU'] for i in bool_data], color="gray", linestyle='dashed')
-    plt.plot(x, kama)
-    plt.title("Boolean Channel")
+    plt.plot(x, close)
+    plt.plot(x, ma10)
+    plt.plot(x, ma50)
+    plt.plot(x, ATR_plus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_plus_3, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_1, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_2, color="gray", linestyle='dashed')
+    plt.plot(x, ATR_minus_3, color="gray", linestyle='dashed')
+    plt.title("ATR Channel")
+
+    # plt.subplot(rows, columns, 2)
+    # bool_data = BooleanLine(data)
+    # x = x[:-20]
+    # kama = kama[-len(x):]
+    # plt.plot(x, [i['close'] for i in bool_data])
+    # plt.plot(x, [i['BBL'] for i in bool_data], color="gray", linestyle='dashed')
+    # plt.plot(x, [i['BBU'] for i in bool_data], color="gray", linestyle='dashed')
+    # plt.plot(x, kama)
+    # plt.title("Boolean Channel")
 
     plt.suptitle(name)
     plt.savefig(f"{save_path}/{code if name == 'UNKNOWN' else name}.png")
@@ -300,5 +300,70 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
     plt.close()
 
 
+def market_chart(code=None, name=None):
+    import mplfinance as mpf
+    if code:
+        name = get_name_by_code(code)
+    elif name:
+        code = get_code_by_name(name)
+    else:
+        logging.error("code 和 name 必须传一个")
+        sys.exit()
+    save_path = "../STOCK_CHANNEL"
+    if str(code).startswith('1') or str(code).startswith('5'):
+        save_path += "/ETF"
+    else:
+        # save_path += "/STOCK"
+        save_path += "/beautiful"
+    code = str(code).split('.')[0]
+    data = get_stock_kline_with_indicators(code, period=101, limit=400)
+    for i in data:
+        i['day'] = datetime.strptime(i['day'], "%Y-%m-%d").date()
+        del i['applies']
+        del i['VOL']
+        del i['last_close']
+        del i['TRI']
+        if '10th_largest' in i.keys():
+            del i['10th_largest']
+        if '10th_minimum' in i.keys():
+            del i['10th_minimum']
+        if 'avg_volume' in i.keys():
+            del i['avg_volume']
+        if 'volume_ratio' in i.keys():
+            del i['volume_ratio']
+    df = pd.DataFrame(data)
+    df["datetime"] = pd.to_datetime(df["day"])
+    df.set_index("datetime", inplace=True)
+    mc = mpf.make_marketcolors(
+        up="red",
+        down="green",
+        edge="i",
+        wick="i",
+        volume="in",
+        inherit=True
+    )
+    s = mpf.make_mpf_style(
+        # gridaxis="both",
+        # gridstyle="-.",
+        y_on_right=False,
+        marketcolors=mc,
+        rc={"font.family": "SimHei"}
+    )
+    mpf.plot(df,
+             type="candle",
+             title=f"{code}  {name}",
+             ylabel="price($)",
+             style=s,
+             volume=True,
+             ylabel_lower="volume(shares)",
+             figratio=(12, 6),
+             figscale=8,
+             mav=(50, 150, 200),
+             show_nontrading=True,
+             # savefig=f"{save_path}/{name}.png"
+             )
+    logging.warning(f"{code}\t{name}")
 
 
+if __name__ == "__main__":
+    market_chart(name="比亚迪")
