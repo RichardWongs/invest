@@ -182,5 +182,7 @@ def run_v2():
 if __name__ == "__main__":
     # saveMarketData2Redis()
     # saveMarketData2Local()
-    run()
+    # run()
     # run_v2()
+    data = find_institutions_holding()
+    print(len(data), data)
