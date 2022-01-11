@@ -19,7 +19,7 @@ def market_chart(code=None, name=None):
         # save_path += "/STOCK"
         save_path += "/beautiful"
     code = str(code).split('.')[0]
-    data = get_stock_kline_with_indicators(code, period=101, limit=150)
+    data = get_stock_kline_with_indicators(code, period=101, limit=250)
     data = BooleanLine(data)
     for i in data:
         i['day'] = datetime.strptime(i['day'], "%Y-%m-%d").date()
@@ -67,7 +67,7 @@ def market_chart(code=None, name=None):
              ylabel_lower="volume(shares)",
              figratio=(12, 6),
              # figscale=8,
-             mav=(50, 150, 200),
+             # mav=(50, 150, 200),
              addplot=add_plot,
              show_nontrading=True,
              # savefig=f"{save_path}/{name}.png"
@@ -75,4 +75,4 @@ def market_chart(code=None, name=None):
     logging.warning(f"{code}\t{name}")
 
 
-market_chart("600519")
+
