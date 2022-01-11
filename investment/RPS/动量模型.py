@@ -7,7 +7,7 @@ from datetime import date, timedelta
 
 from RPS.holding import fund_holding, fc_holding
 from RPS.stock_pool import NEW_STOCK_LIST
-from monitor import get_market_data
+from monitor import get_market_data, MA_V2
 from monitor.whole_market import RedisConn
 
 start_date = int(str(date.today()-timedelta(days=400)).replace('-', ''))
@@ -128,15 +128,28 @@ def industry_distribution():
 
 def find_trend_pool():
     from stock.StockFinancial import read_quarter_report
-    quarter = read_quarter_report()
+    quarter = read_quarter_report()  # 季报正增长
     for i in quarter:
         i['code'] = f"{i['code']}.SH" if i['code'].startswith('6') else f"{i['code']}.SZ"
     tmp = find_institutions_holding()
-    ins = []
+    ins = []    # 机构&外资持股
     for _, v in tmp.items():
         ins.append(v)
     result = [i for i in ins if i in quarter]
+    k = readMarketDataFromLocal()
+    movements = []
+    for i in k:
+        kline = MA_V2(MA_V2(MA_V2(i['kline'], 50), 150), 200)
+        highest = max([i['high'] for i in kline])
+        lowest = min([i['low'] for i in kline])
+        close = kline[-1]['close']
+        if close > kline[-1]['ma50'] > kline[-1]['ma150'] > kline[-1]['ma200']:
+            if close > lowest * 1.3 and close > highest * 0.75:
+                movements.append({'code': i['code'], 'name': i['name']})
     print(len(result), result)
+    print(len(movements), movements)
+    results = [i for i in result if i in movements]
+    print(len(results), results)
 
 
 def run():
@@ -197,5 +210,4 @@ if __name__ == "__main__":
     # saveMarketData2Local()
     # run()
     # run_v2()
-    # find_trend_pool()
-    print(readMarketDataFromLocal()[0])
+    find_trend_pool()
