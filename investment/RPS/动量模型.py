@@ -126,6 +126,19 @@ def industry_distribution():
     return t
 
 
+def find_trend_pool():
+    from stock.StockFinancial import read_quarter_report
+    quarter = read_quarter_report()
+    for i in quarter:
+        i['code'] = f"{i['code']}.SH" if i['code'].startswith('6') else f"{i['code']}.SZ"
+    tmp = find_institutions_holding()
+    ins = []
+    for _, v in tmp.items():
+        ins.append(v)
+    result = [i for i in ins if i in quarter]
+    print(len(result), result)
+
+
 def run():
     # 主线板块统计
     rps_pool = find_high_rps_stock()
@@ -184,5 +197,5 @@ if __name__ == "__main__":
     # saveMarketData2Local()
     # run()
     # run_v2()
-    data = find_institutions_holding()
-    print(len(data), data)
+    # find_trend_pool()
+    print(readMarketDataFromLocal()[0])
