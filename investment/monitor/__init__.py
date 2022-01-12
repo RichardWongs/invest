@@ -1269,12 +1269,13 @@ def FIP(kline: list):
     return round(profit * (negative - positive), 2)
 
 
-def stock_filter_by_Shrank_back_to_trample(volume_part=1):
+def stock_filter_by_Shrank_back_to_trample(pool=None, volume_part=1):
     # 价格位于5日线之下,50日线方向向上,抓取缩量回踩的标的
     # volume_part 盘中执行时, 根据已开盘时长推算全天成交量
     N, M = 5, 50
     last_one = -1
-    pool = institutions_holding_rps_stock()
+    if not pool:
+        pool = institutions_holding_rps_stock()
     result = []
     counter = 1
     for i in pool:
@@ -1282,12 +1283,12 @@ def stock_filter_by_Shrank_back_to_trample(volume_part=1):
         kline = MACD(MA(MA(kline, N), M))
         if kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
             if kline[last_one]['volume'] * volume_part < kline[last_one]['avg_volume']:
+                code = i['code'].split('.')[0]
                 i['industry'] = get_industry_by_code(i['code'])
                 i['applies'] = kline[last_one]['applies']
                 i['volume_ratio'] = kline[last_one]['volume_ratio']
-                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{i['code']}"
+                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{code}"
                 result.append(i)
-                # if i['industry'] in ('半导体', '电气设备', '白酒', '医疗保健', '食品'):
                 logging.warning(f" {counter}\t{i}")
                 counter += 1
     return result
@@ -1444,10 +1445,10 @@ def NewStockDetail():
 
 
 if __name__ == "__main__":
-    # stock_filter_aggregation(pool=Beautiful)
-    # stock_filter_by_Shrank_back_to_trample()
-    stock_filter_by_BooleanLine(pool=Beautiful, period=101)
-    stock_filter_by_BooleanV1(pool=Beautiful, period=101)
+    stock_filter_aggregation(pool=Beautiful)
+    # stock_filter_by_Shrank_back_to_trample(pool=Beautiful)
+    # stock_filter_by_BooleanLine(pool=Beautiful, period=101)
+    # stock_filter_by_BooleanV1(pool=Beautiful, period=101)
 
 
 

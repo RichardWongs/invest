@@ -186,4 +186,4 @@ def run_V2():
 
 if __name__ == "__main__":
     run_V2()
-    industry_momentum.run()
+    # industry_momentum.run()
