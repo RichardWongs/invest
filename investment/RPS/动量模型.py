@@ -24,7 +24,7 @@ def saveMarketData2Redis():
     counter = 1
     for k, v in NEW_STOCK_LIST.items():
         if f"stock:momentum:{k}" not in keys:
-            kline = get_market_data(k)
+            kline = get_market_data(k, start_date=start_date)
             if len(kline) > 0:
                 if len(kline) > 20:
                     v['applies_20'] = round((kline[-day]['close']-kline[-(N+day)]['close'])/kline[-(N+day)]['close'], 2)
@@ -206,8 +206,7 @@ def run_v2():
 
 
 if __name__ == "__main__":
-    # saveMarketData2Redis()
+    saveMarketData2Redis()
     # saveMarketData2Local()
     # run()
     # run_v2()
-    find_trend_pool()
