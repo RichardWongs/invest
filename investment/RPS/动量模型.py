@@ -7,7 +7,7 @@ from datetime import date, timedelta
 
 from RPS.holding import fund_holding, fc_holding
 from RPS.stock_pool import NEW_STOCK_LIST
-from monitor import get_market_data, MA_V2
+from monitor import get_market_data, get_stock_kline_with_indicators, MA_V2
 from monitor.whole_market import RedisConn
 
 start_date = int(str(date.today()-timedelta(days=400)).replace('-', ''))
@@ -17,27 +17,29 @@ def saveMarketData2Redis():
     # 查询全市场股票行情数据存储到redis中
     N = 20
     day = 1
-    client = RedisConn()
+    client = RedisConn(host='192.168.124.20')
     key = f"stock:momentum:*"
     keys = client.keys(key)
     keys = [i.decode() for i in keys]
     counter = 1
     for k, v in NEW_STOCK_LIST.items():
         if f"stock:momentum:{k}" not in keys:
-            kline = get_market_data(k, start_date=start_date)
-            if len(kline) > 0:
-                if len(kline) > 20:
-                    v['applies_20'] = round((kline[-day]['close']-kline[-(N+day)]['close'])/kline[-(N+day)]['close'], 2)
-                else:
-                    v['applies_20'] = round((kline[-day]['close']-kline[0]['close'])/kline[0]['close'], 2)
-                v['kline'] = kline
-                client.set(f"stock:momentum:{k}", json.dumps(v))
-            print(counter, v)
-            counter += 1
+            # kline = get_market_data(k, start_date=start_date)
+            kline = get_stock_kline_with_indicators(k, limit=300)
+            if kline:
+                if len(kline) > 0:
+                    if len(kline) > 20:
+                        v['applies_20'] = round((kline[-day]['close']-kline[-(N+day)]['close'])/kline[-(N+day)]['close'], 2)
+                    else:
+                        v['applies_20'] = round((kline[-day]['close']-kline[0]['close'])/kline[0]['close'], 2)
+                    v['kline'] = kline
+                    client.set(f"stock:momentum:{k}", json.dumps(v))
+                print(counter, v)
+                counter += 1
 
 
 def saveMarketData2Local():
-    client = RedisConn()
+    client = RedisConn(host="192.168.124.20")
     keys = [i.decode() for i in client.keys(f"stock:momentum:*")]
     target = []
     limit = 1600
@@ -206,7 +208,7 @@ def run_v2():
 
 
 if __name__ == "__main__":
-    saveMarketData2Redis()
+    # saveMarketData2Redis()
     # saveMarketData2Local()
-    # run()
+    run()
     # run_v2()
