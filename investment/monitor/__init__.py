@@ -1449,6 +1449,8 @@ if __name__ == "__main__":
     stock_filter_by_Shrank_back_to_trample()
     # stock_filter_by_BooleanLine(pool=Beautiful, period=101)
     # stock_filter_by_BooleanV1(pool=Beautiful, period=101)
-
-
+    for i in smart_car:
+        code = i['code'].split('.')[0]
+        i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{code}"
+        print(i)
 
