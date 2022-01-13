@@ -8,7 +8,6 @@ from RPS.RPS_DATA import cal_ret, all_RPS, fill_in_data_V2
 
 def run():
     start = int(time.time())
-
     filename = "daily_data.csv"
     if filename in os.listdir(os.curdir):
         os.remove(filename)

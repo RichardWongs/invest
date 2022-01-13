@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock, Zulu
+from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -1281,7 +1281,7 @@ def stock_filter_by_Shrank_back_to_trample(pool=None, volume_part=1):
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
         kline = MACD(MA(MA(kline, N), M))
-        if kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
+        if kline[last_one][f'MA{M}'] <= kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
             if kline[last_one]['volume'] * volume_part < kline[last_one]['avg_volume']:
                 code = i['code'].split('.')[0]
                 i['industry'] = get_industry_by_code(i['code'])
@@ -1445,8 +1445,8 @@ def NewStockDetail():
 
 
 if __name__ == "__main__":
-    stock_filter_aggregation(pool=Beautiful)
-    # stock_filter_by_Shrank_back_to_trample(pool=Beautiful)
+    # stock_filter_aggregation(pool=Beautiful)
+    stock_filter_by_Shrank_back_to_trample()
     # stock_filter_by_BooleanLine(pool=Beautiful, period=101)
     # stock_filter_by_BooleanV1(pool=Beautiful, period=101)
 

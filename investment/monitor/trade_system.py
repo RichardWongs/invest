@@ -303,9 +303,11 @@ def draw(code, name="UNKNOWN", period=101, limit=120):
 def market_chart(code=None, name=None):
     import mplfinance as mpf
     if code:
-        name = get_name_by_code(code)
+        if not name:
+            name = get_name_by_code(code)
     elif name:
-        code = get_code_by_name(name)
+        if not code:
+            code = get_code_by_name(name)
     else:
         logging.error("code 和 name 必须传一个")
         sys.exit()
@@ -366,4 +368,4 @@ def market_chart(code=None, name=None):
 
 
 if __name__ == "__main__":
-    market_chart(name="比亚迪")
+    market_chart(code=515910, name="质量ETF")
