@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car
+from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car2
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -347,13 +347,13 @@ def RSI_Deviation(data: list):
 
 
 def MA(kline, N):
-    assert len(kline) >= N
-    for i in range(len(kline)):
-        if i >= N:
-            tmp = []
-            for j in range(i, i - N, -1):
-                tmp.append(kline[j]['close'])
-            kline[i][f'MA{N}'] = round(sum(tmp) / len(tmp), 2)
+    if len(kline) >= N:
+        for i in range(len(kline)):
+            if i >= N:
+                tmp = []
+                for j in range(i, i - N, -1):
+                    tmp.append(kline[j]['close'])
+                kline[i][f'MA{N}'] = round(sum(tmp) / len(tmp), 2)
     return kline
 
 
@@ -1446,7 +1446,7 @@ def NewStockDetail():
 
 if __name__ == "__main__":
     # stock_filter_aggregation(pool=Beautiful)
-    stock_filter_by_Shrank_back_to_trample()
+    stock_filter_by_Shrank_back_to_trample(pool=smart_car2)
     # stock_filter_by_BooleanLine(pool=Beautiful, period=101)
     # stock_filter_by_BooleanV1(pool=Beautiful, period=101)
 

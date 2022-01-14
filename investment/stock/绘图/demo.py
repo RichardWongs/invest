@@ -3,7 +3,7 @@ import sys
 from datetime import date,datetime
 
 
-def market_chart(code=None, name=None):
+def market_chart_boolean(code=None, name=None):
     import mplfinance as mpf
     if code:
         name = get_name_by_code(code)
@@ -16,8 +16,8 @@ def market_chart(code=None, name=None):
     if str(code).startswith('1') or str(code).startswith('5'):
         save_path += "/ETF"
     else:
-        # save_path += "/STOCK"
-        save_path += "/beautiful"
+        save_path += "/STOCK"
+        # save_path += "/beautiful"
     code = str(code).split('.')[0]
     data = get_stock_kline_with_indicators(code, period=101, limit=250)
     data = BooleanLine(data)
