@@ -5,6 +5,8 @@ import logging
 import os
 import time
 import requests
+
+from momentum.concept import get_industry_list, get_concept_kline_v2
 from monitor import *
 
 
@@ -370,35 +372,41 @@ def market_chart(code=None, name=None):
 def market_chart_boolean(code=None, name=None):
     import mplfinance as mpf
     if code:
-        name = get_name_by_code(code)
+        if not name:
+            name = get_name_by_code(code)
     elif name:
-        code = get_code_by_name(name)
+        if not code:
+            code = get_code_by_name(name)
     else:
         logging.error("code 和 name 必须传一个")
         sys.exit()
     save_path = "../STOCK_CHANNEL"
     if str(code).startswith('1') or str(code).startswith('5'):
         save_path += "/ETF"
-    else:
+    elif str(code)[0] in ('0', '3', '6'):
         save_path += "/STOCK"
-        # save_path += "/beautiful"
+    else:
+        save_path += "/INDUSTRY"
     code = str(code).split('.')[0]
-    data = get_stock_kline_with_indicators(code, period=101, limit=250)
+    if str(code)[0] in ('0', '3', '6', '1', '5', '4', '8'):
+        data = get_stock_kline_with_indicators(code, period=101, limit=120)
+    else:
+        data = get_concept_kline_v2(code, limit=120)
     data = BooleanLine(data)
     for i in data:
         i['day'] = datetime.strptime(i['day'], "%Y-%m-%d").date()
-        del i['applies']
-        del i['VOL']
-        del i['last_close']
-        del i['TRI']
-        if '10th_largest' in i.keys():
-            del i['10th_largest']
-        if '10th_minimum' in i.keys():
-            del i['10th_minimum']
-        if 'avg_volume' in i.keys():
-            del i['avg_volume']
-        if 'volume_ratio' in i.keys():
-            del i['volume_ratio']
+        # del i['applies']
+        # del i['VOL']
+        # del i['last_close']
+        # del i['TRI']
+        # if '10th_largest' in i.keys():
+        #     del i['10th_largest']
+        # if '10th_minimum' in i.keys():
+        #     del i['10th_minimum']
+        # if 'avg_volume' in i.keys():
+        #     del i['avg_volume']
+        # if 'volume_ratio' in i.keys():
+        #     del i['volume_ratio']
     df = pd.DataFrame(data)
     df["datetime"] = pd.to_datetime(df["day"])
     df.set_index("datetime", inplace=True)
@@ -440,6 +448,6 @@ def market_chart_boolean(code=None, name=None):
 
 
 if __name__ == "__main__":
-    for i in smart_car2[160:]:
-        market_chart_boolean(i['code'])
-        time.sleep(0.5)
+    for i in get_industry_list():
+        market_chart_boolean(code=i['code'], name=i['name'])
+

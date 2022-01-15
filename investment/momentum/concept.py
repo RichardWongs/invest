@@ -126,6 +126,50 @@ def get_concept_kline(code, period=101, limit=20):
         return None
 
 
+def get_concept_kline_v2(code, period=101, limit=120):
+    assert period in (5, 15, 30, 60, 101, 102, 103)
+    url = f"http://push2his.eastmoney.com/api/qt/stock/kline/get"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
+    }
+    params = {
+        'cb': "jQuery11240671737283431526_1624931273440",
+        'secid': f"90.{code}",
+        'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
+        'fields1': 'f1,f2,f3,f4,f5,f6',
+        'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
+        'klt': period,
+        'fqt': 0,
+        'end': '20500101',
+        'lmt': limit,
+        '_': f'{int(time.time()) * 1000}'
+    }
+    try:
+        r = requests.get(url, headers=headers, params=params).text
+        r = r.split('(')[1].split(')')[0]
+        r = json.loads(r)
+        if 'data' in r.keys():
+            if isinstance(r['data'], dict) and 'klines' in r['data'].keys():
+                r = r['data']['klines']
+                data = []
+                for i in range(len(r)):
+                    tmp = {}
+                    current_data = r[i].split(',')
+                    tmp['day'] = current_data[0]
+                    tmp['open'] = float(current_data[1])
+                    tmp['close'] = float(current_data[2])
+                    tmp['high'] = float(current_data[3])
+                    tmp['low'] = float(current_data[4])
+                    tmp['volume'] = float(current_data[5])
+                    if i > 0:
+                        tmp['last_close'] = float(r[i - 1].split(',')[2])
+                    data.append(tmp)
+                return data[1:]
+    except SecurityException() as e:
+        print(e)
+        return None
+
+
 def get_all_data(stock_list):
     # 构建一个空的 dataframe 用来装数据, 获取列表中所有股票指定范围内的收盘价格
     data = pd.DataFrame()
@@ -262,7 +306,5 @@ def get_main_up():
 if __name__ == "__main__":
     # CONCEPT_LIST = get_concept_list() + get_industry_list()
     # print(CONCEPT_LIST)
-    # run()
-    get_concept_kline("BK0979")
-
+    run()
 

@@ -26,8 +26,8 @@ def saveMarketData2Redis():
     counter = 1
     for k, v in NEW_STOCK_LIST.items():
         if f"stock:momentum:{k}" not in keys:
-            kline = get_market_data(k, start_date=start_date)
-            # kline = get_stock_kline_with_indicators(k, limit=300)
+            # kline = get_market_data(k, start_date=start_date)
+            kline = get_stock_kline_with_indicators(k, limit=300)
             if kline:
                 if len(kline) > 0:
                     if len(kline) > 20:
@@ -212,15 +212,17 @@ def run_v2():
 def run_v3():
     industry_list = get_industry_list()
     for i in industry_list:
-        i['pool'] = select_composition_stock(i['code'])
         kline = get_concept_kline(i['code'])
-        if kline[-1] > kline[0]:
-            logging.warning(i)
+        i['applies'] = round((kline[-1] - kline[0]) / kline[0] * 100, 2)
+        i['pool'] = select_composition_stock(i['code'])
+    industry_list = sorted(industry_list, key=lambda x: x['applies'], reverse=True)
+    for i in industry_list:
+        logging.warning(i)
 
 
 if __name__ == "__main__":
-    # saveMarketData2Redis()
-    # saveMarketData2Local()
+    saveMarketData2Redis()
+    saveMarketData2Local()
     # run()
     # run_v2()
-    run_v3()
+    # run_v3()
