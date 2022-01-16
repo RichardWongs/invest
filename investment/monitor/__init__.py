@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car2
+from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -1449,14 +1449,10 @@ if __name__ == "__main__":
     # stock_filter_by_Shrank_back_to_trample(pool=smart_car2)
     # stock_filter_by_BooleanLine(pool=Beautiful, period=101)
     # stock_filter_by_BooleanV1(pool=Beautiful, period=101)
-    target = []
-    name = ["联创电子", "亚太股份", "拓普集团", "华阳集团", "伯特利", "四维图新", "沪电股份", "立讯精密", "欧菲光", "华域汽车", "万集科技", "保隆科技", "德赛西威", "移远通信", "科博达", "东软集团", "广东鸿图", "爱柯迪", "立中集团", "文灿股份", "恒帅股份", "欣锐科技", "旭升股份", "嵘泰股份", "湘油泵", "苏奥传感", "合兴股份", "双环传动", "泉峰汽车", "光洋股份", "金固股份", "贝斯特", "贵航股份", "天成自控", "雪龙集团", "华安鑫创", "上海沿浦", "航天科技", "松原股份", "瑞鹄模具", "万安科技", "奥联电子", "浙江仙通", "继峰股份", "英搏尔", "长春一东", "常熟汽饰", "银轮股份", "正裕工业", "今飞凯达", "旷达科技", "浙江世宝", "万里扬", "雷迪克", "西菱动力", "新朋股份", "长华股份", "海联金汇", "岱美股份", "常青股份", "大为股份", "钧达股份", "联诚精密", "恒立实业", "永新光学", "隆利科技", "长信科技", "盛洋科技", "宇瞳光学", "蓝黛科技", "凯盛科技", "雷曼光电", "利亚德", "太龙股份", "莱宝高科", "三七互娱", "汤姆猫", "神州泰岳", "恺英网络", "昆仑万维", "盛讯达", "凯撒文化", "富春股份", "天舟文化", "掌趣科技", "游族网络", "巨人网络", "宝通科技", "冰川网络", "盛天网络", "世纪华通", "顺网科技", "中青宝", "浙数文化", "中南文化", "迅游科技", "惠程科技", "天神娱乐", "星辉娱乐", "大晟文化", "文投控股", "电魂网络"]
-    for i in name:
-        i = NEW_STOCK_LIST[get_code_by_name(i)]
-        del i['list_date']
-        target.append(i)
-    print(target)
-
+    for i in smart_car:
+        code = i['code'].split('.')[0]
+        i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{code}"
+        print(i)
 
 # 区间震荡: 三花智控 汇川技术 汇川技术(反转) 移为通信 金溢科技 锐明技术 宏发股份 水晶光电 千方科技(反转)
 # 星宇股份 中国汽研 中科创达 路畅科技 广和通 韦尔股份 亿纬锂能 杉杉股份 闻泰科技 当升科技 比亚迪 璞泰来 均胜电子
