@@ -181,7 +181,7 @@ def run():
     target = sorted(target, key=lambda x: x['score'], reverse=True)
     for i in target:
         logging.warning(i)
-    return target
+    return result
 
 
 def run_v2():

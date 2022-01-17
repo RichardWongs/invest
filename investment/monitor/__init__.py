@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car
+from RPS import TrendStock, Beautiful, YeChengStock, Zulu, smart_car, smart_car2
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -1445,65 +1445,41 @@ def NewStockDetail():
 
 
 if __name__ == "__main__":
-    # stock_filter_aggregation(pool=Beautiful)
-    # stock_filter_by_Shrank_back_to_trample(pool=smart_car2)
-    # stock_filter_by_BooleanLine(pool=Beautiful, period=101)
-    # stock_filter_by_BooleanV1(pool=Beautiful, period=101)
-    for i in smart_car:
-        code = i['code'].split('.')[0]
-        i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{code}"
-        print(i)
-
-# 区间震荡: 三花智控 汇川技术 汇川技术(反转) 移为通信 金溢科技 锐明技术 宏发股份 水晶光电 千方科技(反转)
-# 星宇股份 中国汽研 中科创达 路畅科技 广和通 韦尔股份 亿纬锂能 杉杉股份 闻泰科技 当升科技 比亚迪 璞泰来 均胜电子
-# 法拉电子 赣锋锂业 国轩高科 先导智能 寒锐钴业 宁德时代 恩捷股份 斯达半导 香山股份 合力科技 宁波方正 日盈电子 华培动力 宁波华翔
-# 卡倍亿 明新旭腾 天润工业 东箭科技 飞龙股份 无锡振华 超捷股份 越博动力 美力科技 博俊科技 新泉股份 铁流股份 亚普股份 长鹰信质
-# 双林股份 鹏翎股份 德迈仕 神驰机电 万通智控 富奥股份 宁波高发 凯众股份 隆盛科技 威唐工业 渤海汽车 德宏股份 万向钱潮 兴民智通
-# 云意电气 蠡湖股份 全柴动力 松芝股份 冠盛股份 东安动力 中原内配 北特科技 德尔股份 华达科技 中马传动 京威股份 腾龙股份 隆基机械
-# 万丰奥威 精锻科技 秦安股份 福达股份 征和工业 兆丰股份 蓝特光学 福晶科技 力鼎光电 三安光电 激智科技 中光学 联合光电
-
-# 上升趋势: 联创电子  亚太股份 拓普集团 华阳集团 伯特利 四维图新 沪电股份 立讯精密 欧菲光 华域汽车 万集科技 保隆科技 德赛西威 移远通信 科博达 东软集团 广东鸿图
-# 爱柯迪 立中集团 文灿股份 恒帅股份 欣锐科技 旭升股份 嵘泰股份 湘油泵 苏奥传感 合兴股份 双环传动 泉峰汽车 光洋股份 金固股份 贝斯特
-# 贵航股份 天成自控 雪龙集团 华安鑫创 上海沿浦 航天科技 松原股份 瑞鹄模具 万安科技 奥联电子 浙江仙通 继峰股份 英搏尔 长春一东 常熟汽饰
-# 银轮股份 正裕工业 今飞凯达 旷达科技 浙江世宝 万里扬 雷迪克 西菱动力 新朋股份 长华股份 海联金汇 岱美股份 常青股份 大为股份 钧达股份
-# 联诚精密 恒立实业 永新光学 隆利科技 长信科技 盛洋科技 宇瞳光学 蓝黛科技 凯盛科技 雷曼光电 利亚德 太龙股份 莱宝高科
-
-{'code': '000622.SZ', 'name': '恒立实业', 'industry': '汽车配件', 'url': 'https://xueqiu.com/S/SZ000622'}
-{'code': '603297.SH', 'name': '永新光学', 'industry': '电器仪表', 'url': 'https://xueqiu.com/S/SH603297'}
-{'code': '300752.SZ', 'name': '隆利科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300752'}
-{'code': '300088.SZ', 'name': '长信科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300088'}
-{'code': '603703.SH', 'name': '盛洋科技', 'industry': '通信设备', 'url': 'https://xueqiu.com/S/SH603703'}
-{'code': '300790.SZ', 'name': '宇瞳光学', 'industry': '电器仪表', 'url': 'https://xueqiu.com/S/SZ300790'}
-{'code': '002765.SZ', 'name': '蓝黛科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ002765'}
-{'code': '600552.SH', 'name': '凯盛科技', 'industry': '玻璃', 'url': 'https://xueqiu.com/S/SH600552'}
-{'code': '300162.SZ', 'name': '雷曼光电', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300162'}
-{'code': '300296.SZ', 'name': '利亚德', 'industry': '半导体', 'url': 'https://xueqiu.com/S/SZ300296'}
-{'code': '300650.SZ', 'name': '太龙股份', 'industry': '电气设备', 'url': 'https://xueqiu.com/S/SZ300650'}
-{'code': '002106.SZ', 'name': '莱宝高科', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ002106'}
-{'code': '002555.SZ', 'name': '三七互娱', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002555'}
-{'code': '300459.SZ', 'name': '汤姆猫', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300459'}
-{'code': '300002.SZ', 'name': '神州泰岳', 'industry': '软件服务', 'url': 'https://xueqiu.com/S/SZ300002'}
-{'code': '002517.SZ', 'name': '恺英网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002517'}
-{'code': '300418.SZ', 'name': '昆仑万维', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300418'}
-{'code': '300518.SZ', 'name': '盛讯达', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300518'}
-{'code': '002425.SZ', 'name': '凯撒文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002425'}
-{'code': '300299.SZ', 'name': '富春股份', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300299'}
-{'code': '300148.SZ', 'name': '天舟文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300148'}
-{'code': '300315.SZ', 'name': '掌趣科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300315'}
-{'code': '002174.SZ', 'name': '游族网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002174'}
-{'code': '002558.SZ', 'name': '巨人网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002558'}
-{'code': '300031.SZ', 'name': '宝通科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300031'}
-{'code': '300533.SZ', 'name': '冰川网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300533'}
-{'code': '300494.SZ', 'name': '盛天网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300494'}
-{'code': '002602.SZ', 'name': '世纪华通', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002602'}
-{'code': '300113.SZ', 'name': '顺网科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300113'}
-{'code': '300052.SZ', 'name': '中青宝', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300052'}
-{'code': '600633.SH', 'name': '浙数文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SH600633'}
-{'code': '002445.SZ', 'name': '中南文化', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SZ002445'}
-{'code': '300467.SZ', 'name': '迅游科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300467'}
-{'code': '002168.SZ', 'name': '惠程科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002168'}
-{'code': '002354.SZ', 'name': '天神娱乐', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002354'}
-{'code': '300043.SZ', 'name': '星辉娱乐', 'industry': '文教休闲', 'url': 'https://xueqiu.com/S/SZ300043'}
-{'code': '600892.SH', 'name': '大晟文化', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SH600892'}
-{'code': '600715.SH', 'name': '文投控股', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SH600715'}
-{'code': '603258.SH', 'name': '电魂网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SH603258'}
+    stock_filter_by_Shrank_back_to_trample()
+# {'code': '000622.SZ', 'name': '恒立实业', 'industry': '汽车配件', 'url': 'https://xueqiu.com/S/SZ000622'}
+# {'code': '603297.SH', 'name': '永新光学', 'industry': '电器仪表', 'url': 'https://xueqiu.com/S/SH603297'}
+# {'code': '300752.SZ', 'name': '隆利科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300752'}
+# {'code': '300088.SZ', 'name': '长信科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300088'}
+# {'code': '603703.SH', 'name': '盛洋科技', 'industry': '通信设备', 'url': 'https://xueqiu.com/S/SH603703'}
+# {'code': '002765.SZ', 'name': '蓝黛科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ002765'}
+# {'code': '600552.SH', 'name': '凯盛科技', 'industry': '玻璃', 'url': 'https://xueqiu.com/S/SH600552'}
+# {'code': '300162.SZ', 'name': '雷曼光电', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300162'}
+# {'code': '300296.SZ', 'name': '利亚德', 'industry': '半导体', 'url': 'https://xueqiu.com/S/SZ300296'}
+# {'code': '300650.SZ', 'name': '太龙股份', 'industry': '电气设备', 'url': 'https://xueqiu.com/S/SZ300650'}
+# {'code': '002106.SZ', 'name': '莱宝高科', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ002106'}
+# {'code': '002555.SZ', 'name': '三七互娱', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002555'}
+# {'code': '300459.SZ', 'name': '汤姆猫', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300459'}
+# {'code': '300002.SZ', 'name': '神州泰岳', 'industry': '软件服务', 'url': 'https://xueqiu.com/S/SZ300002'}
+# {'code': '002517.SZ', 'name': '恺英网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002517'}
+# {'code': '300418.SZ', 'name': '昆仑万维', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300418'}
+# {'code': '300518.SZ', 'name': '盛讯达', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300518'}
+# {'code': '002425.SZ', 'name': '凯撒文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002425'}
+# {'code': '300299.SZ', 'name': '富春股份', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300299'}
+# {'code': '300148.SZ', 'name': '天舟文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300148'}
+# {'code': '300315.SZ', 'name': '掌趣科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300315'}
+# {'code': '002558.SZ', 'name': '巨人网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002558'}
+# {'code': '300031.SZ', 'name': '宝通科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300031'}
+# {'code': '300533.SZ', 'name': '冰川网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300533'}
+# {'code': '300494.SZ', 'name': '盛天网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300494'}
+# {'code': '002602.SZ', 'name': '世纪华通', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002602'}
+# {'code': '300113.SZ', 'name': '顺网科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300113'}
+# {'code': '300052.SZ', 'name': '中青宝', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300052'}
+# {'code': '600633.SH', 'name': '浙数文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SH600633'}
+# {'code': '002445.SZ', 'name': '中南文化', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SZ002445'}
+# {'code': '300467.SZ', 'name': '迅游科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300467'}
+# {'code': '002168.SZ', 'name': '惠程科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002168'}
+# {'code': '002354.SZ', 'name': '天神娱乐', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002354'}
+# {'code': '300043.SZ', 'name': '星辉娱乐', 'industry': '文教休闲', 'url': 'https://xueqiu.com/S/SZ300043'}
+# {'code': '600892.SH', 'name': '大晟文化', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SH600892'}
+# {'code': '600715.SH', 'name': '文投控股', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SH600715'}
+# {'code': '603258.SH', 'name': '电魂网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SH603258'}
