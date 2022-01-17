@@ -1446,40 +1446,4 @@ def NewStockDetail():
 
 if __name__ == "__main__":
     stock_filter_by_Shrank_back_to_trample()
-# {'code': '000622.SZ', 'name': '恒立实业', 'industry': '汽车配件', 'url': 'https://xueqiu.com/S/SZ000622'}
-# {'code': '603297.SH', 'name': '永新光学', 'industry': '电器仪表', 'url': 'https://xueqiu.com/S/SH603297'}
-# {'code': '300752.SZ', 'name': '隆利科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300752'}
-# {'code': '300088.SZ', 'name': '长信科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300088'}
-# {'code': '603703.SH', 'name': '盛洋科技', 'industry': '通信设备', 'url': 'https://xueqiu.com/S/SH603703'}
-# {'code': '002765.SZ', 'name': '蓝黛科技', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ002765'}
-# {'code': '600552.SH', 'name': '凯盛科技', 'industry': '玻璃', 'url': 'https://xueqiu.com/S/SH600552'}
-# {'code': '300162.SZ', 'name': '雷曼光电', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ300162'}
-# {'code': '300296.SZ', 'name': '利亚德', 'industry': '半导体', 'url': 'https://xueqiu.com/S/SZ300296'}
-# {'code': '300650.SZ', 'name': '太龙股份', 'industry': '电气设备', 'url': 'https://xueqiu.com/S/SZ300650'}
-# {'code': '002106.SZ', 'name': '莱宝高科', 'industry': '元器件', 'url': 'https://xueqiu.com/S/SZ002106'}
-# {'code': '002555.SZ', 'name': '三七互娱', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002555'}
-# {'code': '300459.SZ', 'name': '汤姆猫', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300459'}
-# {'code': '300002.SZ', 'name': '神州泰岳', 'industry': '软件服务', 'url': 'https://xueqiu.com/S/SZ300002'}
-# {'code': '002517.SZ', 'name': '恺英网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002517'}
-# {'code': '300418.SZ', 'name': '昆仑万维', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300418'}
-# {'code': '300518.SZ', 'name': '盛讯达', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300518'}
-# {'code': '002425.SZ', 'name': '凯撒文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002425'}
-# {'code': '300299.SZ', 'name': '富春股份', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300299'}
-# {'code': '300148.SZ', 'name': '天舟文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300148'}
-# {'code': '300315.SZ', 'name': '掌趣科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300315'}
-# {'code': '002558.SZ', 'name': '巨人网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002558'}
-# {'code': '300031.SZ', 'name': '宝通科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300031'}
-# {'code': '300533.SZ', 'name': '冰川网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300533'}
-# {'code': '300494.SZ', 'name': '盛天网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300494'}
-# {'code': '002602.SZ', 'name': '世纪华通', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002602'}
-# {'code': '300113.SZ', 'name': '顺网科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300113'}
-# {'code': '300052.SZ', 'name': '中青宝', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300052'}
-# {'code': '600633.SH', 'name': '浙数文化', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SH600633'}
-# {'code': '002445.SZ', 'name': '中南文化', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SZ002445'}
-# {'code': '300467.SZ', 'name': '迅游科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ300467'}
-# {'code': '002168.SZ', 'name': '惠程科技', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002168'}
-# {'code': '002354.SZ', 'name': '天神娱乐', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SZ002354'}
-# {'code': '300043.SZ', 'name': '星辉娱乐', 'industry': '文教休闲', 'url': 'https://xueqiu.com/S/SZ300043'}
-# {'code': '600892.SH', 'name': '大晟文化', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SH600892'}
-# {'code': '600715.SH', 'name': '文投控股', 'industry': '影视音像', 'url': 'https://xueqiu.com/S/SH600715'}
-# {'code': '603258.SH', 'name': '电魂网络', 'industry': '互联网', 'url': 'https://xueqiu.com/S/SH603258'}
+

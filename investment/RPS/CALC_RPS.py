@@ -23,7 +23,7 @@ def run():
     time.sleep(1)
     data = pd.read_csv(filename, encoding='utf-8', index_col='day')
     data.index = pd.to_datetime(data.index, format='%Y%m%d', errors='ignore')
-    for rps_day in [20]: # , 50, 120, 250
+    for rps_day in [20, 50, 120, 250]:
         ret = cal_ret(data, w=rps_day)
         rps = all_RPS(ret)
         new_rps = {}
