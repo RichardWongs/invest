@@ -7,7 +7,7 @@ from datetime import date, timedelta
 
 from RPS.holding import fund_holding, fc_holding
 from RPS.stock_pool import NEW_STOCK_LIST
-from monitor import get_market_data, get_stock_kline_with_indicators, MA_V2
+from monitor import get_market_data, get_stock_kline_with_indicators, MA_V2, get_industry_by_code
 from monitor.whole_market import RedisConn
 from momentum.concept import get_concept_list, get_industry_list, get_concept_kline, select_composition_stock
 start_date = int(str(date.today()-timedelta(days=400)).replace('-', ''))
@@ -77,6 +77,7 @@ def find_institutions_holding():
     f = fund_holding + fc_holding
     for i in f:
         pool[i['code']] = i
+    logging.warning(f"机构持股: {len(pool)}\t{pool}")
     return pool
 
 
@@ -220,9 +221,32 @@ def run_v3():
         logging.warning(i)
 
 
+def find_new_high_stock():
+    # 寻找过去一周创一年新高的个股
+    N, M = 5, 250
+    target = []
+    data = readMarketDataFromLocal()
+    count = 1
+    for i in data:
+        kline = i['kline']
+        if len(kline) > (N+M):
+            highest = max([i['high'] for i in kline[-(N+M):-N]])
+        elif len(i['kline']) > 20:
+            highest = max([i['high'] for i in kline[:-N]])
+        if max([i['high'] for i in kline[-5:]]) > highest:
+            del i['kline']
+            del i['applies_20']
+            del i['list_date']
+            logging.warning(f"{count}\t{i}")
+            target.append(i)
+            count += 1
+    return target
+
+
 if __name__ == "__main__":
-    # saveMarketData2Redis()
+    saveMarketData2Redis()
     # saveMarketData2Local()
-    run()
+    # run()
     # run_v2()
     # run_v3()
+    # ('半导体', '电气设备', '汽车配件', '元器件', '新型电力', '互联网', '专用机械', '软件服务')

@@ -1445,5 +1445,5 @@ def NewStockDetail():
 
 
 if __name__ == "__main__":
-    stock_filter_by_Shrank_back_to_trample()
+    stock_filter_by_Shrank_back_to_trample(pool=smart_car)
 
