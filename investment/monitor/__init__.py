@@ -1280,17 +1280,18 @@ def stock_filter_by_Shrank_back_to_trample(pool=None, volume_part=1):
     counter = 1
     for i in pool:
         kline = get_stock_kline_with_indicators(i['code'])
-        kline = MACD(MA(MA(kline, N), M))
-        if kline[last_one][f'MA{M}'] <= kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
-            if kline[last_one]['volume'] * volume_part < kline[last_one]['avg_volume']:
-                code = i['code'].split('.')[0]
-                i['industry'] = get_industry_by_code(i['code'])
-                i['applies'] = kline[last_one]['applies']
-                i['volume_ratio'] = kline[last_one]['volume_ratio']
-                i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{code}"
-                result.append(i)
-                logging.warning(f" {counter}\t{i}")
-                counter += 1
+        if len(kline) > M:
+            kline = MACD(MA(MA(kline, N), M))
+            if kline[last_one][f'MA{M}'] <= kline[last_one]['close'] <= kline[last_one][f'MA{N}']:
+                if kline[last_one]['volume'] * volume_part < kline[last_one]['avg_volume']:
+                    code = i['code'].split('.')[0]
+                    i['industry'] = get_industry_by_code(i['code'])
+                    i['applies'] = kline[last_one]['applies']
+                    i['volume_ratio'] = kline[last_one]['volume_ratio']
+                    i['url'] = f"https://xueqiu.com/S/{'SH' if i['code'].startswith('6') else 'SZ'}{code}"
+                    result.append(i)
+                    logging.warning(f" {counter}\t{i}")
+                    counter += 1
     return result
 
 

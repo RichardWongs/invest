@@ -231,8 +231,8 @@ def find_new_high_stock():
         kline = i['kline']
         if len(kline) > (N+M):
             highest = max([i['high'] for i in kline[-(N+M):-N]])
-        elif len(i['kline']) > 20:
-            highest = max([i['high'] for i in kline[:-N]])
+        else:
+            highest = max([i['high'] for i in kline])
         if max([i['high'] for i in kline[-N:]]) > highest:
             del i['kline']
             del i['applies_20']
@@ -245,9 +245,9 @@ def find_new_high_stock():
 
 
 if __name__ == "__main__":
-    # saveMarketData2Redis()
-    # saveMarketData2Local()
+    saveMarketData2Redis()
+    saveMarketData2Local()
     # run()
     # run_v2()
     # run_v3()
-    find_new_high_stock()
+
