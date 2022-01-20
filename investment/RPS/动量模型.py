@@ -211,6 +211,7 @@ def run_v2():
 
 
 def run_v3():
+    # 计算各行业板块最近20日的累计涨跌幅和板块成份股
     industry_list = get_industry_list()
     for i in industry_list:
         kline = get_concept_kline(i['code'])
