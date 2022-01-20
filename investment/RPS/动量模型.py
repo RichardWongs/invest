@@ -237,18 +237,18 @@ def find_new_high_stock():
             del i['kline']
             del i['applies_20']
             del i['list_date']
-            if i['industry'] in ('半导体', '电气设备', '汽车配件', '电器仪表', '元器件', '新型电力', '互联网', '专用机械', '软件服务'):
-                logging.warning(f"{count}\t{i}")
-                target.append(i)
-                count += 1
+            # if i['industry'] in ('半导体', '电气设备', '汽车配件', '电器仪表', '元器件', '新型电力', '互联网', '专用机械', '软件服务'):
+            logging.warning(f"{count}\t{i}")
+            target.append(i)
+            count += 1
     return target
 
 
 if __name__ == "__main__":
     # saveMarketData2Redis()
     # saveMarketData2Local()
-    # run()
+    run()
     # run_v2()
     # run_v3()
-    find_new_high_stock()
+
 

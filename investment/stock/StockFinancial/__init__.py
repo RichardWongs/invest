@@ -11,7 +11,7 @@ import requests
 from datetime import date, timedelta
 from RPS.stock_pool import STOCK_LIST
 from monitor.whole_market import RedisConn
-from monitor import get_stock_kline_with_indicators, MA_V2, BooleanLine
+from monitor import get_stock_kline_with_indicators, MA_V2, BooleanLine, get_industry_by_code
 
 
 def get_research_report(code):
@@ -52,7 +52,7 @@ def save_research_report_to_redis():
                 client.set(f"stock:research:{i['code']}", "")
 
 
-def read_research_report_from_redis():
+def write_research_report_from_redis():
     target = {}
     client = RedisConn()
     keys = client.keys(f"stock:research:*")
