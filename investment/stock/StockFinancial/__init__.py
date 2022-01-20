@@ -17,7 +17,7 @@ from monitor import get_stock_kline_with_indicators, MA_V2, BooleanLine
 def get_research_report(code):
     # 获取个股研报数据
     time.sleep(0.5)
-    beginTime = date.today() - timedelta(days=60)
+    beginTime = date.today() - timedelta(days=90)
     endTime = date.today()
     timestamp = int(time.time()*1000)
     url = f"http://reportapi.eastmoney.com/report/list?cb=datatable4737182&pageNo=1&pageSize=50&code={code}&industryCode=*&industry=*&rating=*&ratingchange=*&beginTime={beginTime}&endTime={endTime}&fields=&qType=0&_={timestamp}"
@@ -33,16 +33,23 @@ def get_research_report(code):
 
 def save_research_report_to_redis():
     # 从东方财富网下载个股机构研报,并以二进制文件保存到本地,建议每周更新一次即可
-    target = {}
     count = 1
     client = RedisConn()
+    key = f"stock:research:*"
+    keys = client.keys(key)
+    keys = [i.decode() for i in keys]
+    print(keys)
     for i in STOCK_LIST:
-        code = i['code'].split('.')[0]
-        data = get_research_report(code)
-        if data:
-            print(count, data)
-            client.set(f"stock:research:{i['code']}", json.dumps(data))
-            count += 1
+        if f"stock:research:{i['code']}" not in keys:
+            logging.warning(f"获取 {i['code']} 近三个月研报...")
+            code = i['code'].split('.')[0]
+            data = get_research_report(code)
+            if data:
+                print(count, data)
+                client.set(f"stock:research:{i['code']}", json.dumps(data))
+                count += 1
+            else:
+                client.set(f"stock:research:{i['code']}", "")
 
 
 def read_research_report_from_redis():
@@ -51,7 +58,8 @@ def read_research_report_from_redis():
     keys = client.keys(f"stock:research:*")
     for i in keys:
         code = i.decode().split(':')[-1].split('.')[0]
-        target[code] = json.loads(client.get(i))
+        if client.get(i):
+            target[code] = json.loads(client.get(i))
     with open("All_research_report.bin", "wb") as f:
         f.write(pickle.dumps(target))
 
@@ -197,7 +205,4 @@ def BeautyFigure():
 
 
 if __name__ == "__main__":
-    # BeautyFigure()
-    Trend_Template()
-    # read_quarter_report()
-
+    save_research_report_to_redis()
