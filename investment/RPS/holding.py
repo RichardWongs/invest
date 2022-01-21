@@ -70,7 +70,7 @@ def FC_history_Query(holding_date):
     for i in fc_total:
         del i['holdingCount']
         del i['holdingRatio']
-    print(fc_total)
+    print(f"{len(fc_total)}\t{fc_total}")
     return fc_total
 
 
@@ -83,7 +83,7 @@ def get_funding_holding(year=2021, quarter=3):
         fundHoldingdRatio = float(i[6])
         if fundHoldingdRatio >= 2 and code[0] in ('0', '3', '6'):
             pool.append({'code': code, 'name': name})
-    print("\n", pool)
+    print(f"\n{len(pool)}\t{pool}")
     return pool
 
 

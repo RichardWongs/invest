@@ -258,7 +258,7 @@ def find_new_high_stock():
 
 
 def find_new_low_stock():
-    # 寻找过去N天内不再创新低的个股
+    # 寻找长期趋势向下,且过去N天内不再创新低的个股(寻找反转)
     N, M = 50, 250
     target = []
     data = readMarketDataFromLocal()
