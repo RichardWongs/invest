@@ -11,8 +11,8 @@ from monitor import get_market_data, get_stock_kline_with_indicators, MA_V2, get
 from monitor.whole_market import RedisConn
 from momentum.concept import get_concept_list, get_industry_list, get_concept_kline, select_composition_stock
 start_date = int(str(date.today() - timedelta(days=400)).replace('-', ''))
-host = "172.16.1.162"
-# host = "192.168.124.20"
+# host = "172.16.1.162"
+host = "192.168.124.20"
 
 
 def saveMarketData2Redis():
@@ -281,7 +281,7 @@ def find_new_low_stock():
 
 
 if __name__ == "__main__":
-    # saveMarketData2Redis()
-    # saveMarketData2Local()
+    saveMarketData2Redis()
+    saveMarketData2Local()
     # run()
-    find_new_low_stock()
+    # find_new_low_stock()
