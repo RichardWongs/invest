@@ -182,7 +182,7 @@ def run():
     for i in industrySet:
         count = industrys.count(i)
         total_count = t[i]
-        tmp = {'industry': i, 'score': round(count * count / total_count, 2),
+        tmp = {'industry': i, 'score': round(count * count / total_count, 2), 'count': count,
                'pool': [f"{j['code']}-{j['name']}" for j in result if j['industry'] == i]}
         target.append(tmp)
     target = sorted(target, key=lambda x: x['score'], reverse=True)
@@ -281,7 +281,7 @@ def find_new_low_stock():
 
 
 if __name__ == "__main__":
-    saveMarketData2Redis()
-    saveMarketData2Local()
-    # run()
+    # saveMarketData2Redis()
+    # saveMarketData2Local()
+    run()
     # find_new_low_stock()
