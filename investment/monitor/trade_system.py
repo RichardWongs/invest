@@ -441,12 +441,13 @@ def market_chart_boolean(code=None, name=None):
              figscale=8,
              # mav=(50, 150, 200),
              addplot=add_plot,
-             show_nontrading=True,
-             # savefig=f"{save_path}/{name}.png"
+             # show_nontrading=True,
+             savefig=f"{save_path}/{name}.png"
              )
     logging.warning(f"{code}\t{name}")
 
 
 if __name__ == "__main__":
-    market_chart_boolean("300015")
+    for i in get_industry_list():
+        market_chart_boolean(code=i['code'], name=i['name'])
 
