@@ -448,6 +448,7 @@ def market_chart_boolean(code=None, name=None):
 
 
 if __name__ == "__main__":
-    for i in get_industry_list():
+    p = get_etf_list()
+    for i in p:
         market_chart_boolean(code=i['code'], name=i['name'])
 
