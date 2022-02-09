@@ -186,9 +186,17 @@ def run():
                'pool': [f"{j['code']}-{j['name']}" for j in result if j['industry'] == i]}
         target.append(tmp)
     target = sorted(target, key=lambda x: x['score'], reverse=True)
+    f_target = []
+    finally_target = []
     for i in target:
         logging.warning(i)
-    return result
+        if i['score'] >= 1:
+            f_target += i['pool']
+    for i in f_target:
+        code, name = i.split('-')
+        finally_target.append({'code': code, 'name': name})
+    print(len(finally_target), finally_target)
+    return finally_target
 
 
 def run_v2():
