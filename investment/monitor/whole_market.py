@@ -10,8 +10,8 @@ from monitor import EMA_V2, MA_V2, BooleanLine, Linear_Regression
 from RPS.stock_pool import STOCK_LIST
 
 
-def RedisConn(host="172.16.1.162"):
-    client = redis.Redis(host=host, port=6379, db=0)
+def RedisConn(host="172.16.1.162", password="Aa12345"):
+    client = redis.Redis(host=host, port=6379, db=0, password=password)
     return client
 
 
