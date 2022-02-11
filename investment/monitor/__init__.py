@@ -658,10 +658,10 @@ def MACD(kline: list):
     N, M = 12, 26
     kline = EMA_V2(EMA_V2(EMA_V2(kline, days=N), days=M), days=50)
     for i in range(len(kline)):
-        kline[i]['DIF'] = kline[i][f'ema{N}'] - kline[i][f'ema{M}']
+        kline[i]['DIF'] = round(kline[i][f'ema{N}'] - kline[i][f'ema{M}'], 3)
     kline = EMA_V2(kline, days=9, key='DIF', out_key='DEA')
     for i in range(len(kline)):
-        kline[i]['MACD'] = 2 * (kline[i]['DIF'] - kline[i]['DEA'])
+        kline[i]['MACD'] = round(2 * (kline[i]['DIF'] - kline[i]['DEA']), 3)
         if i > 0:
             if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] >= kline[i - 1]['DIF']:
                 kline[i]['macd_direction'] = 'UP'

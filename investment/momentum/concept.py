@@ -267,11 +267,14 @@ def select_composition_stock(plate_code):
     r = requests.get(url, params=params).text
     r = r.split('(')[1].split(')')[0]
     r = json.loads(r)
-    r = r['data']['diff']
-    result = []
-    for i in r:
-        result.append({'code': i['f12'], 'name': i['f14']})
-    return result
+    if 'data' in r.keys():
+        if r['data']:
+            if 'diff' in r['data'].keys():
+                r = r['data']['diff']
+                result = []
+                for i in r:
+                    result.append({'code': i['f12'], 'name': i['f14']})
+                return result
 
 
 def stock_pool_filter_by_plate(pool, plate_code):
@@ -307,4 +310,3 @@ if __name__ == "__main__":
     # CONCEPT_LIST = get_concept_list() + get_industry_list()
     # print(CONCEPT_LIST)
     run()
-
