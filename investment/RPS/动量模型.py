@@ -11,15 +11,16 @@ from monitor import get_market_data, get_stock_kline_with_indicators, MA_V2, get
 from monitor.whole_market import RedisConn
 from momentum.concept import get_concept_list, get_industry_list, get_concept_kline, select_composition_stock
 start_date = int(str(date.today() - timedelta(days=400)).replace('-', ''))
-host = "172.16.1.162"
-# host = "192.168.124.20"
+# host = "172.16.1.162"
+host = "192.168.124.5"
+password = ""
 
 
 def saveMarketData2Redis():
     # 查询全市场股票行情数据存储到redis中
     N = 20
     day = 1
-    client = RedisConn(host=host)
+    client = RedisConn(host=host, password=password)
     key = f"stock:momentum:*"
     keys = client.keys(key)
     keys = [i.decode() for i in keys]
@@ -43,7 +44,7 @@ def saveMarketData2Redis():
 
 
 def saveMarketData2Local():
-    client = RedisConn(host=host)
+    client = RedisConn(host=host, password=password)
     keys = [i.decode() for i in client.keys(f"stock:momentum:*")]
     target = []
     limit = 1600
@@ -292,4 +293,4 @@ if __name__ == "__main__":
     # saveMarketData2Redis()
     # saveMarketData2Local()
     run()
-    # find_new_low_stock()
+
