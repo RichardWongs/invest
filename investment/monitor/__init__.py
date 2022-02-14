@@ -665,7 +665,7 @@ def MACD(kline: list):
         if i > 0:
             if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] >= kline[i - 1]['DIF']:
                 kline[i]['macd_direction'] = 'UP'
-            if kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] < kline[i - 1]['DIF']:
+            elif kline[i]['MACD'] > kline[i - 1]['MACD'] and kline[i]['DIF'] < kline[i - 1]['DIF']:
                 kline[i]['macd_direction'] = 'UP-'
             else:
                 kline[i]['macd_direction'] = 'DOWN'
