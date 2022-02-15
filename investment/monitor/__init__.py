@@ -260,7 +260,7 @@ def BooleanLine(kline: list, N=20):
     return kline[N:]
 
 
-def RSI(data: list):
+def RSI_old(data: list):
     assert data, "data 不能为空"
     rsi_day = 14
     up = [i if i > 0 else 0 for i in [i["applies"] for i in data[:14]]]
@@ -294,6 +294,24 @@ def RSI(data: list):
             if j['day'] == tmp_list['date'] and 'RSI' in tmp_list.keys():
                 j['RSI'] = tmp_list['RSI']
     return data
+
+
+def RSI(kline: list):
+    N = 14
+    assert len(kline) > N, "kline length is not enough"
+    for i in range(len(kline)):
+        kline[i]['difference'] = round(kline[i]['close'] - kline[i]['last_close'], 3)
+        if i >= N:
+            up, down = [], []
+            for j in range(i, i-N, -1):
+                if kline[j]['difference'] > 0:
+                    up.append(kline[j]['difference'])
+                elif kline[j]['difference'] < 0:
+                    down.append(abs(kline[j]['difference']))
+            A = sum(up)
+            B = sum(down)
+            kline[i]['RSI'] = round(A/(A+B)*100, 3)
+    return kline
 
 
 def KDJ(kline: list):

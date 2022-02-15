@@ -10,4 +10,7 @@ def simulation_week_macd(code):
     print(kline[-1])
 
 
-simulation_week_macd(300760)
+
+
+
+
