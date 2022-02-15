@@ -311,7 +311,7 @@ def RSI(kline: list):
             A = sum(up)
             B = sum(down)
             kline[i]['RSI'] = round(A/(A+B)*100, 3)
-    return kline
+    return kline[N:]
 
 
 def KDJ(kline: list):
