@@ -495,5 +495,5 @@ def draw_channel_by_kline(code=None, name=None):
 
 
 if __name__ == "__main__":
-    draw_channel_by_kline(code="159967", name="创成长")
+    draw_channel_by_kline(code="000002", name="万科A")
 

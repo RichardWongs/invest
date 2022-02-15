@@ -10,7 +10,21 @@ def simulation_week_macd(code):
     print(kline[-1])
 
 
+def index_hour_rsi():
+    indexs = ["000300", "000905", "000016", "000688", "399296", "399997"]
+    indexs = [{'code': '000300', 'name': '沪深300'},
+              {'code': '000905', 'name': '中证500'},
+              {'code': '000016', 'name': '上证50'},
+              {'code': '000688', 'name': '科创50'},
+              {'code': '399296', 'name': '创成长'},
+              {'code': '399997', 'name': '中证白酒'},
+              {'code': '399976', 'name': 'CS新能车'},
+              {'code': '399989', 'name': '中证医疗'},
+              ]
+    for i in indexs:
+        kline = get_stock_kline_with_indicators(i['code'], is_index=True, period=60)
+        kline = BooleanLine(RSI(kline))
+        print(i['name'], kline[-1])
 
 
-
-
+index_hour_rsi()
