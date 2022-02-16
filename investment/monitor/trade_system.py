@@ -4,6 +4,8 @@ from datetime import datetime, date
 import logging
 import os
 import time
+
+import pandas as pd
 import requests
 
 from momentum.concept import get_industry_list, get_concept_kline_v2
@@ -494,6 +496,46 @@ def draw_channel_by_kline(code=None, name=None):
     logging.warning(f"{code}\t{name}")
 
 
-if __name__ == "__main__":
-    draw_channel_by_kline(code="000002", name="万科A")
+def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
+    import mplfinance as mpf
+    code = str(code).split('.')[0]
+    kline = get_stock_kline_with_indicators(code, is_index=is_index, period=period, limit=limit)
+    data = BooleanLine(RSI(kline))
+    for i in range(len(data)):
+        data[i]['day'] = date.today()+timedelta(days=i)
+    df = pd.DataFrame(data)
+    df["datetime"] = pd.to_datetime(df["day"])
+    df.set_index("datetime", inplace=True)
+    mc = mpf.make_marketcolors(
+        up="red",
+        down="green",
+        edge="i",
+        wick="i",
+        volume="in",
+        inherit=True
+    )
+    s = mpf.make_mpf_style(
+        y_on_right=False,
+        marketcolors=mc,
+        rc={"font.family": "SimHei"}
+    )
+    add_plot = [
+        mpf.make_addplot(df.get('BBU')),
+        mpf.make_addplot(df.get('BBL')),
+    ]
+    mpf.plot(df,
+             type="candle",
+             title=f"{code}-CURRENT RSI:{data[-1]['RSI']} HIGH RSI:{max([i['RSI'] for i in data[-20:]])}",
+             ylabel="price($)",
+             style=s,
+             volume=True,
+             ylabel_lower="volume(shares)",
+             figratio=(12, 6),
+             addplot=add_plot,
+             show_nontrading=True,
+             )
 
+
+if __name__ == "__main__":
+    # draw_channel_by_kline(code="000002", name="万科A")
+    draw_boolean_rsi("399296", is_index=True, period=60)
