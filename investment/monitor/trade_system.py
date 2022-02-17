@@ -449,7 +449,7 @@ def draw_channel_by_kline(code=None, name=None):
         logging.error("code 和 name 必须传一个")
         sys.exit()
     save_path = "../STOCK_CHANNEL"
-    if str(code).startswith('1') or str(code).startswith('5'):
+    if str(code)[0] in ('1', '5'):
         save_path += "/ETF"
     elif str(code)[0] in ('0', '3', '6'):
         save_path += "/STOCK"
@@ -457,8 +457,10 @@ def draw_channel_by_kline(code=None, name=None):
         save_path += "/INDUSTRY"
     code = str(code).split('.')[0]
     data = Channel(code=code, name=name).kline
-    for i in data:
-        i['day'] = datetime.strptime(i['day'], "%Y-%m-%d").date()
+    if len(data) > 100:
+        data = data[-100:]
+    for i in range(len(data)):
+        data[i]['day'] = date.today()+timedelta(days=i)
     df = pd.DataFrame(data)
     df["datetime"] = pd.to_datetime(df["day"])
     df.set_index("datetime", inplace=True)
@@ -537,7 +539,7 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
 
 
 if __name__ == "__main__":
-    p = [{'code': '600188.SH', 'name': '兖矿能源'}, {'code': '601666.SH', 'name': '平煤股份'}, {'code': '600123.SH', 'name': '兰花科创'}, {'code': '601225.SH', 'name': '陕西煤业'}, {'code': '601088.SH', 'name': '中国神华'}, {'code': '000937.SZ', 'name': '冀中能源'}, {'code': '601699.SH', 'name': '潞安环能'}, {'code': '600985.SH', 'name': '淮北矿业'}, {'code': '000983.SZ', 'name': '山西焦煤'}, {'code': '600971.SH', 'name': '恒源煤电'}, {'code': '601898.SH', 'name': '中煤能源'}, {'code': '600115.SH', 'name': '中国东航'}, {'code': '601111.SH', 'name': '中国国航'}, {'code': '601156.SH', 'name': '东航物流'}, {'code': '601021.SH', 'name': '春秋航空'}, {'code': '600029.SH', 'name': '南方航空'}, {'code': '002928.SZ', 'name': '华夏航空'}, {'code': '600926.SH', 'name': '杭州银行'}, {'code': '601128.SH', 'name': '常熟银行'}, {'code': '002839.SZ', 'name': '张家港行'}, {'code': '601328.SH', 'name': '交通银行'}, {'code': '601166.SH', 'name': '兴业银行'}, {'code': '002807.SZ', 'name': '江阴银行'}, {'code': '601009.SH', 'name': '南京银行'}, {'code': '601838.SH', 'name': '成都银行'}, {'code': '600919.SH', 'name': '江苏银行'}, {'code': '600036.SH', 'name': '招商银行'}, {'code': '601658.SH', 'name': '邮储银行'}, {'code': '002142.SZ', 'name': '宁波银行'}, {'code': '002061.SZ', 'name': '浙江交科'}, {'code': '600248.SH', 'name': '陕西建工'}, {'code': '000498.SZ', 'name': '山东路桥'}, {'code': '603357.SH', 'name': '设计总院'}, {'code': '002051.SZ', 'name': '中工国际'}, {'code': '300284.SZ', 'name': '苏交科'}, {'code': '601669.SH', 'name': '中国电建'}, {'code': '600502.SH', 'name': '安徽建工'}, {'code': '600284.SH', 'name': '浦东建设'}, {'code': '601068.SH', 'name': '中铝国际'}, {'code': '601390.SH', 'name': '中国中铁'}, {'code': '601618.SH', 'name': '中国中冶'}, {'code': '600820.SH', 'name': '隧道股份'}, {'code': '601668.SH', 'name': '中国建筑'}, {'code': '603018.SH', 'name': '华设集团'}, {'code': '000090.SZ', 'name': '天健集团'}, {'code': '600170.SH', 'name': '上海建工'}, {'code': '601868.SH', 'name': '中国能建'}, {'code': '000672.SZ', 'name': '上峰水泥'}, {'code': '002302.SZ', 'name': '西部建设'}, {'code': '000789.SZ', 'name': '万年青'}, {'code': '600801.SH', 'name': '华新水泥'}, {'code': '600720.SH', 'name': '祁连山'}, {'code': '600802.SH', 'name': '福建水泥'}, {'code': '600585.SH', 'name': '海螺水泥'}, {'code': '002233.SZ', 'name': '塔牌集团'}, {'code': '600009.SH', 'name': '上海机场'}, {'code': '600004.SH', 'name': '白云机场'}, {'code': '000089.SZ', 'name': '深圳机场'}, {'code': '603589.SH', 'name': '口子窖'}, {'code': '603198.SH', 'name': '迎驾贡酒'}, {'code': '002304.SZ', 'name': '洋河股份'}, {'code': '600809.SH', 'name': '山西汾酒'}, {'code': '000596.SZ', 'name': '古井贡酒'}, {'code': '603369.SH', 'name': '今世缘'}, {'code': '601816.SH', 'name': '京沪高铁'}, {'code': '601006.SH', 'name': '大秦铁路'}, {'code': '601333.SH', 'name': '广深铁路'}, {'code': '000796.SZ', 'name': '凯撒旅业'}, {'code': '600138.SH', 'name': '中青旅'}, {'code': '601888.SH', 'name': '中国中免'}, {'code': '002159.SZ', 'name': '三特索道'}, {'code': '600012.SH', 'name': '皖通高速'}, {'code': '600350.SH', 'name': '山东高速'}, {'code': '600548.SH', 'name': '深高速'}, {'code': '600377.SH', 'name': '宁沪高速'}, {'code': '601107.SH', 'name': '四川成渝'}]
-    for i in p[20:]:
+    p = get_etf_list()
+    for i in p:
         draw_channel_by_kline(code=i['code'], name=i['name'])
     # draw_boolean_rsi("399296", is_index=True, period=60)
