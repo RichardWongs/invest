@@ -291,7 +291,7 @@ def find_new_low_stock():
 
 
 if __name__ == "__main__":
-    saveMarketData2Redis()
-    saveMarketData2Local()
+    # saveMarketData2Redis()
+    # saveMarketData2Local()
     run()
 
