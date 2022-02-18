@@ -415,7 +415,7 @@ def EMA_V2(cps, days, key='close', out_key=None):
         if i == 0:
             emas[i][out_key] = cps[i][key]
         if i > 0:
-            emas[i][out_key] = round(((days - 1) * emas[i - 1][out_key] + 2 * cps[i][key]) / (days + 1), 2)
+            emas[i][out_key] = round(((days - 1) * emas[i - 1][out_key] + 2 * cps[i][key]) / (days + 1), 3)
     return emas
 
 

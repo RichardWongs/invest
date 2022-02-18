@@ -15,7 +15,7 @@ from monitor import *
 def get_etf_list():
     etf_list = [{"name": "创成长", "code": 159967},
                 {"name": "质量ETF", "code": 515910},
-                # {"name": "A50ETF", "code": 159601},
+                {"name": "A50ETF", "code": 159601},
                 {"name": "上证50", "code": 510050},
                 {"name": "沪深300ETF", "code": 510300},
                 {"name": "中证500ETF", "code": 510500},
@@ -490,7 +490,7 @@ def draw_channel_by_kline(code=None, name=None):
              ylabel_lower="volume(shares)",
              figratio=(12, 6),
              # figscale=8,
-             mav=(60,),
+             mav=(20,),
              addplot=add_plot,
              show_nontrading=True,
              savefig=f"{save_path}/{name}.png"
@@ -539,7 +539,6 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
 
 
 if __name__ == "__main__":
-    p = get_etf_list()
-    for i in p:
-        draw_channel_by_kline(code=i['code'], name=i['name'])
+    for i in get_etf_list():
+        draw_channel_by_kline(i['code'], name=i['name'])
     # draw_boolean_rsi("399296", is_index=True, period=60)
