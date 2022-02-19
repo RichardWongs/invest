@@ -84,5 +84,3 @@ def get_funding_holding(year=2021, quarter=4):
     return pool
 
 
-get_funding_holding()
-FC_history_Query()

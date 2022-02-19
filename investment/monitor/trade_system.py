@@ -4,10 +4,10 @@ from datetime import datetime, date
 import logging
 import os
 import time
-
 import pandas as pd
 import requests
 
+from RPS.动量模型 import find_institutions_holding
 from momentum.concept import get_industry_list, get_concept_kline_v2
 from monitor import *
 
@@ -493,7 +493,7 @@ def draw_channel_by_kline(code=None, name=None):
              mav=(20,),
              addplot=add_plot,
              show_nontrading=True,
-             savefig=f"{save_path}/{name}.png"
+             savefig=f"{save_path}/{name.replace('*', '')}.png"
              )
     # logging.warning(f"{code}\t{name}")
 
