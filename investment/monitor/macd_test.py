@@ -11,7 +11,6 @@ def simulation_week_macd(code):
 
 
 def index_hour_rsi():
-    indexs = ["000300", "000905", "000016", "000688", "399296", "399997"]
     indexs = [{'code': '000300', 'name': '沪深300'},
               {'code': '000905', 'name': '中证500'},
               {'code': '000016', 'name': '上证50'},
@@ -27,4 +26,4 @@ def index_hour_rsi():
         print(i['name'], kline[-1])
 
 
-index_hour_rsi()
+

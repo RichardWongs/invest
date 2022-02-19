@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock, Zulu
+from RPS import TrendStock, Beautiful, YeChengStock, Zulu, ALL_ETF
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama

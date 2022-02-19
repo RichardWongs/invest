@@ -539,6 +539,6 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
 
 
 if __name__ == "__main__":
-    for i in get_etf_list():
+    for i in ALL_ETF:
         draw_channel_by_kline(i['code'], name=i['name'])
     # draw_boolean_rsi("399296", is_index=True, period=60)
