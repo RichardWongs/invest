@@ -1,3 +1,4 @@
+from RPS.动量模型 import find_institutions_holding
 from monitor import *
 
 
@@ -26,4 +27,21 @@ def index_hour_rsi():
         print(i['name'], kline[-1])
 
 
+def Channel_Trade_System():
+    # 筛选机构持股列表中,股价当日曾跌破向下通道且MACD柱状线出现做多信号
+    pool = find_institutions_holding()
+    target = []
+    for _, i in pool.items():
+        if len(i['code'].split('.')[0]) == 6:
+            c = Channel(code=i['code'], name=i['name'])
+            kline = c.kline
+            kline = MACD(kline)
+            if kline[-1]['low'] <= kline[-1]['down_channel'] and kline[-1]['macd_direction'] != "DOWN":
+                tmp = {'code': c.code, 'name': c.name, 'kline': kline[-1]}
+                target.append(tmp)
+                logging.warning(tmp)
+    logging.warning(target)
+    return target
 
+
+Channel_Trade_System()
