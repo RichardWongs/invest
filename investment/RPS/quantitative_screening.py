@@ -236,5 +236,12 @@ def institutions_holding():
     return pool
 
 
-
+def select_high_rps_stock():
+    pool = []
+    data = get_all_RPS_stock_pool()
+    for i in data:
+        i['code'] = f"{i['code']}.SH" if str(i['code']).startswith('6') else f"{i['code']}.SZ"
+        pool.append(i)
+    logging.warning(f"{len(pool)}\t{pool}")
+    return pool
 

@@ -539,6 +539,6 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
 
 
 if __name__ == "__main__":
-    for i in ALL_ETF:
+    for i in select_high_rps_stock():
         draw_channel_by_kline(code=i['code'], name=i['name'])
 

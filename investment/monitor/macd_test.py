@@ -46,7 +46,8 @@ def readMarketData():
 
 def Channel_Trade_System():
     # 筛选机构持股列表中,股价当日曾跌破向下通道且MACD柱状线出现做多信号
-    pool = find_institutions_holding()
+    # pool = find_institutions_holding()    # 机构持股股票池
+    pool = select_high_rps_stock()  # 高RPS股票池
     all_kline = readMarketData()
     target = []
     for _, i in pool.items():

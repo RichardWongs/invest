@@ -4,7 +4,7 @@ import logging
 from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
-from RPS import TrendStock, Beautiful, YeChengStock, Zulu, ALL_ETF
+from RPS import Beautiful, YeChengStock, Zulu, ALL_ETF
 from momentum.concept import select_composition_stock
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
@@ -1220,9 +1220,9 @@ class Channel:
         N, M = 13, 26
         self.kline = KAMA(EMA_V2(EMA_V2(EMA_V2(self.kline, N), M), 50))
         up_channel_coefficients, down_channel_coefficients = self.find_channel_coefficients()
-        # logging.warning(f"code: {self.code}\tname: {self.name}\t"
-        #                 f"up_channel_coefficients:{up_channel_coefficients}\t"
-        #                 f"down_channel_coefficients:{down_channel_coefficients}")
+        logging.warning(f"code: {self.code}\tname: {self.name}\t"
+                        f"up_channel_coefficients:{up_channel_coefficients}\t"
+                        f"down_channel_coefficients:{down_channel_coefficients}")
         for i in range(len(self.kline)):
             self.kline[i]['up_channel'] = self.kline[i][f'ema{M}'] + \
                                           up_channel_coefficients * self.kline[i][f'ema{M}']
@@ -1375,26 +1375,6 @@ def stock_filter_aggregation(pool=Beautiful):
             print(i, "买入信号出现超过一次")
 
 
-def outputTrendStockSortByVolume():
-    result = []
-    day = -1
-    counter = 1
-    for i in TrendStock:
-        code = i['code'].split('.')[0]
-        kline = get_stock_kline_with_indicators(code)
-        kline = MA(kline, 10)
-        if kline[day]['volume'] < kline[day]['avg_volume']:
-            i['close'] = kline[day]['close']
-            i['applies'] = kline[day]['applies']
-            i['volume_ratio'] = kline[day]['volume_ratio']
-            result.append(i)
-    result = sorted(result, key=lambda x: x['volume_ratio'], reverse=True)
-    for i in result:
-        logging.warning(f"{counter}\t{i}")
-        counter += 1
-    return result
-
-
 def Short_term_strength(code, limit=5):
     # 短期强弱判定
     data = get_stock_kline_with_indicators(code, limit=limit)
@@ -1416,27 +1396,6 @@ def Mansfield(kline, index_kline):
     for i in range(len(kline)):
         kline[i]['relative_intensity'] = round(kline[i]['applies'] / index_kline[i]['applies'], 3)
     return kline
-
-
-def TrendBuyPoint():
-    for i in TrendStock:
-        data = get_stock_kline_with_indicators(i['code'].split('.')[0], period=30)
-        data = MACD(data)
-        i['close'] = data[-1]['close']
-        # print(i)
-        if (data[-1]['DIF'] < 0) and (data[-1]['DIF'] > data[-1]['DEA']) and (data[-2]['DIF'] > data[-2]['DEA']):
-            logging.warning(i)
-
-
-def TrendStopLoss():
-    for i in TrendStock:
-        code = i['code'].split('.')[0]
-        data = get_stock_kline_with_indicators(code)
-        data = ATR(data)
-        i['close'] = data[-1]['close']
-        i['stopLoss'] = round(data[-1]['highest'] - 2 * data[-1]['ATR_20'], 2)
-        print(Fore.LIGHTRED_EX + f"{i}" + Style.RESET_ALL if i['close'] > i[
-            'stopLoss'] else Fore.LIGHTGREEN_EX + f"{i}" + Style.RESET_ALL)
 
 
 def StanWeinstein():
