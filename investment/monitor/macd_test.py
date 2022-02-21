@@ -1,5 +1,6 @@
 from RPS.动量模型 import find_institutions_holding
 from monitor import *
+from datetime import date
 
 
 def simulation_week_macd(code):
@@ -27,13 +28,30 @@ def index_hour_rsi():
         print(i['name'], kline[-1])
 
 
+def readMarketData():
+    # 读取本地行情文件并转换成字典返回
+    import pickle
+    os.chdir("../RPS")
+    target = {}
+    data = []
+    for i in os.listdir(os.curdir):
+        if i.startswith('MomentumMarketData'):
+            with open(i, 'rb') as f:
+                content = pickle.loads(f.read())
+                data += content
+    for i in data:
+        target[i['code']] = i if len(i) <= 100 else i[-100:]
+    return target
+
+
 def Channel_Trade_System():
     # 筛选机构持股列表中,股价当日曾跌破向下通道且MACD柱状线出现做多信号
     pool = find_institutions_holding()
+    all_kline = readMarketData()
     target = []
     for _, i in pool.items():
         if len(i['code'].split('.')[0]) == 6:
-            c = Channel(code=i['code'], name=i['name'])
+            c = Channel(code=i['code'], name=i['name'], kline=all_kline[i['code']]['kline'])
             kline = c.kline
             kline = MACD(kline)
             if kline[-1]['low'] <= kline[-1]['down_channel'] and kline[-1]['macd_direction'] != "DOWN":

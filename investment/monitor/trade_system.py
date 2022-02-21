@@ -493,7 +493,7 @@ def draw_channel_by_kline(code=None, name=None):
              mav=(20,),
              addplot=add_plot,
              show_nontrading=True,
-             # savefig=f"{save_path}/{name.replace('*', '')}.png"
+             savefig=f"{save_path}/{name.replace('*', '')}.png"
              )
     # logging.warning(f"{code}\t{name}")
 
@@ -539,5 +539,6 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
 
 
 if __name__ == "__main__":
-    draw_channel_by_kline("161725", name="°×¾ÆLOF")
-    # draw_boolean_rsi("399296", is_index=True, period=60)
+    for i in ALL_ETF:
+        draw_channel_by_kline(code=i['code'], name=i['name'])
+
