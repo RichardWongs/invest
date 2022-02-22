@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import requests, json, time
 from RPS.quantitative_screening import *
 from RPS import Beautiful, YeChengStock, Zulu, ALL_ETF
-from momentum.concept import select_composition_stock
+from momentum.concept import select_composition_stock, get_concept_kline_v2
 from RPS.stock_pool import NEW_STOCK_LIST
 import colorama
 from colorama import Fore, Back, Style
@@ -1213,7 +1213,10 @@ class Channel:
     def __init__(self, code, name, period=101, limit=120, kline=None):
         self.code = code
         self.name = name
-        self.kline = get_stock_kline_with_indicators(code, limit=limit, period=period) if not kline else kline
+        if str(code)[0] in ('0', '3', '6', '1', '5'):
+            self.kline = get_stock_kline_with_indicators(code, limit=limit, period=period) if not kline else kline
+        else:
+            self.kline = get_concept_kline_v2(code, limit=limit, period=period)
         self.channel_trade_system()
 
     def channel_trade_system(self):

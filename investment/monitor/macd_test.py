@@ -44,23 +44,32 @@ def readMarketData():
     return target
 
 
-def Channel_Trade_System():
+def find_institutions_holding_momentum():
+    pool1 = find_institutions_holding()    # 机构持股股票池
+    pool2 = select_high_rps_stock()  # 高RPS股票池
+    pool = []
+    for _, v in pool1.items():
+        if v in pool2:
+            pool.append(v)
+    return pool
+
+
+def Channel_Trade_System(pool: list):
     # 筛选机构持股列表中,股价当日曾跌破向下通道且MACD柱状线出现做多信号
-    # pool = find_institutions_holding()    # 机构持股股票池
-    pool = select_high_rps_stock()  # 高RPS股票池
-    all_kline = readMarketData()
+    # all_kline = readMarketData()
     target = []
-    for _, i in pool.items():
-        if len(i['code'].split('.')[0]) == 6:
-            c = Channel(code=i['code'], name=i['name'], kline=all_kline[i['code']]['kline'])
+    index = -1
+    for i in pool:
+        if len(str(i['code']).split('.')[0]) == 6:
+            c = Channel(code=i['code'], name=i['name'], kline=None)  # all_kline[i['code']]['kline']
             kline = c.kline
             kline = MACD(kline)
-            if kline[-1]['low'] <= kline[-1]['down_channel'] and kline[-1]['macd_direction'] != "DOWN":
-                tmp = {'code': c.code, 'name': c.name, 'kline': kline[-1]}
+            if kline[index]['low'] <= kline[index]['down_channel'] and kline[index]['macd_direction'] != "DOWN":
+                tmp = {'code': c.code, 'name': c.name, 'kline': kline[index]}
                 target.append(tmp)
                 logging.warning(tmp)
-    logging.warning(target)
+    logging.warning(f"{len(target)}\t{target}")
     return target
 
 
-Channel_Trade_System()
+Channel_Trade_System(ALL_ETF)

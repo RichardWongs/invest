@@ -489,7 +489,7 @@ def draw_channel_by_kline(code=None, name=None):
              volume=True,
              ylabel_lower="volume(shares)",
              figratio=(12, 6),
-             # figscale=8,
+             figscale=4,
              mav=(20,),
              addplot=add_plot,
              show_nontrading=True,
@@ -538,7 +538,19 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
              )
 
 
+def momentum_stock_draw_channel():
+    p1 = find_institutions_holding()
+    p2 = select_high_rps_stock()
+    pool = []
+    for _, v in p1.items():
+        if v in p2:
+            pool.append(v)
+    for i in pool:
+        draw_channel_by_kline(code=i['code'], name=i['name'])
+
+
 if __name__ == "__main__":
-    for i in select_high_rps_stock():
+    p = get_industry_list()
+    for i in p[50:]:
         draw_channel_by_kline(code=i['code'], name=i['name'])
 
