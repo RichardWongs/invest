@@ -45,11 +45,14 @@ def get_RPS_stock_pool():
     return pool
 
 
-def get_all_RPS_stock_pool():
+def get_all_RPS_stock_pool(days=None):
     # 根据RPS值进行第一步筛选
     os.chdir("../RPS")
     pool = set()
-    files = ['RPS_20_V2.csv', 'RPS_50_V2.csv', 'RPS_120_V2.csv', 'RPS_250_V2.csv']
+    if not days:
+        files = ['RPS_20_V2.csv', 'RPS_50_V2.csv', 'RPS_120_V2.csv', 'RPS_250_V2.csv']
+    else:
+        files = [f"RPS_{i}_V2.csv" for i in days]
     for file in files:
         df = pd.read_csv(file, encoding='utf-8')
         for i in df.values:
@@ -236,12 +239,12 @@ def institutions_holding():
     return pool
 
 
-def select_high_rps_stock():
+def select_high_rps_stock(days=None):
     pool = []
-    data = get_all_RPS_stock_pool()
+    data = get_all_RPS_stock_pool(days)
     for i in data:
         i['code'] = f"{i['code']}.SH" if str(i['code']).startswith('6') else f"{i['code']}.SZ"
         pool.append(i)
-    logging.warning(f"{len(pool)}\t{pool}")
+    logging.warning(f"高RPS股票池:\t{len(pool)}\t{pool}")
     return pool
 

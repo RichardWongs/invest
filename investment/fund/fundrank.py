@@ -5,7 +5,7 @@ import logging
 import time
 import requests
 from datetime import date, timedelta
-from fundresults import get_fund_yield, get_fund_year_yield
+from .fundresults import get_fund_yield, get_fund_year_yield
 
 
 def get_fund_rank(sort, top_count=500):

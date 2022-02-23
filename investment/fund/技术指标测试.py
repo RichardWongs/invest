@@ -8,6 +8,9 @@ def get_fund_kline(code, start_date=str(date.today() - timedelta(180)), end_date
     for i in data:
         i['close'] = i['unit_close']
         i['last_close'] = i['last_unit_close']
+        i['open'] = i['last_unit_close']
+        i['high'] = max(i['close'], i['last_close'])
+        i['low'] = min(i['close'], i['last_close'])
         del i['cumulative_close']
         del i['unit_close']
         del i['last_cumulative_close']
@@ -16,11 +19,9 @@ def get_fund_kline(code, start_date=str(date.today() - timedelta(180)), end_date
         del i['ema150_unit_close']
         del i['ema50_cumulative_close']
         del i['ema150_cumulative_close']
-    data = BooleanLine(RSI(data))
+    # data = BooleanLine(RSI(data))
     return data
 
 
-kline = get_fund_kline('007192')
-for i in kline:
-    print(i)
+
 

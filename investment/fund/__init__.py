@@ -1,7 +1,8 @@
 # encoding: utf-8
 import logging
 from datetime import date, datetime, timedelta
-from fundrank import get_fund_detail_list, fund_ranking_summary, fund_performance_calc
+from .fundresults import get_fund
+from .fundrank import get_fund_detail_list, fund_ranking_summary, fund_performance_calc
 from monitor import Linear_Regression
 
 
@@ -23,7 +24,24 @@ finally_funds = [{'code': '000336', 'name': '农银研究精选混合', 'manager
 etf_list = [{"name": "创成长", "code": 159967}, {"name": "质量ETF", "code": 515910}, {"name": "上证50", "code": 510050}, {"name": "科创50", "code": 588000}, {"name": "光伏ETF", "code": 515790}, {"name": "医疗ETF", "code": 510050}, {"name": "生物医药ETF", "code": 161726}, {"name": "有色金属ETF", "code": 512400}, {"name": "家电ETF", "code": 159996}, {"name": "酒ETF", "code": 512690}, {"name": "农业ETF", "code": 159825}, {"name": "钢铁ETF", "code": 515210}, {"name": "煤炭ETF", "code": 515220}, {"name": "银行ETF", "code": 512800}, {"name": "证券ETF", "code": 159841}, {"name": "房地产ETF", "code": 512200}, {"name": "恒生互联ETF", "code": 513330}, {"name": "5G ETF", "code": 515050}, {"name": "军工ETF", "code": 512660}, {"name": "芯片ETF", "code": 159995}, {"name": "化工ETF", "code": 159870}, {'name': '深创100', 'code': 159721}, {"name": "新能源汽车ETF", "code": 516390}, {"name": "光伏ETF", "code": 515790}, {"name": "医疗创新ETF", "code": 516820}, {"name": "恒生科技30ETF", "code": 513010}, {"name": "恒生医疗ETF", "code": 513060}, {'name': "碳中和50ETF", "code": 516070}]
 
 
-# fund_ranking_summary()
+def get_fund_kline(code, start_date=str(date.today() - timedelta(180)), end_date=str(date.today())):
+    data = get_fund(code, start_date=start_date, end_date=end_date)
+    for i in data:
+        i['close'] = i['unit_close']
+        i['last_close'] = i['last_unit_close']
+        i['open'] = i['last_unit_close']
+        i['high'] = max(i['close'], i['last_close'])
+        i['low'] = min(i['close'], i['last_close'])
+        i['volume'] = 0
+        del i['cumulative_close']
+        del i['unit_close']
+        del i['last_cumulative_close']
+        del i['last_unit_close']
+        del i['ema50_unit_close']
+        del i['ema150_unit_close']
+        del i['ema50_cumulative_close']
+        del i['ema150_cumulative_close']
+    return data
 
 
 

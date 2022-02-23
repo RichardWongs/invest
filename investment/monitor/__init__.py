@@ -1317,6 +1317,7 @@ def channel_trade_system(kline: list):
                 break
         return round(up_channel_coefficients, 2), round(down_channel_coefficients, 2)
     N, M = 13, 26
+    kline = kline if len(kline) <= 100 else kline[-100:]
     kline = EMA_V2(kline, M)
     up_channel_coefficients, down_channel_coefficients = find_channel_coefficients(kline=kline)
     for i in range(len(kline)):

@@ -7,7 +7,9 @@ import time
 import pandas as pd
 import requests
 
+import RPS.动量模型
 from RPS.动量模型 import find_institutions_holding
+from fund import get_fund_kline
 from momentum.concept import get_industry_list, get_concept_kline_v2
 from monitor import *
 
@@ -453,6 +455,7 @@ def draw_channel_by_kline(code=None, name=None):
         save_path += "/ETF"
     elif str(code)[0] in ('0', '3', '6'):
         save_path += "/STOCK"
+        # save_path += "/beautiful"
     else:
         save_path += "/INDUSTRY"
     code = str(code).split('.')[0]
@@ -479,7 +482,8 @@ def draw_channel_by_kline(code=None, name=None):
     )
     add_plot = [
         mpf.make_addplot(df.get('up_channel')),
-        mpf.make_addplot(df.get('down_channel'))
+        mpf.make_addplot(df.get('down_channel')),
+        # mpf.make_addplot(df.get('KAMA')),
     ]
     mpf.plot(df,
              type="candle",
@@ -493,9 +497,52 @@ def draw_channel_by_kline(code=None, name=None):
              mav=(20,),
              addplot=add_plot,
              show_nontrading=True,
-             savefig=f"{save_path}/{name.replace('*', '')}.png"
+             # savefig=f"{save_path}/{name.replace('*', '')}.png"
              )
     # logging.warning(f"{code}\t{name}")
+
+
+def draw_channel_by_kline_V2(kline: list, name=None):
+    import mplfinance as mpf
+    save_path = "../STOCK_CHANNEL"
+    if len(kline) > 100:
+        kline = kline[-100:]
+    for i in range(len(kline)):
+        kline[i]['day'] = date.today()+timedelta(days=i)
+    df = pd.DataFrame(kline)
+    df["datetime"] = pd.to_datetime(df["day"])
+    df.set_index("datetime", inplace=True)
+    mc = mpf.make_marketcolors(
+        up="red",
+        down="green",
+        edge="i",
+        wick="i",
+        volume="in",
+        inherit=True
+    )
+    s = mpf.make_mpf_style(
+        y_on_right=False,
+        marketcolors=mc,
+        rc={"font.family": "SimHei"}
+    )
+    add_plot = [
+        mpf.make_addplot(df.get('up_channel')),
+        mpf.make_addplot(df.get('down_channel'))
+    ]
+    mpf.plot(df,
+             type="candle",
+             title=f"{name}",
+             ylabel="price($)",
+             style=s,
+             volume=True,
+             ylabel_lower="volume(shares)",
+             figratio=(6, 3),
+             figscale=4,
+             mav=(20,),
+             addplot=add_plot,
+             show_nontrading=True,
+             # savefig=f"{save_path}/ETF/HOUR/{name.replace('*', '')}.png"
+             )
 
 
 def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
@@ -540,17 +587,16 @@ def draw_boolean_rsi(code, is_index=False, period=101, limit=150):
 
 def momentum_stock_draw_channel():
     p1 = find_institutions_holding()
-    p2 = select_high_rps_stock()
+    p2 = select_high_rps_stock(days=[20, 50, 120, 250])
     pool = []
     for _, v in p1.items():
-        if v in p2:
+        if v in p2 and not v['code'].startswith('688'):
             pool.append(v)
+    logging.warning(f"机构持股&高RPS(剔除科创板)\t{len(pool)}\t{pool}")
     for i in pool:
         draw_channel_by_kline(code=i['code'], name=i['name'])
 
 
 if __name__ == "__main__":
-    p = get_industry_list()
-    for i in p[50:]:
-        draw_channel_by_kline(code=i['code'], name=i['name'])
+    draw_channel_by_kline(code="300827")
 
