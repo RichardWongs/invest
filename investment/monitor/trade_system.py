@@ -497,7 +497,7 @@ def draw_channel_by_kline(code=None, name=None):
              mav=(20,),
              addplot=add_plot,
              show_nontrading=True,
-             # savefig=f"{save_path}/{name.replace('*', '')}.png"
+             savefig=f"{save_path}/{name.replace('*', '')}.png"
              )
     # logging.warning(f"{code}\t{name}")
 
@@ -593,10 +593,16 @@ def momentum_stock_draw_channel():
         if v in p2 and not v['code'].startswith('688'):
             pool.append(v)
     logging.warning(f"机构持股&高RPS(剔除科创板)\t{len(pool)}\t{pool}")
+    files = os.listdir('../STOCK_CHANNEL/STOCK')
     for i in pool:
-        draw_channel_by_kline(code=i['code'], name=i['name'])
+        if f"{i['name']}.png" not in files:
+            draw_channel_by_kline(code=i['code'], name=i['name'])
 
 
 if __name__ == "__main__":
-    draw_channel_by_kline(code="300827")
+    data = get_stock_kline_with_indicators('002812')[:-29]
+    print(len(data))
+    data = channel_trade_system(data)
+    print(len(data))
+    draw_channel_by_kline_V2(data)
 

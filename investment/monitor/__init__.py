@@ -128,7 +128,7 @@ def Compact_Structure(kline: list):
 def get_stock_kline_with_indicators(code, is_index=False, period=101, limit=120):
     if '.' in str(code):
         code = str(code).split('.')[0]
-    time.sleep(0.5)
+    # time.sleep(0.5)
     assert period in (1, 5, 15, 30, 60, 101, 102, 103)
     if is_index:
         if code.startswith('3'):
